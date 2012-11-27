@@ -44,6 +44,9 @@ class PlugAPI extends EventEmitter
 		client.on 'data', (data)=>
 			@emit 'tcpMessage', data
 
+		client.on 'close', ()=>
+			@emit 'close'
+
 		# events to forward
 		client.on 'connection', ()=>
 			if (room)
