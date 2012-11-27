@@ -49,17 +49,15 @@ class PlugAPI extends EventEmitter
 		if (data.messages)
 			@messageHandler msg for msg in data.messages
 			return
-		console.log(data)
 		if (data.type == 'rpc')
 			@rpcHandlers[data.id]?(data.result)
 			delete @rpcHandlers[data.id]
 
 	messageHandler: (msg)->
 		switch msg.type
-			when 'ping' then sendRPC 'pong'
+			when 'ping' then @sendRPC 'pong'
 			else
 				console.log('Got this message', msg)
-
 
 	sendRPC: (name, args, callback)->
 		if (args == undefined)
@@ -73,6 +71,9 @@ class PlugAPI extends EventEmitter
 			id: rpcId
 			name: 'room.join'
 			args: args
+			
+	send: (data)->
+		client.send data
 
 	joinRoom: (name, callback)->
 		@sendRPC('room.join', [name], callback)
