@@ -281,11 +281,9 @@ PANTS!
         running: function (sm, chunk) {
             var type;
             chunk = this.partialChunk.concat(chunk);
+            while (chunk.length > 0 && '\n' == chunk.charAt(0))
+                chunk = chunk.substring(1);
             if (1 < chunk.length) {
-                if ('\n' == chunk.charAt(0))
-                {
-                    chunk = chunk.substring(1);
-                }
                 type = chunk.charAt(0);
                 switch (type) {
                 case 'h': // heartbeat
@@ -294,11 +292,10 @@ PANTS!
                 case 'a': // data
                     this.emitData(chunk, this.partialChunk.length);
                     break;
+                case 'o': // when we get o in this frame, it counts as a close
                 case 'c': // close frame
+                    console.log('Am i closing now?', chunk)
                     this.close();
-                    break;
-                case 'o':
-                    console.log('Received an o frame midway through connection. What does that do?')
                     break;
                 default:
                     this.error(sm, "Unexpected frame type", type, chunk);
