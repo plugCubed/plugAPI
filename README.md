@@ -42,6 +42,14 @@ bot.on('chat', function(data) {
 })
 ```
 
+Here's an example for automatic reconnecting on errors / close events!
+```js
+var reconnect = function() { bot.connect('coding-soundtrack'); };
+
+bot.on('close', reconnect);
+bot.on('error', reconnect);
+```
+
 ## Actions
 There aren't that many functions implemented yet, and I'm too lazy to document each one yet (HALP?)....
 
@@ -54,3 +62,9 @@ Here's a list:
 ####	vote: (updown, [, callback:fn ])
 ####	changeRoomInfo: (name, description, [, callback:fn ])
 ####	changeRoomOptions: (boothLocked, waitListEnabled, maxPlays, maxDJs, [, callback:fn ])
+####	joinBooth: ([ callback:fn ])
+####	leaveBooth: ([ callback:fn ])
+####	removeDj: (userid [, callback:fn ])
+####	addDj: ([ callback:fn ])
+####	remDj: (userid [, callback:fn ])
+####	skipSong: ([ callback:fn ])
