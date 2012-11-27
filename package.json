@@ -7,7 +7,8 @@
 	"lib": "./src/index.js",
 	"dependencies": {
 		"jar-flow": "*",
-		"coffee-script": "*"
+		"coffee-script": "*",
+		"node-uuid": "*"
 	},
 		"license": "freeBSD",
 		"engine": {
