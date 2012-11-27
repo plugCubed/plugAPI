@@ -65,6 +65,4 @@ Here's a list:
 ####	joinBooth: ([ callback:fn ])
 ####	leaveBooth: ([ callback:fn ])
 ####	removeDj: (userid [, callback:fn ])
-####	addDj: ([ callback:fn ])
-####	remDj: (userid [, callback:fn ])
 ####	skipSong: ([ callback:fn ])
