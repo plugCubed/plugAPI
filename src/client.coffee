@@ -102,7 +102,8 @@ class PlugAPI extends EventEmitter
 	sendRPC: (name, args, callback)->
 		if (args == undefined)
 			args = []
-		if (typeof args != 'object' && args not instanceof 'Array')
+		if (Object.prototype.toString.apply(args) != "[object Array]")
+			console.log(args, 'is not an array so were wrapping it', args not instanceof Array, args instanceof Array)
 			args = [args]
 		rpcId = ++apiId
 
@@ -183,15 +184,15 @@ class PlugAPI extends EventEmitter
 	leaveBooth: (callback)->
 		@sendRPC "booth.leave", [], callback
 
-	removeDj: ()->
-		console.log('Not implemented')
+	removeDj: (userid, callback)->
+		@sendRPC "moderate.remove_dj", userid, callback
 
 	addDj: (callback)->
 		@joinBooth(callback)
 
 	remDj: (userid, callback)->
-		if (userid && userid != @userid)
-			@joinBooth(callback)
+		if (userid && userid == @userid)
+			@leaveBooth(callback)
 		else
 			@removeDj(userid, callback)
 
