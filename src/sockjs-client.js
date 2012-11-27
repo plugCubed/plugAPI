@@ -243,14 +243,19 @@ PANTS!
             } else {
                 this.initialPayloadRemaining = this.initialPayloadLength;
                 if (remaining < 0) {
-                    (sm.stepper())(sm, chunk.slice(this.initialPayloadRemaining));
+                    (sm.stepper())(chunk.slice(this.initialPayloadRemaining));
                 }
             }
         },
 
         dataOpen: function (sm, chunk) {
             var fsm;
+            if (typeof chunk == 'object') {
+                throw new Error ('what the fuck is this shit?');
+            }
             chunk = this.partialChunk.concat(chunk);
+            while (chunk[0] === '\n')
+                chunk = chunk.substr(1);
             if (chunk.length < 2) {
                 this.partialChunk = chunk;
                 sm.switchTo('dataOpen');
@@ -266,9 +271,8 @@ PANTS!
                         (sm.stepper())(sm, chunk.slice(2));
                     }
                 } else {
-                    console.log("Ignoring strange header chunk");
+                    console.log("Ignoring strange header chunk", chunk.trim());
                     sm.switchTo('dataOpen');
-                    //(sm.stepper())(sm, chunk.slice(2));
                     //this.error(sm, chunk);
                 }
             }
