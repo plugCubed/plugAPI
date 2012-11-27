@@ -61,8 +61,12 @@ class PlugAPI extends EventEmitter
 			@messageHandler msg for msg in data.messages
 			return
 		if (data.type == 'rpc')
-			@rpcHandlers[data.id]?.callback?(data.result)
-			@parseRPCReply @rpcHandlers[data.id]?.type, data.result
+			reply = data.result
+			if (data.status != 0)
+				reply = {err: data.status}
+			console.log(data)
+			@rpcHandlers[data.id]?.callback?(reply)
+			@parseRPCReply @rpcHandlers[data.id]?.type, reply
 			delete @rpcHandlers[data.id]
 
 	parseRPCReply: (name, data)->
@@ -70,6 +74,9 @@ class PlugAPI extends EventEmitter
 		switch name
 			when 'room.join'
 				@emit('roomChanged', data)
+				console.log(data)
+				@userId = data.user.profile.id
+				console.log(@userId)
 				@roomId = data.room.id
 				@historyID = data.room.historyID
 
@@ -95,7 +102,7 @@ class PlugAPI extends EventEmitter
 	sendRPC: (name, args, callback)->
 		if (args == undefined)
 			args = []
-		if (args not instanceof Array)
+		if (typeof args != 'object' && args not instanceof 'Array')
 			args = [args]
 		rpcId = ++apiId
 
@@ -103,11 +110,14 @@ class PlugAPI extends EventEmitter
 			callback: callback
 			type: name
 
-		client.send
+		sendArgs =
 			type: 'rpc'
 			id: rpcId
 			name: name
 			args: args
+
+		console.log "about to send", sendArgs
+		client.send sendArgs
 			
 	send: (data)->
 		client.send data
@@ -166,6 +176,24 @@ class PlugAPI extends EventEmitter
 			maxPlays: maxPlays
 			maxDJs: maxDJs
 		@sendRPC "room.update_options", [@roomId, options], callback
+
+	joinBooth: (callback)->
+		@sendRPC "booth.join", [], callback
+
+	leaveBooth: (callback)->
+		@sendRPC "booth.leave", [], callback
+
+	removeDj: ()->
+		console.log('Not implemented')
+
+	addDj: (callback)->
+		@joinBooth(callback)
+
+	remDj: (userid, callback)->
+		if (userid && userid != @userid)
+			@joinBooth(callback)
+		else
+			@removeDj(userid, callback)
 
 
 module.exports = PlugAPI
