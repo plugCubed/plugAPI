@@ -14,7 +14,7 @@ var PlugAPI = require('./src/')
 To connect, do this!
 
 ```js
-var AUTH = ''; // Put your auth token here, it's the cookie value for usr
+var AUTH = 'xxxxxxxxxxxxxxxxxxxxxxxxxxx=?_expires=xxxxxxxxxxxxxxxxxx==&user_id=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx='; // Put your auth token here, it's the cookie value for usr
 var ROOM = 'coding-soundtrack';
 
 var bot = new PlugAPI(AUTH);
