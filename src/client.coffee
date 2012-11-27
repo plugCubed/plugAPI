@@ -1,6 +1,10 @@
 SockJS = require('./sockjs-client')
 http = require('http')
 EventEmitter = require('events').EventEmitter
+Encoder = require('node-html-encoder').Encoder
+
+# create our entity encoder for decoding chat messages
+encoder = new Encoder('entity')
 
 # store a reference to the render headers function, we overwrite it below
 http.OutgoingMessage.prototype.__renderHeaders = http.OutgoingMessage.prototype._renderHeaders
@@ -74,7 +78,9 @@ class PlugAPI extends EventEmitter
 			# leave them here, don't document them, purely convenience
 			when 'userJoin' then @emit 'registered', msg.data
 			when 'userLeave' then @emit 'registered', msg.data
-			when 'chat' then @emit 'speak', msg.data
+			when 'chat'
+				msg.data.message = encoder.htmlDecode(msg.data.message)
+				@emit 'speak', msg.data
 			when 'voteUpdate' then @emit 'update_votes', msg.data
 			when 'djAdvance'
 				console.log('New song', msg.data)
