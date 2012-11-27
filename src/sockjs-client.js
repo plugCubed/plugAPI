@@ -297,6 +297,9 @@ PANTS!
                 case 'c': // close frame
                     this.close();
                     break;
+                case 'o':
+                    console.log('Received an o frame midway through connection. What does that do?')
+                    break;
                 default:
                     this.error(sm, "Unexpected frame type", type, chunk);
                     break;
