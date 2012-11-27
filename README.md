@@ -46,10 +46,10 @@ bot.on('chat', function(data) {
 There aren't that many functions implemented yet, and I'm too lazy to document each one yet (HALP?)....
 
 Here's a list:
-	joinRoom: (name, callback)
-	chat: (msg)
-	woot: (callback)
-	meh: (callback)
-	vote: (updown, callback)
-	changeRoomInfo: (name, description, callback)
-	changeRoomOptions: (boothLocked, waitListEnabled, maxPlays, maxDJs, callback)
+####	joinRoom: (name, callback)
+####	chat: (msg)
+####	woot: (callback)
+####	meh: (callback)
+####	vote: (updown, callback)
+####	changeRoomInfo: (name, description, callback)
+####	changeRoomOptions: (boothLocked, waitListEnabled, maxPlays, maxDJs, callback)
