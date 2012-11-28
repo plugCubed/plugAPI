@@ -79,7 +79,6 @@ class PlugAPI extends EventEmitter
 				@historyID = data.room.historyID
 
 	messageHandler: (msg)->
-		console.log msg
 		switch msg.type
 			when 'ping' then @sendRPC 'user.pong'
 			# these are all for ttapi event name compatibility
