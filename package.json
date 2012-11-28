@@ -1,6 +1,6 @@
 {
 	"name": "plugapi",
-	"version": "0.1.3",
+	"version": "0.1.4",
 	"author": "Chris Vickery <chrisinajar@gmail.com>",
 	"contributors": [
 		{
@@ -14,6 +14,10 @@
 		"coffee-script": "*",
 		"node-uuid": "*",
 		"node-html-encoder": "*"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/chrisinajar/plugapi"
 	},
 	"license": "freeBSD",
 	"engines": {
