@@ -39,8 +39,8 @@ Icon?
 ehthumbs.db
 Thumbs.db
 
-# My Bot #
-nbot.js
+# bots #
+*bot.js
 
 # node.js #
 node_modules
