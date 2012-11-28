@@ -1,12 +1,16 @@
 {
 	"name": "plugapi",
-	"version": "0.0.0",
+	"version": "0.1.1",
 	"author": "Chris Vickery <chrisinajar@gmail.com>",
+	"contributors": [
+		{
+			"name": "ging"
+		}
+	],
 	"description": "Generic API for building Plug.dj bots",
 	"main": "./src/index.js",
 	"lib": "./src/index.js",
 	"dependencies": {
-		"jar-flow": "*",
 		"coffee-script": "*",
 		"node-uuid": "*",
 		"node-html-encoder": "*"

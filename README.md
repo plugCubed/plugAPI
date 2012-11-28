@@ -5,10 +5,10 @@ A generic API for creating Plug.dj bots
 
 
 ## How to use
-Until it's in NPM, include the PlugAPI object by doing
+Just grab it from npm, or optionally use the lastest version for github
 
-```js
-var PlugAPI = require('./src/')
+```
+npm install plugapi
 ```
 
 To connect, do this!
