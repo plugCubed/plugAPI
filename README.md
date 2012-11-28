@@ -54,13 +54,13 @@ Here's a list of events:
 
 ####	chat
 ```
-{ data: 
-   { fromID: 'user id',
-     message: 'message text',
-     from: 'username',
-     type: 'message type',
-     chatID: 'chat id' },
-  type: 'chat' }
+data:
+	fromID: 'user id'
+	message: 'message text'
+	from: 'username'
+	type: 'message type'
+	chatID: 'chat id'
+type: 'chat'
 ```
 Example:
 ```
@@ -74,7 +74,9 @@ Example:
 ```
 ####	userLeave
 ```
-{ data: { id: 'user id' }, type: 'userLeave' }
+data:
+	id: 'user id'
+type: 'userLeave'
 ```
 Example:
 ```
@@ -83,17 +85,17 @@ Example:
 
 ####	userJoin
 ```
-{ data: 
-   { username: 'username',
-     status: 0/1/2/3/4/5,
-     fans: fans,
-     listenerPoints: points from listeners,
-     language: 'language',
-     avatarID: 'bud03',
-     id: 'xxxxxxxxxxxxxxxxxxxxxxxx',
-     curatorPoints: points from curators,
-     djPoints: points from DJing },
-  type: 'userJoin' }
+data:
+	username: 'username'
+	status: 0/1/2/3/4/5
+	fans: fans
+	listenerPoints: points from listeners
+	language: 'language'
+	avatarID: 'bud03'
+	id: 'xxxxxxxxxxxxxxxxxxxxxxxx'
+	curatorPoints: points from curators
+	djPoints: points from DJing
+type: 'userJoin'
 ```
 Example:
 ```
@@ -117,8 +119,10 @@ sorry, only saw one time :(
 
 ####	voteUpdate
 ```
-{ data: { vote: 1/0, id: 'user id' },
-  type: 'voteUpdate' }
+data:
+	vote: 1/0
+	id: 'user id'
+type: 'voteUpdate'
 ```
 Example:
 ```
@@ -128,8 +132,9 @@ Example:
 
 ####	curateUpdate
 ```
-{ data: { id: 'user id' },
-  type: 'curateUpdate' }
+data:
+	id: 'user id' 
+	type: 'curateUpdate'
 ```
 Example:
 ```
@@ -139,21 +144,21 @@ Example:
 
 ####	djAdvance
 ```
-{ data: 
-   { currentDJ: 'user id',
-     djs: [ [Object], [Object], [Object], [Object], [Object] ],
-     mediaStartTime: 'start time',
-     media: 
-      { title: 'song title',
-        format: 'x',
-        author: 'song author',
-        cid: 'xxxxxxxx',
-        duration: duration in seconds,
-        id: 'format:cid' },
-     playlistID: 'playlist id',
-     earn: true/false,
-     historyID: 'id for song history' },
-  type: 'djAdvance' }
+data:
+	currentDJ: 'user id'
+	djs: [ [Object], [Object], [Object], [Object], [Object] ]
+	mediaStartTime: 'start time'
+	media: 
+		title: 'song title'
+		format: 'x'
+		author: 'song author'
+		cid: 'xxxxxxxx'
+		duration: duration in seconds
+		id: 'format:cid'
+	playlistID: 'playlist id'
+	earn: true/false
+	historyID: 'id for song history'
+type: 'djAdvance'
 ´´´
 Example:
 ´´´
@@ -176,13 +181,13 @@ Example:
 
 ####	djUpdate
 ´´´
-{ data: 
-   [ { plays: times the dj played a song, id: 'user id' },
-     { plays: times the dj played a song, id: 'user id' },
-     { plays: times the dj played a song, id: 'user id' },
-     { plays: times the dj played a song, id: 'user id' },
-     { plays: times the dj played a song, id: 'user id' } ],
-  type: 'djUpdate' }
+data: 
+	plays: times the dj played a song, id: 'user id'
+	plays: times the dj played a song, id: 'user id'
+	plays: times the dj played a song, id: 'user id'
+	plays: times the dj played a song, id: 'user id'
+    plays: times the dj played a song, id: 'user id'
+type: 'djUpdate'
 ´´´
 Example:
 ´´´
