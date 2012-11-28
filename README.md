@@ -13,7 +13,7 @@ npm install plugapi
 
 To connect, do this!
 
-```js
+```
 var AUTH = 'xxxxxxxxxxxxxxxxxxxxxxxxxxx=?_expires=xxxxxxxxxxxxxxxxxx==&user_id=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx='; // Put your auth token here, it's the cookie value for usr
 var ROOM = 'coding-soundtrack';
 
@@ -26,13 +26,13 @@ bot.on('connected', function() {
 ```
 
 You can also pass the room directly to connect to save SO MUCH TIME
-```js
+```
 bot.connect(ROOM);
 ```
 
 ## Events
 You can listen on essentially any event that plug emits. Many of the events also emit an alias event named after the ttapi version
-```js
+```
 // basic chat handler to show incoming chats formatted nicely
 bot.on('chat', function(data) {
 	if (data.type == 'emote')
@@ -43,7 +43,7 @@ bot.on('chat', function(data) {
 ```
 
 Here's an example for automatic reconnecting on errors / close events!
-```js
+```
 var reconnect = function() { bot.connect('coding-soundtrack'); };
 
 bot.on('close', reconnect);
