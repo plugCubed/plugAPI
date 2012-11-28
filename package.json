@@ -11,8 +11,8 @@
 		"node-uuid": "*",
 		"node-html-encoder": "*"
 	},
-		"license": "freeBSD",
-		"engine": {
+	"license": "freeBSD",
+	"engines": {
 		"node": ">=0.6"
 	}
 }
