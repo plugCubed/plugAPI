@@ -159,9 +159,9 @@ data:
 	earn: true/false
 	historyID: 'id for song history'
 type: 'djAdvance'
-´´´
+```
 Example:
-´´´
+```
 { data: 
    { currentDJ: 'xxxxxxxxxxxxxxxxxxxxxxxx',
      djs: [ [Object], [Object], [Object], [Object], [Object] ],
@@ -177,10 +177,10 @@ Example:
      earn: true,
      historyID: 'xxxxxxxxxxxxxxxxxxxxxxxx' },
   type: 'djAdvance' }
-´´´
+```
 
 ####	djUpdate
-´´´
+```
 data: 
 	plays: times the dj played a song, id: 'user id'
 	plays: times the dj played a song, id: 'user id'
@@ -188,9 +188,9 @@ data:
 	plays: times the dj played a song, id: 'user id'
     plays: times the dj played a song, id: 'user id'
 type: 'djUpdate'
-´´´
+```
 Example:
-´´´
+```
 { data: 
    [ { plays: 2, id: 'xxxxxxxxxxxxxxxxxxxxxxxx' },
      { plays: 13, id: 'xxxxxxxxxxxxxxxxxxxxxxxx' },
@@ -198,7 +198,7 @@ Example:
      { plays: 10, id: 'xxxxxxxxxxxxxxxxxxxxxxxx' },
      { plays: 0, id: 'xxxxxxxxxxxxxxxxxxxxxxxx' } ],
   type: 'djUpdate' }
-´´´
+```
 
 ## Actions
 There aren't that many functions implemented yet, and I'm too lazy to document each one yet (HALP?)....
