@@ -90,7 +90,7 @@ class PlugAPI extends EventEmitter
 				@emit 'speak', msg.data
 			when 'voteUpdate' then @emit 'update_votes', msg.data
 			when 'djAdvance'
-				console.log('New song', msg.data)
+				#console.log('New song', msg.data)
 				@historyID = msg.data.historyID
 			when undefined then console.log('UNKNOWN MESSAGE FORMAT', msg)
 		if (msg.type)
