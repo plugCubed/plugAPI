@@ -30,6 +30,14 @@ You can also pass the room directly to connect to save SO MUCH TIME
 bot.connect(ROOM);
 ```
 
+##Examples
+Here are some bots using this API. Check out how they did it!
+
+* https://github.com/chrisinajar/roboJar-plug
+* https://github.com/martindale/snarl
+
+Have a bot that uses the API? Let me know!
+
 ## Events
 You can listen on essentially any event that plug emits. Many of the events also emit an alias event named after the ttapi version
 ```
