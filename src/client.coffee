@@ -31,7 +31,7 @@ class PlugAPI extends EventEmitter
 			return @__renderHeaders()
 
 		# now that we've set the header, we start connecting...
-		client = SockJS.create('http://sjs.plug.dj:443/plug');
+		client = SockJS.create('https://sjs.plug.dj:443/plug');
 		client.send = (data)->
 			@write(JSON.stringify(data))
 
