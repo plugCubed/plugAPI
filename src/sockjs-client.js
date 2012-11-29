@@ -270,6 +270,8 @@ PANTS!
                     if (2 < chunk.length) {
                         (sm.stepper())(sm, chunk.slice(2));
                     }
+                } else if ('c' === chunk.slice(0, 1)) {
+                    this.error(sm, chunk);
                 } else {
                     console.log("Ignoring strange header chunk", chunk.trim());
                     sm.switchTo('dataOpen');
