@@ -273,7 +273,6 @@ PANTS!
                 } else if ('c' === chunk.slice(0, 1)) {
                     this.error(sm, chunk);
                 } else {
-                    console.log("Ignoring strange header chunk", chunk.trim());
                     sm.switchTo('dataOpen');
                     //this.error(sm, chunk);
                 }
@@ -296,7 +295,6 @@ PANTS!
                     break;
                 case 'o': // when we get o in this frame, it counts as a close
                 case 'c': // close frame
-                    console.log('Am i closing now?', chunk)
                     this.close();
                     break;
                 default:

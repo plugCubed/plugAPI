@@ -36,8 +36,6 @@ class PlugAPI extends EventEmitter
 			@write(JSON.stringify(data))
 
 		client.on 'error', (e)=>
-			console.log('error', e)
-			console.log();
 			@emit 'error', e
 
 		client.on 'data', @dataHandler
@@ -100,7 +98,6 @@ class PlugAPI extends EventEmitter
 		if (args == undefined)
 			args = []
 		if (Object.prototype.toString.apply(args) != "[object Array]")
-			console.log(args, 'is not an array so were wrapping it', args not instanceof Array, args instanceof Array)
 			args = [args]
 		rpcId = ++apiId
 
