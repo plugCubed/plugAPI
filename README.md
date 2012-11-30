@@ -224,3 +224,15 @@ Here's a list:
 ####	leaveBooth: ([ callback:fn ])
 ####	removeDj: (userid [, callback:fn ])
 ####	skipSong: ([ callback:fn ])
+
+##Misc
+
+#### setLogObject(logger)
+You can set your own custom logger for the API to use when it logs important events, such as errors or stack traces from the server.
+
+The logger object must have a function called "log" that takes any number of parameters and prints them.
+
+```
+var prompt = new Prompt();
+bot.setLogObject(prompt);
+```
