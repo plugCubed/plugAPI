@@ -12,12 +12,18 @@ http.OutgoingMessage.prototype.__renderHeaders = http.OutgoingMessage.prototype.
 # private connection object
 client = null
 apiId = 0
+logger = 
+	log: ()->
+		console.log.apply(console, arguments)
 
 class PlugAPI extends EventEmitter
 	constructor: (@key)->
 		if (!key)
 			throw new Error("You must pass the authentication cookie into the PlugAPI object to connect correctly")
 		@rpcHandlers = {}
+
+	setLogObject: (c)->
+		logger = c
 
 	connect: (room)->
 		cookie = @key
@@ -60,8 +66,10 @@ class PlugAPI extends EventEmitter
 			return
 		if (data.type == 'rpc')
 			reply = data.result
+			if (data.result?.stacktrace)
+				logger.log data.result.stacktrace
 			if (data.status != 0)
-				reply = {err: data.status}
+				reply = data
 			@rpcHandlers[data.id]?.callback?(reply)
 			@parseRPCReply @rpcHandlers[data.id]?.type, reply
 			delete @rpcHandlers[data.id]
@@ -71,7 +79,7 @@ class PlugAPI extends EventEmitter
 		switch name
 			when 'room.join'
 				@emit('roomChanged', data)
-				# console.log(data)
+				# logger.log(data)
 				@userId = data.user.profile.id
 				@roomId = data.room.id
 				@historyID = data.room.historyID
@@ -88,9 +96,9 @@ class PlugAPI extends EventEmitter
 				@emit 'speak', msg.data
 			when 'voteUpdate' then @emit 'update_votes', msg.data
 			when 'djAdvance'
-				#console.log('New song', msg.data)
+				#logger.log('New song', msg.data)
 				@historyID = msg.data.historyID
-			when undefined then console.log('UNKNOWN MESSAGE FORMAT', msg)
+			when undefined then logger.log('UNKNOWN MESSAGE FORMAT', msg)
 		if (msg.type)
 			@emit(msg.type, msg.data)
 
