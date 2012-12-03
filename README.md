@@ -212,18 +212,306 @@ Example:
 There aren't that many functions implemented yet, and I'm too lazy to document each one yet (HALP?)....
 
 Here's a list:
-####	connect: ([roomName])
-####	joinRoom: (name, [, callback:fn ])
-####	chat: (msg)
-####	woot: ([ callback:fn ])
-####	meh: ([ callback:fn ])
-####	vote: (updown, [, callback:fn ])
-####	changeRoomInfo: (name, description, [, callback:fn ])
-####	changeRoomOptions: (boothLocked, waitListEnabled, maxPlays, maxDJs, [, callback:fn ])
-####	joinBooth: ([ callback:fn ])
-####	leaveBooth: ([ callback:fn ])
-####	removeDj: (userid [, callback:fn ])
-####	skipSong: ([ callback:fn ])
+
+#### connect: ([roomName])
+
+Connects to plug.dj and optionally joins a room.
+
+##### roomName
+*string (optional)*
+
+The name of the room to join after succesful connection.
+
+#### joinRoom: (name, [, callback:fn ])
+
+Join a room on plug.dj
+
+##### name
+*string (required)*
+
+The name of the room to join.
+
+##### callback
+*callback (optional)*
+
+##### Example
+*This is not a parameter!*
+´´´
+bot.joinRoom('coding-soundtrack');
+´´´
+#### chat: (msg)
+
+Sends a Message in the Chat.
+
+##### msg
+*string*
+
+The Message to send.
+
+##### Example
+*This is not a parameter!*
+´´´
+bot.chat('Hello World!');
+´´´
+#### woot: ([ callback:fn ])
+
+Woots the actual song.
+
+##### callback
+*callback (optional)*
+
+##### Example
+*This is not a parameter!*
+´´´
+bot.woot();
+´´´
+#### meh: ([ callback:fn ])
+
+Mehs the actual song.
+
+##### callback
+*callback (optional)*
+
+##### Example
+*This is not a parameter!*
+´´´
+bot.meh();
+´´´
+#### vote: (updown, [, callback:fn ])
+
+Vote on the actual song with a string.
+
+##### updown
+*string (required)*
+
+Either 'up' or 'down', calls the appropriate function (woot() or meh()).
+
+##### callback
+*callback (optional)*
+
+##### Example
+*This is not a parameter!*
+´´´
+bot.vote('up'); //woot the song
+´´´
+´´´
+bot.vote('down'); //meh the song
+´´´
+#### changeRoomInfo: (name, description, [, callback:fn ])
+
+Change actual room information. Only available if you are the host.
+
+##### name
+*string (required)*
+
+A (new) name for the room.
+
+##### description
+*string (required)*
+
+The rooms description.
+
+##### callback
+*callback (optional)*
+
+##### Example
+*This is not a parameter!*
+´´´
+bot.changeRoomInfo('Hello World', 'This is a new description for my room.');
+´´´
+#### changeRoomOptions: (boothLocked, waitListEnabled, maxPlays, maxDJs, [, callback:fn ])
+
+If you are in a room and you are host, you can change the room options with this function.
+
+##### boothLocked
+*boolean (required)*
+
+Toggles the booths state (locked or unlocked).
+
+##### waitListEnabled
+*boolean (required)*
+
+Is there a waitlist in this room?
+
+##### maxPlays
+*integer (required)*
+
+Maximum Plays per DJ.
+
+##### maxDJs
+*integer (required)*
+
+Limit DJs on the booth to this number (usually 5).
+
+##### callback
+*callback (optional)*
+
+##### Example
+*This is not a parameter!*
+´´´
+bot.changeRoomOptions(false, false, 1, 5);
+´´´
+#### joinBooth: ([ callback:fn ])
+
+Joins the DJ booth if there is a free place.
+
+##### callback
+*callback (optional)*
+
+##### Example
+*This is not a parameter!*
+´´´
+bot.joinBooth();
+´´´
+#### leaveBooth: ([ callback:fn ])
+
+Leave the DJ booth.
+
+##### callback
+*callback (optional)*
+
+##### Example
+*This is not a parameter!*
+´´´
+bot.leaveBooth();
+´´´
+#### removeDj: (userid [, callback:fn ])
+
+Removes a DJ from the DJ booth if possible. The user has to be in the booth and you need the permission to remove DJs from the booth.
+
+##### callback
+*callback (optional)*
+
+##### Example
+*This is not a parameter!*
+´´´
+bot.removeDJ('xxxxxxxxxxxxxxxxxxxxxxxx');
+´´´
+#### skipSong: ([ callback:fn ])
+
+Skips the current song. You need to be DJ or have the permission to skip a song.
+
+##### callback
+*callback (optional)*
+
+##### Example
+*This is not a parameter!*
+´´´
+bot.skipSong();
+´´´
+
+## plug.dj Actions:
+use them with @sendRPC in client.coffee
+
+* duration.update
+* duration.mismatch
+* duration.update
+* history.select
+* room.create
+* room.curate
+* room.cast
+* room.join
+* room.update_options
+* room.state
+* playlist.media.insert
+* playlist.media.delete
+* playlist.media.move
+* playlist.media.insert
+* media.select
+* media.lookup
+* playlist.select
+* playlist.rename
+* playlist.delete
+* playlist.activate
+* moderate.skip
+* moderate.kick
+* moderate.remove_dj
+* moderate.add_dj
+* moderate.permissions
+* moderate.chat_delete
+* booth.join
+* booth.leave
+* booth.cleanup
+* booth.skip
+* user.pong
+* user.set_avatar
+* user.set_status
+* user.set_language
+* user.name_available
+* user.get_by_ids
+* user.follow
+* user.unfollow
+* user.change_name
+
+## Avatars
+
+this is a list of avatar names that can be used in user.set_avatar
+
+* su01
+* su02
+* luclin01
+* luclin02
+* luclin03
+* lazyrich
+* revolvr
+* anniemac
+* halloween01
+* halloween02
+* halloween03
+* halloween04
+* halloween05
+* halloween06
+* halloween07
+* halloween08
+* halloween09
+* halloween10
+* halloween11
+* halloween12
+* halloween13
+* lucha01
+* lucha02
+* lucha03
+* lucha04
+* lucha05
+* lucha06
+* lucha07
+* lucha08
+* monster01
+* monster02
+* monster03
+* monster04
+* monster05
+* animal01
+* animal02
+* animal03
+* animal04
+* animal05
+* animal06
+* animal07
+* animal08
+* animal09
+* animal10
+* animal11
+* animal12
+* animal13
+* bud01
+* bud02
+* bud03
+* bud04
+* bud05
+* bud06
+* bud07
+* bud08
+* bud09
+* bud10
+* bud11
+* space01
+* space02
+* space03
+* space04
+* space05
+* space06
+
 
 ##Misc
 
