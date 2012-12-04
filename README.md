@@ -218,7 +218,7 @@ Here's a list:
 Connects to plug.dj and optionally joins a room.
 
 ##### roomName
-*string (optional)*
+*<small>string (optional)</small>*
 
 The name of the room to join after succesful connection.
 
@@ -227,178 +227,179 @@ The name of the room to join after succesful connection.
 Join a room on plug.dj
 
 ##### name
-*string (required)*
+*<small>string (required)</small>*
 
 The name of the room to join.
 
 ##### callback
-*callback (optional)*
+*<small>callback (optional)</small>*
 
 ##### Example
-*This is not a parameter!*
-´´´
+*<small>This is not a parameter!</small>*
+```
 bot.joinRoom('coding-soundtrack');
-´´´
+```
 #### chat: (msg)
 
 Sends a Message in the Chat.
 
 ##### msg
-*string*
+*<small>string</small>*
 
 The Message to send.
 
 ##### Example
-*This is not a parameter!*
-´´´
+*<small>This is not a parameter!</small>*
+```
 bot.chat('Hello World!');
-´´´
+```
 #### woot: ([ callback:fn ])
 
 Woots the actual song.
 
 ##### callback
-*callback (optional)*
+*<small>callback (optional)</small>*
 
 ##### Example
-*This is not a parameter!*
-´´´
+*<small>This is not a parameter!</small>*
+```
 bot.woot();
-´´´
+```
 #### meh: ([ callback:fn ])
 
 Mehs the actual song.
 
 ##### callback
-*callback (optional)*
+*<small>callback (optional)</small>*
 
 ##### Example
-*This is not a parameter!*
-´´´
+*<small>This is not a parameter!</small>*
+```
 bot.meh();
-´´´
+```
 #### vote: (updown, [, callback:fn ])
 
 Vote on the actual song with a string.
 
 ##### updown
-*string (required)*
+*<small>string (required)</small>*
 
 Either 'up' or 'down', calls the appropriate function (woot() or meh()).
 
 ##### callback
-*callback (optional)*
+*<small>callback (optional)</small>*
 
 ##### Example
-*This is not a parameter!*
-´´´
+*<small>This is not a parameter!</small>*
+```
 bot.vote('up'); //woot the song
-´´´
-´´´
+```
+```
 bot.vote('down'); //meh the song
-´´´
+```
 #### changeRoomInfo: (name, description, [, callback:fn ])
 
 Change actual room information. Only available if you are the host.
 
 ##### name
-*string (required)*
+*<small>string (required)</small>*
 
 A (new) name for the room.
 
 ##### description
-*string (required)*
+*<small>string (required)</small>*
 
 The rooms description.
 
 ##### callback
-*callback (optional)*
+*<small>callback (optional)</small>*
 
 ##### Example
-*This is not a parameter!*
-´´´
+*<small>This is not a parameter!</small>*
+```
 bot.changeRoomInfo('Hello World', 'This is a new description for my room.');
-´´´
+```
 #### changeRoomOptions: (boothLocked, waitListEnabled, maxPlays, maxDJs, [, callback:fn ])
 
 If you are in a room and you are host, you can change the room options with this function.
 
 ##### boothLocked
-*boolean (required)*
+*<small>boolean (required)</small>*
 
 Toggles the booths state (locked or unlocked).
 
 ##### waitListEnabled
-*boolean (required)*
+*<small>boolean (required)</small>*
 
 Is there a waitlist in this room?
 
 ##### maxPlays
-*integer (required)*
+*<small>integer (required)</small>*
 
 Maximum Plays per DJ.
 
 ##### maxDJs
-*integer (required)*
+*<small>integer (required)</small>*
 
 Limit DJs on the booth to this number (usually 5).
 
 ##### callback
-*callback (optional)*
+*<small>callback (optional)</small>*
 
 ##### Example
-*This is not a parameter!*
-´´´
+*<small>This is not a parameter!</small>*
+```
 bot.changeRoomOptions(false, false, 1, 5);
-´´´
+```
 #### joinBooth: ([ callback:fn ])
 
 Joins the DJ booth if there is a free place.
 
 ##### callback
-*callback (optional)*
+*<small>callback (optional)</small>*
 
 ##### Example
-*This is not a parameter!*
-´´´
+*<small>This is not a parameter!</small>*
+```
 bot.joinBooth();
-´´´
+```
 #### leaveBooth: ([ callback:fn ])
 
 Leave the DJ booth.
 
 ##### callback
-*callback (optional)*
+*<small>callback (optional)</small>*
 
 ##### Example
-*This is not a parameter!*
-´´´
+*<small>This is not a parameter!</small>*
+```
 bot.leaveBooth();
-´´´
+```
 #### removeDj: (userid [, callback:fn ])
 
 Removes a DJ from the DJ booth if possible. The user has to be in the booth and you need the permission to remove DJs from the booth.
 
 ##### callback
-*callback (optional)*
+*<small>callback (optional)</small>*
 
 ##### Example
-*This is not a parameter!*
-´´´
+*<small>This is not a parameter!</small>*
+```
 bot.removeDJ('xxxxxxxxxxxxxxxxxxxxxxxx');
-´´´
+```
 #### skipSong: ([ callback:fn ])
 
 Skips the current song. You need to be DJ or have the permission to skip a song.
 
 ##### callback
-*callback (optional)*
+*<small>callback (optional)</small>*
 
 ##### Example
-*This is not a parameter!*
-´´´
+*<small>This is not a parameter!</small>*
+
+```
 bot.skipSong();
-´´´
+```
 
 ## plug.dj Actions:
 use them with @sendRPC in client.coffee
