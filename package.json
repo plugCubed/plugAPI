@@ -5,6 +5,10 @@
 	"contributors": [
 		{
 			"name": "ging"
+		},
+		{
+			"name": "Nicolas Jeker",
+			"email": "n.jeker@gmx.net"
 		}
 	],
 	"description": "Generic API for building Plug.dj bots",
