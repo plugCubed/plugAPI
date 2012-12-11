@@ -44,3 +44,7 @@ Thumbs.db
 
 # node.js #
 node_modules
+lib
+assets
+
+.gitignore
