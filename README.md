@@ -401,49 +401,6 @@ Skips the current song. You need to be DJ or have the permission to skip a song.
 bot.skipSong();
 ```
 
-## plug.dj Actions:
-use them with @sendRPC in client.coffee
-
-* duration.update
-* duration.mismatch
-* duration.update
-* history.select
-* room.create
-* room.curate
-* room.cast
-* room.join
-* room.update_options
-* room.state
-* playlist.media.insert
-* playlist.media.delete
-* playlist.media.move
-* playlist.media.insert
-* media.select
-* media.lookup
-* playlist.select
-* playlist.rename
-* playlist.delete
-* playlist.activate
-* moderate.skip
-* moderate.kick
-* moderate.remove_dj
-* moderate.add_dj
-* moderate.permissions
-* moderate.chat_delete
-* booth.join
-* booth.leave
-* booth.cleanup
-* booth.skip
-* user.pong
-* user.set_avatar
-* user.set_status
-* user.set_language
-* user.name_available
-* user.get_by_ids
-* user.follow
-* user.unfollow
-* user.change_name
-
 ## Avatars
 
 this is a list of avatar names that can be used in user.set_avatar
