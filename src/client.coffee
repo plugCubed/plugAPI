@@ -3,6 +3,9 @@ http = require('http')
 EventEmitter = require('events').EventEmitter
 Encoder = require('node-html-encoder').Encoder
 
+# track state of room internally
+Room = require('./room')
+
 # create our entity encoder for decoding chat messages
 encoder = new Encoder('entity')
 
@@ -21,6 +24,7 @@ class PlugAPI extends EventEmitter
 		if (!key)
 			throw new Error("You must pass the authentication cookie into the PlugAPI object to connect correctly")
 		@rpcHandlers = {}
+		@room = new Room()
 
 	setLogObject: (c)->
 		logger = c
@@ -89,14 +93,19 @@ class PlugAPI extends EventEmitter
 			when 'ping' then @sendRPC 'user.pong'
 			# these are all for ttapi event name compatibility
 			# leave them here, don't document them, purely convenience
-			when 'userJoin' then @emit 'registered', msg.data
-			when 'userLeave' then @emit 'registered', msg.data
+			when 'userJoin' 
+				@room.addUser(msg.data)
+				@emit 'registered', msg.data
+			when 'userLeave'
+				@room.remUser(msg.data.id)
+				@emit 'registered', msg.data
 			when 'chat'
 				msg.data.message = encoder.htmlDecode(msg.data.message)
 				@emit 'speak', msg.data
 			when 'voteUpdate' then @emit 'update_votes', msg.data
 			when 'djAdvance'
-				#logger.log('New song', msg.data)
+				@room.setDjs(msg.data.djs)
+				@room.setMedia(msg.data.media)
 				@historyID = msg.data.historyID
 			when undefined then logger.log('UNKNOWN MESSAGE FORMAT', msg)
 		if (msg.type)
@@ -127,8 +136,11 @@ class PlugAPI extends EventEmitter
 	# sane functions. This is the actual API
 	# any function who differs in name from the ttfm ones have a copy that calls said ttfm function
 	# this is for API compatibility between ttapi and plugapi
-	joinRoom: (name, callback)->
-		@sendRPC('room.join', [name], callback)
+	joinRoom: (name, callback)=>
+		@sendRPC 'room.join', [name], (data)=>
+			for user in data['room']['users']
+				@room.addUser user
+			callback.apply @, arguments
 
 	# alias for ttapi compatibility
 	roomRegister: (name, callback)->
@@ -199,6 +211,19 @@ class PlugAPI extends EventEmitter
 
 	skipSong: (callback)->
 		@sendRPC "moderate.skip", @historyID, callback
+
+	getUsers: ()=> return @room.getUsers()
+	
+	getDjs: ()=> return @room.getDjs()
+
+	getMedia: ()=> return @room.getMedia()
+
+	getAmbassadors: ()=>
+		ambassadors = []
+		for user in @room.getUsers()
+			if user.ambassador
+				ambassdors.push user
+		return ambassadors
 
 
 module.exports = PlugAPI
