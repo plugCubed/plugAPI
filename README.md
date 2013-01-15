@@ -401,6 +401,10 @@ Skips the current song. You need to be DJ or have the permission to skip a song.
 bot.skipSong();
 ```
 
+#### getUsers: ()
+
+Returns an object containing all the users currently in the room at the moment of calling.  Identical to Plug.DJ's API.getUsers()
+
 ## Avatars
 
 this is a list of avatar names that can be used in user.set_avatar
