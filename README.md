@@ -405,6 +405,10 @@ bot.skipSong();
 
 Returns an object containing all the users currently in the room at the moment of calling.  Identical to Plug.DJ's API.getUsers()
 
+#### getAmbassadors: ()
+
+Returns array containing ambassadors currently in the room
+
 ## Avatars
 
 this is a list of avatar names that can be used in user.set_avatar
