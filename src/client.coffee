@@ -102,11 +102,21 @@ class PlugAPI extends EventEmitter
 			when 'chat'
 				msg.data.message = encoder.htmlDecode(msg.data.message)
 				@emit 'speak', msg.data
-			when 'voteUpdate' then @emit 'update_votes', msg.data
-			when 'djAdvance'
+			when 'voteUpdate' 
+				if msg.data.vote == 1
+					@room.logVote msg.data.id, 'woot'
+				else
+					@room.logVote msg.data.id, 'meh'
+				@emit 'update_votes', msg.data
+			when 'djUpdate'
 				@room.setDjs(msg.data.djs)
+			when 'djAdvance'
 				@room.setMedia(msg.data.media)
 				@historyID = msg.data.historyID
+			when 'waitListUpdate'
+				@room.setWaitlist msg.data
+			when 'curateUpdate'
+				@room.logVote msg.data.id, 'curate'
 			when undefined then logger.log('UNKNOWN MESSAGE FORMAT', msg)
 		if (msg.type)
 			@emit(msg.type, msg.data)
@@ -138,9 +148,21 @@ class PlugAPI extends EventEmitter
 	# this is for API compatibility between ttapi and plugapi
 	joinRoom: (name, callback)=>
 		@sendRPC 'room.join', [name], (data)=>
-			for user in data['room']['users']
-				@room.addUser user
-			callback.apply @, arguments
+			@initRoom data, =>
+				if callback?
+					callback data
+
+	initRoom: (data,callback)=>
+		@room.reset()
+		@room.setUsers data.room.users
+		@room.setStaff data.room.staff
+		@room.setAdmins data.room.admins
+		@room.setOwner data.room.owner
+		@room.setSelf data.user.profile
+		@room.setWaitlist data.room.waitList
+		@room.setDjs data.room.djs
+		@room.setMedia data.room.media, data.room.votes, data.room.curates
+		callback()
 
 	# alias for ttapi compatibility
 	roomRegister: (name, callback)->
@@ -153,6 +175,10 @@ class PlugAPI extends EventEmitter
 
 	# alias for ttapi compatibility
 	speak: (msg)->
+		@chat msg
+
+	# alias for plug api compatibility
+	sendChat: (msg)->
 		@chat msg
 
 	upvote: (callback)->
@@ -200,6 +226,15 @@ class PlugAPI extends EventEmitter
 	removeDj: (userid, callback)->
 		@sendRPC "moderate.remove_dj", userid, callback
 
+	# plug alias
+
+	moderateRemoveDJ: (userid)=>
+		@removeDj userid
+
+	moderateAddDJ: (userid, callback)->
+		@sendRPC "moderate.add_dj", userid, callback
+
+
 	addDj: (callback)->
 		@joinBooth(callback)
 
@@ -209,21 +244,47 @@ class PlugAPI extends EventEmitter
 		else
 			@removeDj(userid, callback)
 
+	moderateKickUser: (id,reason,callback)=>
+		@sendRPC "moderate.kick",[id,reason,60], callback
+
+	# alias for plug api compat
+
+	waitListJoin: ()-> @joinBooth()
+
+	waitListLeave: ()-> @leaveBooth()
+
 	skipSong: (callback)->
 		@sendRPC "moderate.skip", @historyID, callback
 
-	getUsers: ()=> return @room.getUsers()
+	# plug api alias
+
+	moderateForceSkip: ()->
+		@skipSong()
+
+	getUsers: ()=> @room.getUsers()
+
+	getUser: (userid)=> @room.getUser(userid)
+
+	getAudience: ()=> @room.getAudience()
 	
-	getDjs: ()=> return @room.getDjs()
+	getDJs: ()=> @room.getDjs()
 
-	getMedia: ()=> return @room.getMedia()
+	getStaff: ()=> @room.getStaff()
 
-	getAmbassadors: ()=>
-		ambassadors = []
-		for user in @room.getUsers()
-			if user.ambassador
-				ambassdors.push user
-		return ambassadors
+	getAdmins: ()=> @room.getAdmins()
+
+	getHost: ()=> @room.getHost()
+
+	getSelf: ()=> @room.getSelf()
+
+	getWaitList: ()=> @room.getWaitlist()
+
+	getAmbassadors: ()=> @room.getAmbassadors()
+
+	getMedia: ()=> @room.getMedia()
+
+	getRoomScore: ()=> @room.getRoomScore()
+
 
 
 module.exports = PlugAPI
