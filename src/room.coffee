@@ -26,6 +26,8 @@ class Room
 			users.push user
 		return users
 
+	isStaff: (userid)=> return @staffIds[userid]?
+
 	### write room variables ###
 
 	reset: ()=>
@@ -42,6 +44,8 @@ class Room
 
 	addUser: (user)=>
 		@users[user.id] = user
+		if @isStaff(user.id) then @users[user.id]['permission'] = @staffIds[user.id] 
+		else @users[user.id]['permission'] = 0
 
 	remUser: (user)=>
 		delete @users[user.id]
@@ -53,6 +57,7 @@ class Room
 
 	setStaff: (ids)=>
 		@staffIds = ids
+		@setPermissions()
 
 	setAdmins: (ids)=>
 		@adminIds = ids
@@ -80,6 +85,10 @@ class Room
 			else @media.stats.votes[id] ='meh'
 		for id,val of curates
 			@media.stats.curates[id] = val
+
+	setPermissions: ()=>
+		for id, user of @users
+			if @isStaff(id) then @users[id]['permission'] = @staffIds[id] else @users[id]['permission'] = 0
 
 	logVote: (voterId, vote)=>
 		if vote is 'woot' or vote is 'meh'

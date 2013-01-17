@@ -96,9 +96,11 @@ class PlugAPI extends EventEmitter
 			when 'userJoin' 
 				@room.addUser(msg.data)
 				@emit 'registered', msg.data
+				@emit 'user_join', msg.data
 			when 'userLeave'
 				@room.remUser(msg.data.id)
 				@emit 'registered', msg.data
+				@emit 'user_leave', msg.data
 			when 'chat'
 				msg.data.message = encoder.htmlDecode(msg.data.message)
 				@emit 'speak', msg.data
@@ -109,10 +111,12 @@ class PlugAPI extends EventEmitter
 					@room.logVote msg.data.id, 'meh'
 				@emit 'update_votes', msg.data
 			when 'djUpdate'
-				@room.setDjs(msg.data.djs)
+				@room.setDjs msg.data
 			when 'djAdvance'
+				@room.setDjs msg.data.djs
 				@room.setMedia(msg.data.media)
 				@historyID = msg.data.historyID
+				@emit 'dj_advance', msg
 			when 'waitListUpdate'
 				@room.setWaitlist msg.data
 			when 'curateUpdate'
