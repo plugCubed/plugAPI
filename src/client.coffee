@@ -3,6 +3,9 @@ http = require('http')
 EventEmitter = require('events').EventEmitter
 Encoder = require('node-html-encoder').Encoder
 
+# track state of room internally
+Room = require('./room')
+
 # create our entity encoder for decoding chat messages
 encoder = new Encoder('entity')
 
@@ -21,6 +24,7 @@ class PlugAPI extends EventEmitter
 		if (!key)
 			throw new Error("You must pass the authentication cookie into the PlugAPI object to connect correctly")
 		@rpcHandlers = {}
+		@room = new Room()
 
 	setLogObject: (c)->
 		logger = c
@@ -89,15 +93,34 @@ class PlugAPI extends EventEmitter
 			when 'ping' then @sendRPC 'user.pong'
 			# these are all for ttapi event name compatibility
 			# leave them here, don't document them, purely convenience
-			when 'userJoin' then @emit 'registered', msg.data
-			when 'userLeave' then @emit 'registered', msg.data
+			when 'userJoin' 
+				@room.addUser(msg.data)
+				@emit 'registered', msg.data
+				@emit 'user_join', msg.data
+			when 'userLeave'
+				@room.remUser(msg.data.id)
+				@emit 'registered', msg.data
+				@emit 'user_leave', msg.data
 			when 'chat'
 				msg.data.message = encoder.htmlDecode(msg.data.message)
 				@emit 'speak', msg.data
-			when 'voteUpdate' then @emit 'update_votes', msg.data
+			when 'voteUpdate' 
+				if msg.data.vote == 1
+					@room.logVote msg.data.id, 'woot'
+				else
+					@room.logVote msg.data.id, 'meh'
+				@emit 'update_votes', msg.data
+			when 'djUpdate'
+				@room.setDjs msg.data
 			when 'djAdvance'
-				#logger.log('New song', msg.data)
+				@room.setDjs msg.data.djs
+				@room.setMedia(msg.data.media)
 				@historyID = msg.data.historyID
+				@emit 'dj_advance', msg
+			when 'waitListUpdate'
+				@room.setWaitlist msg.data
+			when 'curateUpdate'
+				@room.logVote msg.data.id, 'curate'
 			when undefined then logger.log('UNKNOWN MESSAGE FORMAT', msg)
 		if (msg.type)
 			@emit(msg.type, msg.data)
@@ -127,8 +150,23 @@ class PlugAPI extends EventEmitter
 	# sane functions. This is the actual API
 	# any function who differs in name from the ttfm ones have a copy that calls said ttfm function
 	# this is for API compatibility between ttapi and plugapi
-	joinRoom: (name, callback)->
-		@sendRPC('room.join', [name], callback)
+	joinRoom: (name, callback)=>
+		@sendRPC 'room.join', [name], (data)=>
+			@initRoom data, =>
+				if callback?
+					callback data
+
+	initRoom: (data,callback)=>
+		@room.reset()
+		@room.setUsers data.room.users
+		@room.setStaff data.room.staff
+		@room.setAdmins data.room.admins
+		@room.setOwner data.room.owner
+		@room.setSelf data.user.profile
+		@room.setWaitlist data.room.waitList
+		@room.setDjs data.room.djs
+		@room.setMedia data.room.media, data.room.votes, data.room.curates
+		callback()
 
 	# alias for ttapi compatibility
 	roomRegister: (name, callback)->
@@ -141,6 +179,10 @@ class PlugAPI extends EventEmitter
 
 	# alias for ttapi compatibility
 	speak: (msg)->
+		@chat msg
+
+	# alias for plug api compatibility
+	sendChat: (msg)->
 		@chat msg
 
 	upvote: (callback)->
@@ -188,6 +230,15 @@ class PlugAPI extends EventEmitter
 	removeDj: (userid, callback)->
 		@sendRPC "moderate.remove_dj", userid, callback
 
+	# plug alias
+
+	moderateRemoveDJ: (userid)=>
+		@removeDj userid
+
+	moderateAddDJ: (userid, callback)->
+		@sendRPC "moderate.add_dj", userid, callback
+
+
 	addDj: (callback)->
 		@joinBooth(callback)
 
@@ -197,8 +248,47 @@ class PlugAPI extends EventEmitter
 		else
 			@removeDj(userid, callback)
 
+	moderateKickUser: (id,reason,callback)=>
+		@sendRPC "moderate.kick",[id,reason,60], callback
+
+	# alias for plug api compat
+
+	waitListJoin: ()-> @joinBooth()
+
+	waitListLeave: ()-> @leaveBooth()
+
 	skipSong: (callback)->
 		@sendRPC "moderate.skip", @historyID, callback
+
+	# plug api alias
+
+	moderateForceSkip: ()->
+		@skipSong()
+
+	getUsers: ()=> @room.getUsers()
+
+	getUser: (userid)=> @room.getUser(userid)
+
+	getAudience: ()=> @room.getAudience()
+	
+	getDJs: ()=> @room.getDjs()
+
+	getStaff: ()=> @room.getStaff()
+
+	getAdmins: ()=> @room.getAdmins()
+
+	getHost: ()=> @room.getHost()
+
+	getSelf: ()=> @room.getSelf()
+
+	getWaitList: ()=> @room.getWaitlist()
+
+	getAmbassadors: ()=> @room.getAmbassadors()
+
+	getMedia: ()=> @room.getMedia()
+
+	getRoomScore: ()=> @room.getRoomScore()
+
 
 
 module.exports = PlugAPI
