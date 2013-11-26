@@ -11,6 +11,8 @@
   
   var uuid = require('uuid');
   
+  var net = require('net');
+  
   http = require('http');
 
   EventEmitter = require('events').EventEmitter;
@@ -500,6 +502,39 @@
       return this.room.getRoomScore();
     };
 
+	
+	PlugAPI.prototype.listen = function (port, address) {
+		var self = this;
+		http.createServer(function (req, res) {
+		  var dataStr = '';
+		  req.on('data', function (chunk) {
+			dataStr += chunk.toString();
+		  });
+		  req.on('end', function () {
+			var data = querystring.parse(dataStr);
+			req._POST = data;
+			self.emit('httpRequest', req, res);
+		  });
+		}).listen(port, address);
+	  };
+	  
+	  PlugAPI.prototype.tcpListen = function (port, address) {
+		var self = this;
+		net.createServer(function (socket) {
+		  socket.on('connect', function () {
+			self.emit('tcpConnect', socket);
+		  });
+		  socket.on('data', function (data) {
+			var msg = data.toString();
+			if (msg[msg.length - 1] == '\n') {
+			  self.emit('tcpMessage', socket, msg.substr(0, msg.length-1));
+			}
+		  });
+		  socket.on('end', function () {
+			self.emit('tcpEnd', socket);
+		  });
+		}).listen(port, address);
+	  };
     return PlugAPI;
 
   })(EventEmitter);
