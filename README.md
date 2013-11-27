@@ -18,7 +18,7 @@ var AUTH = 'xxxxxxxxxxxxxxxxxxxxxxxxxxx=?_expires=xxxxxxxxxxxxxxxxxx==&user_id=x
 var ROOM = 'chillout-mixer-ambient-triphop;
 
 var bot = new PlugAPI(AUTH);
-bot.connect();
+bot.connect(ROOM); // Right now, you MUST specify the room here.
 
 bot.on('connected', function() {
 	bot.joinRoom(ROOM, function(data) {
