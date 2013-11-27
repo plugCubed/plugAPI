@@ -15,13 +15,15 @@ To connect, do this!
 
 ```
 var AUTH = 'xxxxxxxxxxxxxxxxxxxxxxxxxxx=?_expires=xxxxxxxxxxxxxxxxxx==&user_id=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx='; // Put your auth token here, it's the cookie value for usr
-var ROOM = 'coding-soundtrack';
+var ROOM = 'chillout-mixer-ambient-triphop;
 
 var bot = new PlugAPI(AUTH);
 bot.connect();
 
 bot.on('connected', function() {
-	bot.joinRoom('coding-soundtrack');
+	bot.joinRoom(ROOM, function(data) {
+		// data object has information on the room - list of users, song currently playing, etc.
+	});
 })
 ```
 
