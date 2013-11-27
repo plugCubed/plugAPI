@@ -23,6 +23,7 @@ bot.connect();
 bot.on('connected', function() {
 	bot.joinRoom(ROOM, function(data) {
 		// data object has information on the room - list of users, song currently playing, etc.
+		console.log("Joined " + ROOM + ": ", data);
 	});
 })
 ```
