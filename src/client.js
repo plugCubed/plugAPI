@@ -87,6 +87,26 @@
       this.rpcHandlers = {};
       this.room = new Room();
     }
+	
+	PlugAPI.getAuth = function(creds, callback) {
+		var plugLogin = require('./plug-login');
+		plugLogin(creds, function(err, jar) {
+			if(err) {
+				if(typeof callback == 'function')
+					callback(err, null);
+				return;
+			}
+			var cookie = jar.cookies.filter(function(cookie) {
+				if (cookie.name === 'usr') return true
+			})[0];
+			
+			var cookieVal = cookie.value;
+			cookieVal = cookieVal.replace(/^\"/, "").replace(/\"$/, "");
+			if(typeof callback == 'function') {
+				callback(err, cookieVal);
+			}
+		});
+	};
 
     PlugAPI.prototype.setLogObject = function(c) {
       return logger = c;
