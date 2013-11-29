@@ -8,7 +8,7 @@ A generic API for creating Plug.dj bots
 ~~Just grab it from npm, or optionally use the lastest version for github~~
 
 ```
-~~npm install plugapi~~
+npm install plugapi
 ```
 
 Due to a Plug update, the original version of PlugAPI from npm no longer works. You will have to use this fork for now.
