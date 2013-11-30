@@ -217,9 +217,13 @@
       switch (name) {
         case 'room.join':
           this.emit('roomChanged', data);
-//          this.userId = data.user.profile.id;
-//          this.roomId = data.room.id;
-//          return this.historyID = data.room.historyID;
+          if(typeof data.room !== 'undefined') {
+            if(typeof data.room.historyID !== 'undefined') {
+            	this.historyID = data.room.historyID;
+            	this.roomId = data.room.id;
+            	this.userId = data.user.profile.id;
+            }
+          }
       }
     };
 
