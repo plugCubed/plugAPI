@@ -458,8 +458,12 @@
       }
     };
 
-    PlugAPI.prototype.moderateKickUser = function(id, reason, callback) {
-      return this.sendRPC("moderate.kick", [id, reason, 60], callback);
+    PlugAPI.prototype.moderateBanUser = function(id, reason, callback) {
+      return this.sendRPC("moderate.ban", [id, reason], callback);
+    };
+    
+    PlugAPI.prototype.moderateUnBanUser = function(id, reason, callback) {
+      return this.sendRPC("moderate.unban", [id], callback);
     };
 
     PlugAPI.prototype.waitListJoin = function() {
