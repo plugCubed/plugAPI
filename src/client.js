@@ -471,7 +471,7 @@
     };
 
     PlugAPI.prototype.skipSong = function(callback) {
-      return this.sendRPC("moderate.skip", this.historyID, callback);
+      return this.sendRPC("moderate.skip", [], callback);
     };
 
     PlugAPI.prototype.moderateForceSkip = function() {
