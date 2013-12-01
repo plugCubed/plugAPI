@@ -457,6 +457,12 @@
         return this.removeDj(userid, callback);
       }
     };
+    
+    PlugAPI.prototype.moveDJ = function(id, index, callback) {
+    	if (index > 50) index = 50;
+    	else if (index < 1) index = 1;
+    	return this.sendRPC("moderate.move_dj", [id, index], callback);
+    };
 
     PlugAPI.prototype.moderateBanUser = function(id, reason, callback) {
       return this.sendRPC("moderate.ban", [id, reason], callback);
