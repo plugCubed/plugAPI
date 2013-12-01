@@ -457,9 +457,19 @@
         return this.removeDj(userid, callback);
       }
     };
+    
+    PlugAPI.prototype.moveDJ = function(id, index, callback) {
+    	if (index > 50) index = 50;
+    	else if (index < 1) index = 1;
+    	return this.sendRPC("moderate.move_dj", [id, index], callback);
+    };
 
-    PlugAPI.prototype.moderateKickUser = function(id, reason, callback) {
-      return this.sendRPC("moderate.kick", [id, reason, 60], callback);
+    PlugAPI.prototype.moderateBanUser = function(id, reason, callback) {
+      return this.sendRPC("moderate.ban", [id, reason], callback);
+    };
+    
+    PlugAPI.prototype.moderateUnBanUser = function(id, callback) {
+      return this.sendRPC("moderate.unban", [id], callback);
     };
 
     PlugAPI.prototype.waitListJoin = function() {
