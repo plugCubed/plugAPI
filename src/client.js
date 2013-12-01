@@ -468,7 +468,7 @@
       return this.sendRPC("moderate.ban", [id, reason], callback);
     };
     
-    PlugAPI.prototype.moderateUnBanUser = function(id, reason, callback) {
+    PlugAPI.prototype.moderateUnBanUser = function(id, callback) {
       return this.sendRPC("moderate.unban", [id], callback);
     };
 
