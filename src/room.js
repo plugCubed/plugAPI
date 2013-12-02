@@ -31,8 +31,6 @@
 
       this.getUsers = __bind(this.getUsers, this);
 
-      this.setWaitlist = __bind(this.setWaitlist, this);
-
       this.logVote = __bind(this.logVote, this);
 
       this.setPermissions = __bind(this.setPermissions, this);
@@ -71,7 +69,6 @@
           curates: {}
         }
       };
-      this.waitlist = {};
     }
 
     /* helpers
@@ -106,7 +103,6 @@
           curates: {}
         }
       };
-      this.waitlist = {};
       this.staffIds = {};
       return this.ownerId = '';
     };
@@ -218,17 +214,6 @@
       }
     };
 
-    Room.prototype.setWaitlist = function(waitlist) {
-      var user, _i, _len, _results;
-      this.waitlist = {};
-      _results = [];
-      for (_i = 0, _len = waitlist.length; _i < _len; _i++) {
-        user = waitlist[_i];
-        _results.push(this.waitlist[user.id] = user);
-      }
-      return _results;
-    };
-
     /* read room variables
     */
 
@@ -318,7 +303,7 @@
     };
 
     Room.prototype.getWaitlist = function() {
-      return this.usersToArray(this.waitlist);
+      return this.usersToArray(this.djs).splice(1);
     };
 
     Room.prototype.getMedia = function() {

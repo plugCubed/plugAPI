@@ -5,19 +5,13 @@ A generic API for creating Plug.dj bots
 
 
 ## How to use
-~~Just grab it from npm, or optionally use the lastest version for github~~
-
-```
-npm install plugapi
-```
-
 Due to a Plug update, the original version of PlugAPI from npm no longer works. You will have to use this fork for now.
 
 To connect, do this!
 
 ```
-var AUTH = 'xxxxxxxxxxxxxxxxxxxxxxxxxxx=?_expires=xxxxxxxxxxxxxxxxxx==&user_id=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx='; // Put your auth token here, it's the cookie value for usr
 var ROOM = 'chillout-mixer-ambient-triphop;
+var UPDATECODE = 'fe940c'; // We're not quite sure what this is yet, but the API doesn't work without it. It's possible that a future Plug update will change this, so check back here to see if this has changed, and set appropriately, if it has. You can omit using it if you wish - the value as of writing needs to be 'fe940c', and is hardcoded into the bot in the event it is not specified below.
 
 // Instead of providing the AUTH, you can use this static method to get the AUTH cookie via twitter login credentials:
 PlugAPI.getAuth({
@@ -28,14 +22,12 @@ PlugAPI.getAuth({
 		console.log("An error occurred: " + err);
 		return;
 	}
-	var bot = new PlugAPI(auth);
+	var bot = new PlugAPI(auth, updateCode);
 	bot.connect(ROOM); // Right now, you MUST specify the room here.
 
-	bot.on('connected', function() {
-		bot.joinRoom(ROOM, function(data) {
-			// data object has information on the room - list of users, song currently playing, etc.
-			console.log("Joined " + ROOM + ": ", data);
-		});
+	bot.joinRoom(ROOM, function(data) {
+		// data object has information on the room - list of users, song currently playing, etc.
+		console.log("Joined " + ROOM + ": ", data);
 	});
 });
 
@@ -89,13 +81,31 @@ type: 'chat'
 ```
 Example:
 ```
-{ data: 
-   { fromID: 'xxxxxxxxxxxxxxxxxxxxxxxx',
-     message: 'hello world',
-     from: 'mnme',
-     type: 'message',
-     chatID: 'xxxxxxxxxx' },
-  type: 'chat' }
+{
+	fromID: 'xxxxxxxxxxxxxxxxxxxxxxxx',
+    message: 'hello world',
+    from: 'mnme',
+    type: 'chat',
+    chatID: 'xxxxxxxxxx'
+}
+```
+####	emote
+```
+data:
+	fromID: 'user id'
+	message: 'message text'
+	from: 'username'
+	type: 'emote'
+	chatID: 'chat id'
+```
+Example:
+```
+{	fromID: 'xxxxxxxxxxxxxxxxxxxxxxxx',
+    message: 'hello world',
+    from: 'mnme',
+    type: 'chat',
+    chatID: 'xxxxxxxxxx' 
+}
 ```
 ####	userLeave
 ```

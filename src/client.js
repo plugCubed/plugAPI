@@ -43,7 +43,7 @@
 
     __extends(PlugAPI, _super);
 
-    function PlugAPI(key) {
+    function PlugAPI(key, updateCode) {
       this.key = key;
       this.getRoomScore = __bind(this.getRoomScore, this);
 
@@ -80,6 +80,8 @@
       this.dataHandler = __bind(this.dataHandler, this);
 
       this.ws = null;
+	  
+	  this.updateCode = updateCode != undefined && updateCode.match(/[0-9a-f]{6}/) ? updateCode : 'fe940c';
 	  
       if (!key) {
         throw new Error("You must pass the authentication cookie into the PlugAPI object to connect correctly");
@@ -160,8 +162,10 @@
 					//_this.onChat(m);
 					_this.emit('chat', m);
 					break;
+				case 'emote':
+					_this.emit('emote', m);
+					break;
 				default:
-					console.log("Received message: ", m);
 					break;
 			}
 		  }
@@ -185,7 +189,6 @@
       });
       client.on('data', this.dataHandler);
       client.on('data', function(data) {
-//		  console.log("client on data: ", data);
         return _this.emit('tcpMessage', data);
       });
       client.on('close', function() {
@@ -275,16 +278,13 @@
           this.emit('update_votes', msg.data);
           break;
         case 'djUpdate':
-          this.room.setDjs(msg.data);
+          this.room.setDjs(msg.data.djs);
           break;
         case 'djAdvance':
           this.room.setDjs(msg.data.djs);
           this.room.setMedia(msg.data.media);
           this.historyID = msg.data.historyID;
           this.emit('dj_advance', msg);
-          break;
-        case 'waitListUpdate':
-          this.room.setWaitlist(msg.data);
           break;
         case 'curateUpdate':
           this.room.logVote(msg.data.id, 'curate');
@@ -325,7 +325,7 @@
 
     PlugAPI.prototype.joinRoom = function(name, callback) {
       var _this = this;
-      return this.sendRPC('room.join', [name], function(data) {
+      return this.sendRPC('room.join', [name, _this.updateCode], function(data) {
 		  return _this.sendRPC('room.details', [name], function(data) {
 				return _this.initRoom(data, function() {
 				  if (callback != null) {
@@ -338,14 +338,15 @@
 
     PlugAPI.prototype.initRoom = function(data, callback) {
       this.room.reset();
+	  this.historyID = data.room.historyID;
       this.room.setUsers(data.room.users);
       this.room.setStaff(data.room.staff);
       this.room.setAdmins(data.room.admins);
       this.room.setOwner(data.room.owner);
       this.room.setSelf(data.user.profile);
-//      this.room.setWaitlist(data.room.waitList);
       this.room.setDjs(data.room.djs);
       this.room.setMedia(data.room.media, data.room.votes, data.room.curates);
+	  this.emit('roomJoin', data);
       return callback();
     };
 
