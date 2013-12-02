@@ -22,7 +22,7 @@ PlugAPI.getAuth({
 		console.log("An error occurred: " + err);
 		return;
 	}
-	var bot = new PlugAPI(auth, updateCode);
+	var bot = new PlugAPI(auth, UPDATECODE);
 	bot.connect(ROOM);
 
 	bot.on('roomJoin', function(data) {
