@@ -25,7 +25,7 @@ PlugAPI.getAuth({
 	var bot = new PlugAPI(auth, updateCode);
 	bot.connect(ROOM); // Right now, you MUST specify the room here.
 
-	bot.joinRoom(ROOM, function(data) {
+	bot.on('roomJoin', function(data) {
 		// data object has information on the room - list of users, song currently playing, etc.
 		console.log("Joined " + ROOM + ": ", data);
 	});
