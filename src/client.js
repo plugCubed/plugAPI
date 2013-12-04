@@ -77,9 +77,15 @@
 
       this.joinRoom = __bind(this.joinRoom, this);
 
+	  this.grabSong = __bind(this.grabSong, this);
+	  
       this.dataHandler = __bind(this.dataHandler, this);
 
       this.ws = null;
+	  
+	  this.multiLine = false;
+	  
+	  this.multiLineLimit = 5;
 	  
 	  this.updateCode = updateCode != undefined && updateCode.match(/[0-9a-f]{6}/) ? updateCode : 'fe940c';
 	  
@@ -354,7 +360,7 @@
       return this.joinRoom(name, callback);
     };
 
-    PlugAPI.prototype.chat = function(msg) {
+    PlugAPI.prototype.intChat = function(msg) {
 //      return this.send({
 //        type: 'chat',
 //        msg: msg
@@ -370,6 +376,21 @@
 		 return this.ws.send('5::/room:'+JSON.stringify(message))
     };
 
+	PlugAPI.prototype.chat = function(msg) {
+		if(msg.length > 235 && this.multiLine) {
+			var lines = msg.replace(/.{235}\S*\s+/g, "$&@").split(/\s+@/);
+			for(var i=0;i<lines.length;i++) {
+				var msg = lines[i];
+				if(i > 0)
+					msg = "(continued) " + msg;
+				this.intChat(msg);
+				if(i+1 >= this.multiLineLimit)
+					break;
+			}
+		} else
+			this.intChat(msg);
+	};
+	
     PlugAPI.prototype.speak = function(msg) {
       return this.chat(msg);
     };
@@ -537,6 +558,20 @@
       return this.room.getRoomScore();
     };
 
+    PlugAPI.prototype.createPlaylist = function(name, callback) {
+		return this.sendRPC("playlist.create", name, callback);
+	};
+	
+    PlugAPI.prototype.addSongToPlaylist = function(playlistId, songid, callback) {
+		return this.sendRPC("playlist.media.insert", [playlistId, null, -1, [songid]], callback);
+    };
+	
+    PlugAPI.prototype.getPlaylists = function(callback) {
+		var date = new Date(0).toISOString().replace('T', ' ');
+		return this.sendRPC("playlist.select", [date, null, 100, null], callback);
+    };
+	
+	
 	
 	PlugAPI.prototype.listen = function (port, address) {
 		var self = this;
