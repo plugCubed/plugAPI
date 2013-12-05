@@ -35,11 +35,6 @@ PlugAPI.getAuth({
 
 ```
 
-You can also pass the room directly to connect to save SO MUCH TIME
-```
-bot.connect(ROOM);
-```
-
 ##Examples
 Here are some bots using this API. Check out how they did it!
 
