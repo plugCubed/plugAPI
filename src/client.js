@@ -87,7 +87,7 @@
 	  
 	  this.multiLineLimit = 5;
 	  
-	  this.updateCode = updateCode != undefined && updateCode.match(/[0-9a-f]{6}/) ? updateCode : 'fe940d';
+	  this.updateCode = updateCode != undefined ? updateCode : '$&2h72=^^@jdBf_n!`-38UHs';
 	  
       if (!key) {
         throw new Error("You must pass the authentication cookie into the PlugAPI object to connect correctly");

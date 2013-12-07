@@ -12,7 +12,7 @@ To connect, do this!
 ```
 var PlugAPI = require('./plugapi'); // git clone (or unzip) into the same directory as your .js file. There should be plugapi/package.json, for example (and other files)
 var ROOM = 'chillout-mixer-ambient-triphop';
-var UPDATECODE = 'fe940d'; // We're not quite sure what this is yet, but the API doesn't work without it. It's possible that a future Plug update will change this, so check back here to see if this has changed, and set appropriately, if it has. You can omit using it if you wish - the value as of writing needs to be 'fe940d', and is hardcoded into the bot in the event it is not specified below.
+var UPDATECODE = '$&2h72=^^@jdBf_n!`-38UHs'; // We're not quite sure what this is yet, but the API doesn't work without it. It's possible that a future Plug update will change this, so check back here to see if this has changed, and set appropriately, if it has. You can omit using it if you wish - the value as of writing needs to be '$&2h72=^^@jdBf_n!`-38UHs', and is hardcoded into the bot in the event it is not specified below.
 
 // Instead of providing the AUTH, you can use this static method to get the AUTH cookie via twitter login credentials:
 PlugAPI.getAuth({
