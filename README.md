@@ -9,9 +9,7 @@ Due to a Plug update, the original version of PlugAPI from npm no longer works. 
 
 You'll need a few npm packages first. Run the following:
 
-```npm install node-uuid request@2.27.0 uuid node-html-encoder cheerio ws```
-
-There was recently an update to the request package which broke something the API is doing, so for now you need to specify version 2.27.0 as above or else you will get an error like "TypeError: Cannot call method 'filter' of undefined" at "plugapi/src/client.js:107:29"
+```npm install node-uuid request uuid node-html-encoder cheerio ws```
 
 To connect, do this!
 
