@@ -9,6 +9,10 @@
 		{
 			"name": "Nicolas Jeker",
 			"email": "n.jeker@gmx.net"
+		},
+		{
+			"name": "Chris Bellew",
+			"email": "atomjack@gmail.com"
 		}
 	],
 	"description": "Generic API for building Plug.dj bots",
@@ -17,7 +21,11 @@
 	"dependencies": {
 		"coffee-script": "*",
 		"node-uuid": "*",
-		"node-html-encoder": "*"
+		"node-html-encoder": "*",
+		"uuid": "*",
+		"cheerio": "*",
+		"ws": "*",
+		"request": "*"
 	},
 	"repository": {
 		"type": "git",
