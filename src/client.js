@@ -82,7 +82,11 @@
 	  this.addSongToPlaylist = __bind(this.addSongToPlaylist, this);
 	  
 	  this.getPlaylists = __bind(this.getPlaylists, this);
-		
+
+	  this.activatePlaylist = __bind(this.activatePlaylist, this);
+
+	  this.playlistMoveSong = __bind(this.playlistMoveSong, this);
+
       this.dataHandler = __bind(this.dataHandler, this);
 
       this.ws = null;
@@ -572,7 +576,13 @@
 		return this.sendRPC("playlist.select", [date, null, 100, null], callback);
     };
 	
+	PlugAPI.prototype.activatePlaylist = function(playlist_id, callback) {
+		return this.sendRPC("playlist.activate", [playlist_id], callback);
+	};
 	
+	PlugAPI.prototype.playlistMoveSong = function(playlist, song_id, position, callback) {
+		return this.sendRPC("playlist.media.move", [playlist.id, playlist.items[position], [song_id]], callback);
+	};
 	
 	PlugAPI.prototype.listen = function (port, address) {
 		var self = this;

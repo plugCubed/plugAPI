@@ -547,6 +547,21 @@ Returns array containing ambassadors currently in the room
 #### moderateKickUser: (id, reason)
 
 
+#### createPlaylist: (name, callback)
+
+
+#### addSongToPlaylist: (playlist id, song id, callback)
+
+
+#### getPlaylists: (callback)
+
+
+#### activatePlaylist: (playlist id, callback)
+
+
+#### playlistMoveSong: (playlist, song id, position, callback)
+The 'playlist' argument must be a playlist object, the type that is returned from getPlaylists(). Song id is the the id of the song you wish to move, position an integer of where in the playlist it should be moved to (0 = first).
+
 
 ## Avatars
 
