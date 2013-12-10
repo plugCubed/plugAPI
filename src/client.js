@@ -77,8 +77,12 @@
 
       this.joinRoom = __bind(this.joinRoom, this);
 
-	  this.grabSong = __bind(this.grabSong, this);
+	  this.createPlaylist = __bind(this.createPlaylist, this);
 	  
+	  this.addSongToPlaylist = __bind(this.addSongToPlaylist, this);
+	  
+	  this.getPlaylists = __bind(this.getPlaylists, this);
+		
       this.dataHandler = __bind(this.dataHandler, this);
 
       this.ws = null;

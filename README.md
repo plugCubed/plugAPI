@@ -69,6 +69,60 @@ bot.on('error', reconnect);
 
 Here's a list of events:
 
+####    roomJoin
+```
+data:
+	user: [User object],
+	room: [Room object]
+```
+Example:
+```
+ { user:
+   { profile:
+      { username: 'bot',
+        status: 0,
+        language: 'en',
+        dateJoined: '2013-12-09T22:48:36.776000',
+        djPoints: 0,
+        fans: 2,
+        listenerPoints: 0,
+        avatarID: 'animal05',
+        id: '...',
+        curatorPoints: 0 },
+     following: [],
+     followers: [] },
+  room:
+   { boothCycle: false,
+     ownerName: 'some user',
+     owner: '...',
+     ambassadors: { '...' }
+     id: 'chillout-mixer-ambient-triphop',
+     users: [ [Object], [Object] ],
+     djs: [ [Object], [Object] ],
+     media:
+      { author: 'Killigrew',
+        cid: 'h2grXTuoSaQ',
+        format: '1',
+        duration: 368,
+        title: 'You  ||  Chillout',
+        id: '1:h2grXTuoSaQ' },
+     playlistID: '52906884877b92238ad962fc',
+     admins: [ '...', '...' ],
+     custom: null,
+     lounge: null,
+     score: 1,
+     staff: { '...' : 3, '...' : 2 },
+     description: '...',
+     welcome: '...',
+     votes: { '...': 1, '...': 1 },
+     boothLocked: false,
+     mediaStartTime: '2013-12-10 02:00:02.418000',
+     currentDJ: '...',
+     name: 'Chillout Mixer Ambient + Triphop',
+     historyID: '...',
+     curates: { '...': true } } }
+```
+
 ####	chat
 ```
 data:
@@ -584,3 +638,20 @@ var bot = new PlugAPI(auth, UPDATECODE);
 bot.multiLine = true; // Set to true to enable multiline chat. Default is false
 bot.multiLineLimit = 5; // Set to the maximum number of lines the bot should split messages up into. Any text beyond this number will just be omitted. Default is 5.
 ```
+
+#### TCP Server
+You can start up a TCP server the bot will listen to, for remote administration
+
+Example:
+```
+	bot.tcpListen(6666, 'localhost');
+	bot.on('tcpConnect', function(socket) {
+		// executed when someone telnets into localhost port 6666
+	});
+
+	bot.on('tcpMessage', function(socket, msg) {
+		// Use socket.write, for example, to send output back to the telnet session
+		// 'msg' is whatever was entered by the user in the telnet session
+	});
+```
+
