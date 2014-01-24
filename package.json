@@ -13,19 +13,21 @@
 		{
 			"name": "Chris Bellew",
 			"email": "atomjack@gmail.com"
+		},
+		{
+			"name": "TAT",
+			"email": "TAT@plugCubed.net"
 		}
 	],
 	"description": "Generic API for building Plug.dj bots",
-	"main": "./src/index.js",
-	"lib": "./src/index.js",
+	"main": "./src/client.js",
+	"lib": "./src/client.js",
 	"dependencies": {
-		"coffee-script": "*",
-		"node-uuid": "*",
 		"node-html-encoder": "*",
-		"uuid": "*",
 		"cheerio": "*",
 		"ws": "*",
-		"request": "*"
+		"request": "*",
+		"sockjs-client-node": "https://github.com/TATDK/sockjs-client-node/tarball/master"
 	},
 	"repository": {
 		"type": "git",
