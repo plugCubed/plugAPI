@@ -7,17 +7,18 @@ A generic API for creating Plug.dj bots
 ## How to use
 Due to a Plug update, the original version of PlugAPI from npm no longer works. You will have to use this fork for now.
 
-You'll need a few npm packages first. Run the following:
+Run the following:
 
 ```npm install https://github.com/TATDK/plugapi/tarball/master```
 
 To connect, do this!
 
 ```
-var PlugAPI = require('plugapi');
-var ROOM = '';
+var PlugAPI = require('plugapi'),
+    AUTH = 'xxxxxxxxxxxxxxxxxxxxxxxxxxx=?_expires=xxxxxxxxxxxxxxxxxx==&user_id=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx=', // Put your auth token here, it's the cookie value for usr
+    ROOM = '';
 
-var bot = new PlugAPI(auth);
+var bot = new PlugAPI(AUTH);
 bot.connect(ROOM);
 
 bot.on('roomJoin', function(room) {
