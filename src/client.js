@@ -188,6 +188,19 @@ function sendRPC(name, args, callback) {
     return client.send(sendArgs);
 }
 
+function joinRoom(name, callback) {
+    return sendRPC(rpcNames.ROOM_JOIN, [name, _updateCode], function(data) {
+        if (data.status && data.status !== 0) throw new Error('Wrong updateCode');
+        DateUtilities.setServerTime(data.serverTime);
+        return sendRPC(rpcNames.ROOM_DETAILS, [name], function(data) {
+            return _this.initRoom(data, function() {
+                if (callback != null)
+                    return callback(data);
+            });
+        });
+    });
+}
+
 function send(data) {
     return client.send(data);
 }
@@ -336,7 +349,7 @@ function connectSocket(roomID) {
     return client.on('connection', function() {
         logger.log('[Socket Server] Connected');
         if (roomID)
-            _this.joinRoom(roomID);
+            joinRoom(roomID);
         _this.emit('connected');
         _this.emit('server:socket:connected');
         return _this.emit('tcpConnect', client);
@@ -602,18 +615,6 @@ PlugAPI.prototype.messageHandler = function(msg) {
     if (msg.type)
         return this.emit(msg.type, msg.data);
 }
-PlugAPI.prototype.joinRoom = function(name, callback) {
-    return sendRPC(rpcNames.ROOM_JOIN, [name, _updateCode], function(data) {
-        if (data.status && data.status !== 0) throw new Error('Wrong updateCode');
-        DateUtilities.setServerTime(data.serverTime);
-        return sendRPC(rpcNames.ROOM_DETAILS, [name], function(data) {
-            return _this.initRoom(data, function() {
-                if (callback != null)
-                    return callback(data);
-            });
-        });
-    });
-}
 PlugAPI.prototype.initRoom = function(data, callback) {
     room.reset();
     lastRpcMessage = Date.now();
@@ -629,7 +630,7 @@ PlugAPI.prototype.initRoom = function(data, callback) {
     if (this.historyID !== data.room.historyID) {
         this.roomId = data.room.id;
         this.historyID = data.room.historyID;
-        this.emit(this.messageTypes.ROOM_JOIN, data.room.name);
+        this.emit(this.messageTypes.ROOM_JOIN, data.room.name, data);
         this.emit(this.messageTypes.DJ_ADVANCE, {
             currentDJ: data.room.currentDJ,
             djs: data.room.djs.splice(1),
@@ -642,7 +643,7 @@ PlugAPI.prototype.initRoom = function(data, callback) {
     return callback();
 }
 PlugAPI.prototype.roomRegister = function(name, callback) {
-    return this.joinRoom(name, callback);
+    return joinRoom(name, callback);
 }
 PlugAPI.prototype.intChat = function(msg) {
     return ws.send('5::/room:' + JSON.stringify({
@@ -744,10 +745,10 @@ PlugAPI.prototype.moderateForceSkip = function(callback) {
 PlugAPI.prototype.moderateDeleteChat = function(chatID, callback) {
     return sendRPC(rpcNames.MODERATE_CHAT_DELETE, [chatID], callback);
 }
-PlugAPI.prototype.moderateLockWaitList = function(locked, clear) {
-    return this.moderateLockBooth(locked, clear);
+PlugAPI.prototype.moderateLockWaitList = function(locked, clear, callback) {
+    return this.moderateLockBooth(locked, clear, callback);
 }
-PlugAPI.prototype.moderateLockBooth = function(locked, clear) {
+PlugAPI.prototype.moderateLockBooth = function(locked, clear, callback) {
     return sendRPC(rpcNames.ROOM_LOCK_BOOTH, [locked, clear], callback);
 }
 PlugAPI.prototype.getUsers = function() {

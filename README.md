@@ -3,6 +3,7 @@ plugapi
 
 A generic API for creating Plug.dj bots
 
+'''VERSION IS IN PRE-RELEASE BECAUSE THE API IS UNDER CHANGES - THINGS CAN BREAK'''
 
 ## How to use
 Due to a Plug update, the original version of PlugAPI from npm no longer works. You will have to use this fork for now.
@@ -24,8 +25,6 @@ bot.connect(ROOM);
 bot.on('roomJoin', function(room) {
     console.log("Joined " + room);
 });
-
-
 ```
 
 ##Examples
@@ -57,11 +56,11 @@ bot.on('error', reconnect);
 
 ## Events
 
-Read about some of the events on the [wiki](https://github.com/TATDK/plugapi/wiki/events)
+Read about some of the events on the [wiki](https://github.com/TATDK/plugapi/wiki/events).
 
 ## Actions
 
-Read about the actions on the [wiki](https://github.com/TATDK/plugapi/wiki/actions)
+Read about the actions on the [wiki](https://github.com/TATDK/plugapi/wiki/actions).
 
 ##Misc
 
