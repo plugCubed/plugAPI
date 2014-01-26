@@ -749,7 +749,7 @@ PlugAPI.prototype.moderateLockWaitList = function(locked, clear, callback) {
     return this.moderateLockBooth(locked, clear, callback);
 }
 PlugAPI.prototype.moderateLockBooth = function(locked, clear, callback) {
-    return sendRPC(rpcNames.ROOM_LOCK_BOOTH, [locked, clear], callback);
+    return sendRPC(rpcNames.ROOM_LOCK_BOOTH, [this.roomId, locked, clear], callback);
 }
 PlugAPI.prototype.getUsers = function() {
     return room.getUsers();
