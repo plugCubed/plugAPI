@@ -213,7 +213,14 @@ function connectChat(roomID) {
         }
     };
     request(opts, function(err, res, body) {
-        if (err) console.error(err);
+        if (err) {
+            logger.log('[Chat Server] Error under connecting:', err);
+            process.nextTick(function() {
+                logger.log('[Chat Server] Reconnecting');
+                connectChat(roomID);
+            });
+            return;
+        }
         var sockId = body.split(':')[0],
             sockUrl = 'wss://sio2.plug.dj/socket.io/1/websocket/' + sockId;
         ws = new WebSocket(sockUrl);
