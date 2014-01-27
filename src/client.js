@@ -544,9 +544,6 @@ PlugAPI.prototype.parseRPCReply = function(name, data) {
     }
 }
 PlugAPI.prototype.messageHandler = function(msg) {
-    try {
-        require('fs').writeFile('./messages/' + msg.type + '.txt', JSON.stringify(msg.data, null, 4));
-    } catch (e) {}
     switch (msg.type) {
         case this.messageTypes.PING:
             sendRPC(rpcNames.USER_PONG);
