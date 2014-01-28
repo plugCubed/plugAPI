@@ -584,6 +584,18 @@ PlugAPI.prototype.messageHandler = function(msg) {
                 })();
             }
             break;
+        case this.messageTypes.MODERATE_MOVE_DJ:
+            if (msg.data.moderator === this.getUser().username) {
+                (function() {
+                    for (var i in rpcHandlers) {
+                        if (rpcHandlers[i].type === rpcNames.MODERATE_MOVE_DJ && rpcHandlers[i].args[0] === msg.data.userID && typeof rpcHandlers[i].callback === 'function') {
+                            rpcHandlers[i].callback();
+                            return delete rpcHandlers[i];
+                        }
+                    }
+                })();
+            }
+            break;
         case this.messageTypes.USER_JOIN:
             room.addUser(msg.data);
             lastRpcMessage = Date.now();
