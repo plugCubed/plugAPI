@@ -244,6 +244,7 @@ function connectChat(roomID) {
                 m.message = encoder.htmlDecode(m.message);
 
                 if (m.type == 'message' && m.message.indexOf('!') === 0 && m.from.id != room.self.id) {
+                    if (typeof _this.preCommandHandler === 'function' && _this.preCommandHandler(data) === false) return;
                     var cmd = m.message.substr(1).split(' ')[0],
                         obj = {
                             message: m,
@@ -462,6 +463,8 @@ var PlugAPI = function(key, updateCode) {
         VOTE_UPDATE: 'voteUpdate',
         VOTE_UPDATE_MULTI: 'voteUpdateMulti'
     };
+
+    this.preCommandHandler = function() { return true; };
 
     this.getRoomScore = __bind(this.getRoomScore, this);
     this.getMedia = __bind(this.getMedia, this);
