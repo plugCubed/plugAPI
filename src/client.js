@@ -658,7 +658,7 @@ PlugAPI.prototype.initRoom = function(data, callback) {
             mediaStartTime: data.room.mediaStartTime,
             historyID: this.historyID
         });
-        sendRPC(rpcNames.HISTORY_SELECT, [_this.roomId], __bind(room.setHistory, room));
+        sendRPC(rpcNames.HISTORY_SELECT, [data.room.id], __bind(room.setHistory, room));
     }
     return callback();
 }
@@ -701,13 +701,11 @@ PlugAPI.prototype.meh = function(callback) {
 }
 PlugAPI.prototype.getHistory = function(callback) {
     var history = room.getHistory();
-    if (history.length < 1)
-        sendRPC(rpcNames.HISTORY_SELECT, [_this.roomId], function(data) {
-            room.setHistory(data);
-            if (typeof callback === 'function')
-                callback(data);
+    if (history.length < 2) {
+        setImmediate(function() {
+            _this.getHistory(callback);
         });
-    else if (typeof callback === 'function')
+    } else if (typeof callback === 'function')
         callback(history);
 }
 PlugAPI.prototype.isUsernameAvailable = function(name, callback) {
