@@ -700,13 +700,13 @@ PlugAPI.prototype.meh = function(callback) {
     return this.lastHistoryID = this.historyID;
 }
 PlugAPI.prototype.getHistory = function(callback) {
+    if (typeof callback !== 'function') throw new Error('You must specify callback!');
     var history = room.getHistory();
-    if (history.length < 2) {
-        setImmediate(function() {
-            _this.getHistory(callback);
-        });
-    } else if (typeof callback === 'function')
-        callback(history);
+    if (history.length > 1)
+        return callback(history);
+    setImmediate(function() {
+        _this.getHistory(callback);
+    });
 }
 PlugAPI.prototype.isUsernameAvailable = function(name, callback) {
     return sendRPC(rpcNames.USER_NAME_AVAILABLE, [name], callback);
