@@ -107,7 +107,8 @@ function __bind(fn, me) {
 
 /**
 DateUtilities
-Copyright (C) 2013 by Plug DJ, Inc.
+Copyright (C) 2014 by Plug DJ, Inc.
+Modified by TAT (TAT@plugCubed.net)
 */
 var DateUtilities = {
     MONTHS: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
@@ -703,9 +704,11 @@ PlugAPI.prototype.getHistory = function(callback) {
     if (history.length < 1)
         sendRPC(rpcNames.HISTORY_SELECT, [_this.roomId], function(data) {
             room.setHistory(data);
-            callback(data);
+            if (typeof callback === 'function')
+                callback(data);
         });
-    else callback(history);
+    else if (typeof callback === 'function')
+        callback(history);
 }
 PlugAPI.prototype.isUsernameAvailable = function(name, callback) {
     return sendRPC(rpcNames.USER_NAME_AVAILABLE, [name], callback);
