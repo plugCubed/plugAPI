@@ -500,6 +500,7 @@ var PlugAPI = function(key, updateCode) {
     this.activatePlaylist = __bind(this.activatePlaylist, this);
     this.playlistMoveSong = __bind(this.playlistMoveSong, this);
     this.dataHandler = __bind(this.dataHandler, this);
+    this.log = __bind(logger.log,logger);
 };
 
 util.inherits(PlugAPI, EventEmitter);
