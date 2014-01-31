@@ -1,95 +1,95 @@
 var SockJS = require('sockjs-client'),
     net = require('net'),
-    http = require('http');
-EventEmitter = require('events').EventEmitter,
-Encoder = require('node-html-encoder').Encoder,
-Room = require('./room'),
-request = require('request'),
-WebSocket = require('ws'),
-encoder = new Encoder('entity'),
-util = require('util'),
+    http = require('http'),
+    EventEmitter = require('events').EventEmitter,
+    Encoder = require('node-html-encoder').Encoder,
+    Room = require('./room'),
+    request = require('request'),
+    WebSocket = require('ws'),
+    encoder = new Encoder('entity'),
+    util = require('util'),
 
-rpcNames = {
-    BOOTH_JOIN: 'booth.join',
-    BOOTH_LEAVE: 'booth.leave',
-    BOOTH_SKIP: 'booth.skip',
-    DURATION_MISMATCH: 'duration.mismatch',
-    DURATION_UPDATE: 'duration.update',
-    HISTORY_SELECT: 'history.select',
-    MEDIA_RECOVER: 'media.recover',
-    MEDIA_SELECT: 'media.select',
-    MEDIA_UPDATE: 'media.update',
-    MODERATE_ADD_DJ: 'moderate.add_dj',
-    MODERATE_BAN: 'moderate.ban',
-    MODERATE_BANS: 'moderate.bans',
-    MODERATE_CHAT_DELETE: 'moderate.chat_delete',
-    MODERATE_MOVE_DJ: 'moderate.move_dj',
-    MODERATE_PERMISSIONS: 'moderate.permissions',
-    MODERATE_REMOVE_DJ: 'moderate.remove_dj',
-    MODERATE_SKIP: 'moderate.skip',
-    MODERATE_UNBAN: 'moderate.unban',
-    MODERATE_UPDATE_DESCRIPTION: 'moderate.update_description',
-    MODERATE_UPDATE_NAME: 'moderate.update_name',
-    MODERATE_UPDATE_WELCOME: 'moderate.update_welcome',
-    PLAYLIST_ACTIVATE: 'playlist.activate',
-    PLAYLIST_CREATE: 'playlist.create',
-    PLAYLIST_DELETE: 'playlist.delete',
-    PLAYLIST_MEDIA_DELETE: 'playlist.media.delete',
-    PLAYLIST_MEDIA_INSERT: 'playlist.media.insert',
-    PLAYLIST_MEDIA_MOVE: 'playlist.media.move',
-    PLAYLIST_MEDIA_SHUFFLE: 'playlist.media.shuffle',
-    PLAYLIST_RENAME: 'playlist.rename',
-    PLAYLIST_SELECT: 'playlist.select',
-    REPORT_DISCONNECT: 'report.disconnect',
-    REPORT_RECONNECT: 'report.reconnect',
-    ROOM_CAST: 'room.cast',
-    ROOM_CREATE: 'room.create',
-    ROOM_CURATE: 'room.curate',
-    ROOM_CYCLE_BOOTH: 'room.cycle_booth',
-    ROOM_DETAILS: 'room.details',
-    ROOM_JOIN: 'room.join',
-    ROOM_LOCK_BOOTH: 'room.lock_booth',
-    ROOM_SEARCH: 'room.search',
-    ROOM_STAFF: 'room.staff',
-    ROOM_STATE: 'room.state',
-    USER_CHANGE_NAME: 'user.change_name',
-    USER_GET_BY_IDS: 'user.get_by_ids',
-    USER_IGNORING: 'user.ignoring',
-    USER_NAME_AVAILABLE: 'user.name_available',
-    USER_PONG: 'user.pong',
-    USER_SET_AVATAR: 'user.set_avatar',
-    USER_SET_LANGUAGE: 'user.set_language',
-    USER_SET_STATUS: 'user.set_status'
-},
+    rpcNames = {
+        BOOTH_JOIN: 'booth.join',
+        BOOTH_LEAVE: 'booth.leave',
+        BOOTH_SKIP: 'booth.skip',
+        DURATION_MISMATCH: 'duration.mismatch',
+        DURATION_UPDATE: 'duration.update',
+        HISTORY_SELECT: 'history.select',
+        MEDIA_RECOVER: 'media.recover',
+        MEDIA_SELECT: 'media.select',
+        MEDIA_UPDATE: 'media.update',
+        MODERATE_ADD_DJ: 'moderate.add_dj',
+        MODERATE_BAN: 'moderate.ban',
+        MODERATE_BANS: 'moderate.bans',
+        MODERATE_CHAT_DELETE: 'moderate.chat_delete',
+        MODERATE_MOVE_DJ: 'moderate.move_dj',
+        MODERATE_PERMISSIONS: 'moderate.permissions',
+        MODERATE_REMOVE_DJ: 'moderate.remove_dj',
+        MODERATE_SKIP: 'moderate.skip',
+        MODERATE_UNBAN: 'moderate.unban',
+        MODERATE_UPDATE_DESCRIPTION: 'moderate.update_description',
+        MODERATE_UPDATE_NAME: 'moderate.update_name',
+        MODERATE_UPDATE_WELCOME: 'moderate.update_welcome',
+        PLAYLIST_ACTIVATE: 'playlist.activate',
+        PLAYLIST_CREATE: 'playlist.create',
+        PLAYLIST_DELETE: 'playlist.delete',
+        PLAYLIST_MEDIA_DELETE: 'playlist.media.delete',
+        PLAYLIST_MEDIA_INSERT: 'playlist.media.insert',
+        PLAYLIST_MEDIA_MOVE: 'playlist.media.move',
+        PLAYLIST_MEDIA_SHUFFLE: 'playlist.media.shuffle',
+        PLAYLIST_RENAME: 'playlist.rename',
+        PLAYLIST_SELECT: 'playlist.select',
+        REPORT_DISCONNECT: 'report.disconnect',
+        REPORT_RECONNECT: 'report.reconnect',
+        ROOM_CAST: 'room.cast',
+        ROOM_CREATE: 'room.create',
+        ROOM_CURATE: 'room.curate',
+        ROOM_CYCLE_BOOTH: 'room.cycle_booth',
+        ROOM_DETAILS: 'room.details',
+        ROOM_JOIN: 'room.join',
+        ROOM_LOCK_BOOTH: 'room.lock_booth',
+        ROOM_SEARCH: 'room.search',
+        ROOM_STAFF: 'room.staff',
+        ROOM_STATE: 'room.state',
+        USER_CHANGE_NAME: 'user.change_name',
+        USER_GET_BY_IDS: 'user.get_by_ids',
+        USER_IGNORING: 'user.ignoring',
+        USER_NAME_AVAILABLE: 'user.name_available',
+        USER_PONG: 'user.pong',
+        USER_SET_AVATAR: 'user.set_avatar',
+        USER_SET_LANGUAGE: 'user.set_language',
+        USER_SET_STATUS: 'user.set_status'
+    },
 
-client = null,
-ws = null,
-apiId = 0,
-_this = null,
-_key = null,
-_updateCode = null,
-lastRpcMessage = Date.now(),
-room = new Room(),
-rpcHandlers = {},
-logger = {
-    pad: function(n) {
-        return n < 10 ? '0' + n.toString(10) : n.toString(10);
-    },
-    months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    timestamp: function() {
-        var d = new Date();
-        var time = [this.pad(d.getHours()),
-            this.pad(d.getMinutes()),
-            this.pad(d.getSeconds())
-        ].join(':');
-        return [d.getDate(), this.months[d.getMonth()], time].join(' ');
-    },
-    log: function() {
-        var args = Array.prototype.slice.call(arguments);
-        args.unshift(this.timestamp());
-        return console.log.apply(console, args);
-    }
-};
+    client = null,
+    ws = null,
+    apiId = 0,
+    _this = null,
+    _key = null,
+    _updateCode = null,
+    lastRpcMessage = Date.now(),
+    room = new Room(),
+    rpcHandlers = {},
+    logger = {
+        pad: function(n) {
+            return n < 10 ? '0' + n.toString(10) : n.toString(10);
+        },
+        months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        timestamp: function() {
+            var d = new Date();
+            var time = [this.pad(d.getHours()),
+                this.pad(d.getMinutes()),
+                this.pad(d.getSeconds())
+            ].join(':');
+            return [d.getDate(), this.months[d.getMonth()], time].join(' ');
+        },
+        log: function() {
+            var args = Array.prototype.slice.call(arguments);
+            args.unshift(this.timestamp());
+            return console.log.apply(console, args);
+        }
+    };
 
 http.OutgoingMessage.prototype.__renderHeaders = http.OutgoingMessage.prototype._renderHeaders;
 http.OutgoingMessage.prototype._renderHeaders = function() {
@@ -465,7 +465,9 @@ var PlugAPI = function(key, updateCode) {
         VOTE_UPDATE_MULTI: 'voteUpdateMulti'
     };
 
-    this.preCommandHandler = function() { return true; };
+    this.preCommandHandler = function() {
+        return true;
+    };
 
     this.getRoomScore = __bind(this.getRoomScore, this);
     this.getMedia = __bind(this.getMedia, this);
@@ -642,6 +644,7 @@ PlugAPI.prototype.initRoom = function(data, callback) {
         return client.close();
     room.setUsers(data.room.users);
     room.setStaff(data.room.staff);
+    room.setAmbassadors(data.room.ambassadors);
     room.setAdmins(data.room.admins);
     room.setOwner(data.room.owner);
     room.setSelf(data.user.profile);

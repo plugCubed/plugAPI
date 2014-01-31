@@ -10,17 +10,19 @@ var Room = function() {
     };
 
     this.User = function(data) {
-        this.username = data.username ? data.username : '';
+        this.avatarID = data.avatarID ? data.avatarID : '';
+        this.curated = _this.media.stats.curates[data.id] === true ? true : false;
+        this.curatorPoints = data.curatorPoints ? data.curatorPoints : 0;
+        this.dateJoined = data.dateJoined ? data.dateJoined : '';
+        this.djPoints = data.djPoints ? data.djPoints : 0;
+        this.fans = data.fans ? data.fans : 0;
         this.id = data.id ? data.id : '';
         this.language = data.language ? data.language : '';
-        this.dateJoined = data.dateJoined ? data.dateJoined : '';
-        this.avatarID = data.avatarID ? data.avatarID : '';
-        this.status = data.status ? data.status : 0;
-        this.djPoints = data.djPoints ? data.djPoints : 0;
         this.listenerPoints = data.listenerPoints ? data.listenerPoints : 0;
-        this.curatorPoints = data.curatorPoints ? data.curatorPoints : 0;
-        this.fans = data.fans ? data.fans : 0;
-        this.permission = _this.staffIds[data.id] !== undefined ? _this.staffIds[data.id] : 0;
+        this.permission = _this.adminIds[data.id] !== undefined ? 10 : _this.isAmbassador(data.id) ? _this.ambassadorIds[data.id] : _this.isStaff(data.id) ? _this.staffIds[data.id] : 0;
+        this.status = data.status ? data.status : 0;
+        this.username = data.username ? data.username : '';
+        this.vote = _this.media.stats.votes[data.id] !== undefined ? _this.media.stats.votes[data.id] === 'woot' ? 1 : -1 : 0;
     };
 
     this.User.prototype.toString = function() {
@@ -57,6 +59,7 @@ var Room = function() {
 
     this.users = {};
     this.staffIds = {};
+    this.ambassadorIds = {};
     this.adminIds = {};
     this.ownerId = '';
     this.self = {};
@@ -79,6 +82,10 @@ Room.prototype.usersToArray = function(usersObj) {
         users.push(user);
     }
     return users;
+};
+
+Room.prototype.isAmbassador = function(userid) {
+    return this.ambassadorIds[userid] != null;
 };
 
 Room.prototype.isStaff = function(userid) {
@@ -131,6 +138,11 @@ Room.prototype.setStaff = function(ids) {
     this.staffIds = ids;
     return this.setPermissions();
 };
+
+Room.prototype.setAmbassadors = function(ids) {
+    this.ambassadorIds = ids;
+    return this.setPermissions();
+}
 
 Room.prototype.setAdmins = function(ids) {
     return this.adminIds = ids;
@@ -189,7 +201,9 @@ Room.prototype.setPermissions = function() {
     _results = [];
     for (id in _ref) {
         user = _ref[id];
-        if (this.isStaff(id))
+        if (this.isAmbassador(id))
+            _results.push(this.users[id]['permission'] = this.ambassadorIds[id]);
+        else if (this.isStaff(id))
             _results.push(this.users[id]['permission'] = this.staffIds[id]);
         else
             _results.push(this.users[id]['permission'] = 0);
@@ -211,7 +225,7 @@ Room.prototype.getUsers = function() {
 Room.prototype.getUser = function(userId) {
     if (!userId) userId = this.self.id;
     if (this.users[userId] != null)
-        return this.users[userId];
+        return new this.User(this.users[userId]);
 };
 
 Room.prototype.getSelf = function() {
