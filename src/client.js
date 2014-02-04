@@ -260,22 +260,26 @@ function connectChat(roomID) {
                             },
                             havePermission: function(permission, success, failure) {
                                 if (permission === undefined) permission = 0;
-                                if (typeof success !== 'function')
-                                    return room.getUser(m.fromID).permission >= permission;
-                                else
-                                    return room.getUser(m.fromID).permission >= permission ? success() : typeof failure === 'function' ? failure() : null;
+                                var havePermission = room.getUser(m.fromID) !== undefined && room.getUser(m.fromID).permission >= permission;
+                                if (havePermission && typeof success === 'function')
+                                    success();
+                                else if (!havePermission && typeof failure === 'function')
+                                    failure();
+                                return havePermission;
                             },
                             isFrom: function(ids, success, failure) {
                                 if (typeof ids === 'string') ids = [ids];
                                 if (ids === undefined || !util.isArray(ids)) {
                                     if (typeof failure === 'function')
                                         failure();
-                                    return;
+                                    return false;
                                 }
-                                if (typeof success !== 'function')
-                                    return ids.indexOf(m.fromID) > -1;
-                                else
-                                    return ids.indexOf(m.fromID) > -1 ? success() : typeof failure === 'function' ? failure() : null;
+                                var isFrom = ids.indexOf(m.fromID) > -1;
+                                if (isFrom && typeof success === 'function')
+                                    success();
+                                else if (!isFrom && typeof failure === 'function')
+                                    failure();
+                                return isFrom;
                             }
                         },
                         lastIndex = obj.args.indexOf('@'),
