@@ -73,7 +73,6 @@ var Room = function() {
     };
 }
 
-
 Room.prototype.usersToArray = function(usersObj) {
     var id, user, users;
     users = [];
@@ -116,6 +115,7 @@ Room.prototype.addUser = function(user) {
 };
 
 Room.prototype.remUser = function(user) {
+    this.users[user.id] = undefined;
     return delete this.users[user.id];
 };
 
@@ -190,10 +190,30 @@ Room.prototype.setMedia = function(mediaInfo, mediaStartTime, votes, curates) {
         val = curates[id];
         _results.push(this.media.stats.curates[id] = val);
     }
-    if (songHistory.unshift(this.media) > 50)
-        songHistory.splice(50, songHistory.length - 50);
     return _results;
 };
+
+Room.prototype.djAdvance = function(data) {
+    songHistory[0].room = this.getRoomScore();
+    this.setMedia(data.media, data.mediaStartTime);
+    var historyObj = {
+        id: data.historyID,
+        media: data.media,
+        room: {
+            positive: 0,
+            listeners: null,
+            curates: 0,
+            negative: 0
+        },
+        timestamp: data.mediaStartTime,
+        user: {
+            id: data.currentDJ,
+            username: this.getUser(data.currentDJ) === undefined ? '' : this.getUser(data.currentDJ).username
+        }
+    };
+    if (songHistory.unshift(historyObj) > 50)
+        songHistory.splice(50, songHistory.length - 50);
+}
 
 Room.prototype.setPermissions = function() {
     var id, user, _ref, _results;
@@ -351,9 +371,10 @@ Room.prototype.getRoomScore = function() {
         curates++;
     }
     return {
-        'curates': curates,
-        'negative': mehs,
-        'positive': woots
+        positive: woots,
+        listeners: Math.max(this.getUsers().length - 1, 0),
+        curates: curates,
+        negative: mehs
     };
 };
 

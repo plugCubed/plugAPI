@@ -494,6 +494,7 @@ var PlugAPI = function(key, updateCode) {
     this.moderateRemoveDJ = __bind(this.moderateRemoveDJ, this);
     this.moderateDeleteChat = __bind(this.moderateDeleteChat, this);
     this.moderateLockWaitList = __bind(this.moderateLockWaitList, this);
+    this.moderateSetRole = __bind(this.moderateSetRole, this);
     this.getTimeElapsed = __bind(this.getTimeElapsed, this);
     this.getTimeRemaining = __bind(this.getTimeRemaining, this);
     this.initRoom = __bind(this.initRoom, this);
@@ -504,7 +505,7 @@ var PlugAPI = function(key, updateCode) {
     this.activatePlaylist = __bind(this.activatePlaylist, this);
     this.playlistMoveSong = __bind(this.playlistMoveSong, this);
     this.dataHandler = __bind(this.dataHandler, this);
-    this.log = __bind(logger.log,logger);
+    this.log = __bind(logger.log, logger);
 };
 
 util.inherits(PlugAPI, EventEmitter);
@@ -572,7 +573,7 @@ PlugAPI.prototype.messageHandler = function(msg) {
             room.setPermissions();
             break;
         case this.messageTypes.MODERATE_ADD_DJ:
-            if (msg.data.moderator === this.getUser().username) {
+            if (this.getUser() !== undefined && msg.data.moderator === this.getUser().username) {
                 (function() {
                     for (var i in rpcHandlers) {
                         if (rpcHandlers[i].type === rpcNames.MODERATE_ADD_DJ && room.getUser(rpcHandlers[i].args[0]).username === msg.data.username && typeof rpcHandlers[i].callback === 'function') {
@@ -584,7 +585,7 @@ PlugAPI.prototype.messageHandler = function(msg) {
             }
             break;
         case this.messageTypes.MODERATE_REMOVE_DJ:
-            if (msg.data.moderator === this.getUser().username) {
+            if (this.getUser() !== undefined && msg.data.moderator === this.getUser().username) {
                 (function() {
                     for (var i in rpcHandlers) {
                         if (rpcHandlers[i].type === rpcNames.MODERATE_REMOVE_DJ && room.getUser(rpcHandlers[i].args[0]).username === msg.data.username && typeof rpcHandlers[i].callback === 'function') {
@@ -596,7 +597,7 @@ PlugAPI.prototype.messageHandler = function(msg) {
             }
             break;
         case this.messageTypes.MODERATE_MOVE_DJ:
-            if (msg.data.moderator === this.getUser().username) {
+            if (this.getUser() !== undefined && msg.data.moderator === this.getUser().username) {
                 (function() {
                     for (var i in rpcHandlers) {
                         if (rpcHandlers[i].type === rpcNames.MODERATE_MOVE_DJ && rpcHandlers[i].args[0] === msg.data.userID && typeof rpcHandlers[i].callback === 'function') {
@@ -608,7 +609,7 @@ PlugAPI.prototype.messageHandler = function(msg) {
             }
             break;
         case this.messageTypes.MODERATE_SKIP:
-            if (msg.data.id === this.getUser().id) {
+            if (this.getUser() !== undefined && msg.data.id === this.getUser().id) {
                 (function() {
                     for (var i in rpcHandlers) {
                         if (rpcHandlers[i].type === rpcNames.MODERATE_SKIP && typeof rpcHandlers[i].callback === 'function') {
@@ -636,11 +637,23 @@ PlugAPI.prototype.messageHandler = function(msg) {
             lastRpcMessage = Date.now();
             break;
         case this.messageTypes.DJ_ADVANCE:
+            var djAdvanceEvent = {
+                dj: msg.data.djs[0],
+                lastPlay: {
+                    dj: this.getDJ(),
+                    media: this.getMedia(),
+                    score: this.getRoomScore()
+                },
+                media: msg.data.media,
+                mediaStartTime: msg.data.mediaStartTime,
+                earn: msg.data.earn
+            };
+            var lastPlay = room.getMedia();
             room.setDjs(msg.data.djs);
-            room.setMedia(msg.data.media, msg.data.mediaStartTime);
+            room.djAdvance(msg.data);
             this.historyID = msg.data.historyID;
             lastRpcMessage = Date.now();
-            break;
+            return this.emit(msg.type, djAdvanceEvent);
         case this.messageTypes.CURATE_UPDATE:
             room.logVote(msg.data.id, 'curate');
             lastRpcMessage = Date.now();
@@ -752,9 +765,13 @@ PlugAPI.prototype.changeDJCycle = function(enabled, callback) {
     return sendRPC(rpcNames.ROOM_CYCLE_BOOTH, [this.roomId, enabled], callback);
 }
 PlugAPI.prototype.getTimeElapsed = function() {
+    if (room.getMedia() == null)
+        return 0;
     return Math.min(room.getMedia().duration, DateUtilities.getSecondsElapsed(room.getMediaStartTime()));
 }
 PlugAPI.prototype.getTimeRemaining = function() {
+    if (room.getMedia() == null)
+        return 0;
     return room.getMedia().duration - this.getTimeElapsed();
 }
 
@@ -787,6 +804,9 @@ PlugAPI.prototype.moderateDeleteChat = function(chatID, callback) {
 }
 PlugAPI.prototype.moderateLockWaitList = function(locked, clear, callback) {
     return this.moderateLockBooth(locked, clear, callback);
+}
+PlugAPI.prototype.moderateSetRole = function(id, role, callback) {
+    return sendRPC(rpcNames.MODERATE_PERMISSIONS, [id, role], callback);
 }
 PlugAPI.prototype.moderateLockBooth = function(locked, clear, callback) {
     return sendRPC(rpcNames.ROOM_LOCK_BOOTH, [this.roomId, locked, clear], callback);
