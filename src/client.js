@@ -235,9 +235,9 @@ function connectChat(roomID) {
             this.send('5::/room:' + JSON.stringify(roomOpts));
         });
         ws.on('message', function(data, flags) {
-            // heartbeat
+            // Heartbeat
             if (data == '2::') this.send('2::');
-            // other messages (including chat)
+            // Messages (including chat)
             if (data.match(/^5::\/room:/)) {
                 var mStr = data.split('5::/room:')[1];
                 var m = JSON.parse(mStr).args[0];
@@ -385,7 +385,7 @@ var PlugAPI = function(key, updateCode) {
         throw new Error('You must pass the authentication cookie into the PlugAPI object to connect correctly');
     _this = this;
     _key = key;
-    _updateCode = updateCode != undefined ? updateCode : 'p9R*';
+    _updateCode = updateCode != undefined ? updateCode : '4w@fWs$';
 
     this.multiLine = false;
     this.multiLineLimit = 5;
@@ -732,13 +732,15 @@ PlugAPI.prototype.meh = function(callback) {
     sendRPC(rpcNames.ROOM_CAST, [false, this.historyID, this.lastHistoryID === this.historyID], callback);
     return this.lastHistoryID = this.historyID;
 }
-PlugAPI.prototype.getHistory = function(callback) {
+PlugAPI.prototype.getHistory = function(callback, counter) {
     if (typeof callback !== 'function') throw new Error('You must specify callback!');
+    if (!counter) counter = 0;
+    else if (counter % 6e4) sendRPC(rpcNames.HISTORY_SELECT, [this.roomId], __bind(room.setHistory, room));
     var history = room.getHistory();
     if (history.length > 1)
         return callback(history);
     setImmediate(function() {
-        _this.getHistory(callback);
+        _this.getHistory(callback, ++counter);
     });
 }
 PlugAPI.prototype.isUsernameAvailable = function(name, callback) {
