@@ -383,9 +383,11 @@ function reconnectChat() {
 var PlugAPI = function(key, updateCode) {
     if (!key)
         throw new Error('You must pass the authentication cookie into the PlugAPI object to connect correctly');
+    if (!updateCode)
+        throw new Error('You must pass the update code into the PlugAPI object to connect correctly');
     _this = this;
     _key = key;
-    _updateCode = updateCode != undefined ? updateCode : '4w@fWs$';
+    _updateCode = updateCode;
 
     this.multiLine = false;
     this.multiLineLimit = 5;
