@@ -189,11 +189,41 @@ function sendRPC(name, args, callback) {
     return client.send(sendArgs);
 }
 
+function sendGateway(name, args, successCallback, failureCallback) {
+    var bodyString = JSON.stringify({
+        service: name,
+        body: args
+    }),
+        opts = {
+            method: 'POST',
+            url: 'http://plug.dj/_/gateway/' + name,
+            headers: {
+                Accept: 'application/json, text/javascript, */*; q=0.01',
+                Cookie: 'usr=' + _key,
+                'Content-Type': 'application/json'
+            },
+            body: bodyString
+        };
+    request(opts, function(err, res, body) {
+        if (err) {
+            if (typeof failureCallback === 'function')
+                failureCallback(err);
+            return console.log('[GATEWAY ERROR]',err);
+        }
+        body = JSON.parse(body);
+        if (body.status === 0) {
+            if (typeof successCallback === 'function')
+                successCallback(body.body);
+        } else if (typeof failureCallback === 'function')
+            failureCallback(body.body);
+    });
+}
+
 function joinRoom(name, callback) {
     return sendRPC(rpcNames.ROOM_JOIN, [name, _updateCode], function(data) {
         if (data.status && data.status !== 0) throw new Error('Wrong updateCode');
         DateUtilities.setServerTime(data.serverTime);
-        return sendRPC(rpcNames.ROOM_DETAILS, [name], function(data) {
+        return sendGateway(rpcNames.ROOM_DETAILS, [name], function(data) {
             return _this.initRoom(data, function() {
                 if (callback != null)
                     return callback(data);
@@ -693,7 +723,7 @@ PlugAPI.prototype.initRoom = function(data, callback) {
             mediaStartTime: data.room.mediaStartTime,
             historyID: this.historyID
         });
-        sendRPC(rpcNames.HISTORY_SELECT, [data.room.id], __bind(room.setHistory, room));
+        sendGateway(rpcNames.HISTORY_SELECT, [data.room.id], __bind(room.setHistory, room));
     }
     return callback();
 }
@@ -727,17 +757,17 @@ PlugAPI.prototype.sendChat = function(msg) {
     return this.chat(msg);
 }
 PlugAPI.prototype.woot = function(callback) {
-    sendRPC(rpcNames.ROOM_CAST, [true, this.historyID, this.lastHistoryID === this.historyID], callback);
+    sendGateway(rpcNames.ROOM_CAST, [true, this.historyID, this.lastHistoryID === this.historyID], callback);
     return this.lastHistoryID = this.historyID;
 }
 PlugAPI.prototype.meh = function(callback) {
-    sendRPC(rpcNames.ROOM_CAST, [false, this.historyID, this.lastHistoryID === this.historyID], callback);
+    sendGateway(rpcNames.ROOM_CAST, [false, this.historyID, this.lastHistoryID === this.historyID], callback);
     return this.lastHistoryID = this.historyID;
 }
 PlugAPI.prototype.getHistory = function(callback, counter) {
     if (typeof callback !== 'function') throw new Error('You must specify callback!');
     if (!counter) counter = 0;
-    else if (counter % 6e4) sendRPC(rpcNames.HISTORY_SELECT, [this.roomId], __bind(room.setHistory, room));
+    else if (counter % 6e4) sendGateway(rpcNames.HISTORY_SELECT, [this.roomId], __bind(room.setHistory, room));
     var history = room.getHistory();
     if (history.length > 1)
         return callback(history);
@@ -746,27 +776,27 @@ PlugAPI.prototype.getHistory = function(callback, counter) {
     });
 }
 PlugAPI.prototype.isUsernameAvailable = function(name, callback) {
-    return sendRPC(rpcNames.USER_NAME_AVAILABLE, [name], callback);
+    return sendGateway(rpcNames.USER_NAME_AVAILABLE, [name], callback);
 }
 PlugAPI.prototype.changeUsername = function(name, callback) {
-    return sendRPC(rpcNames.USER_CHANGE_NAME, [name], callback);
+    return sendGateway(rpcNames.USER_CHANGE_NAME, [name], callback);
 }
 PlugAPI.prototype.changeRoomName = function(name, callback) {
     if (!this.roomId)
         throw new Error('You must be in a room to change its name');
     if (this.getSelf().permission < this.ROLE.COHOST)
         throw new Error('You must be co-host or higher to change room name');
-    return sendRPC(rpcNames.MODERATE_UPDATE_NAME, [name], callback);
+    return sendGateway(rpcNames.MODERATE_UPDATE_NAME, [name], callback);
 }
 PlugAPI.prototype.changeRoomDescription = function(description, callback) {
     if (this.getSelf().permission < this.ROLE.COHOST)
         throw new Error('You must be co-host or higher to change room description');
-    return sendRPC(rpcNames.MODERATE_UPDATE_DESCRIPTION, [description], callback);
+    return sendGateway(rpcNames.MODERATE_UPDATE_DESCRIPTION, [description], callback);
 }
 PlugAPI.prototype.changeDJCycle = function(enabled, callback) {
     if (this.getSelf().permission < this.ROLE.MANAGER)
         throw new Error('You must be manager or higher to change DJ cycle');
-    return sendRPC(rpcNames.ROOM_CYCLE_BOOTH, [this.roomId, enabled], callback);
+    return sendGateway(rpcNames.ROOM_CYCLE_BOOTH, [this.roomId, enabled], callback);
 }
 PlugAPI.prototype.getTimeElapsed = function() {
     if (room.getMedia() == null)
@@ -780,40 +810,40 @@ PlugAPI.prototype.getTimeRemaining = function() {
 }
 
 PlugAPI.prototype.joinBooth = function(callback) {
-    return sendRPC(rpcNames.BOOTH_JOIN, [], callback);
+    return sendGateway(rpcNames.BOOTH_JOIN, [], callback);
 }
 PlugAPI.prototype.leaveBooth = function(callback) {
-    return sendRPC(rpcNames.BOOTH_LEAVE, [], callback);
+    return sendGateway(rpcNames.BOOTH_LEAVE, [], callback);
 }
 PlugAPI.prototype.moderateAddDJ = function(userid, callback) {
-    return sendRPC(rpcNames.MODERATE_ADD_DJ, userid, callback);
+    return sendGateway(rpcNames.MODERATE_ADD_DJ, userid, callback);
 }
 PlugAPI.prototype.moderateRemoveDJ = function(userid, callback) {
-    return sendRPC(rpcNames.MODERATE_REMOVE_DJ, userid, callback);
+    return sendGateway(rpcNames.MODERATE_REMOVE_DJ, userid, callback);
 }
 PlugAPI.prototype.moderateMoveDJ = function(userid, index, callback) {
-    return sendRPC(rpcNames.MODERATE_MOVE_DJ, [userid, index > 50 ? 50 : index < 1 ? 1 : index], callback);
+    return sendGateway(rpcNames.MODERATE_MOVE_DJ, [userid, index > 50 ? 50 : index < 1 ? 1 : index], callback);
 }
 PlugAPI.prototype.moderateBanUser = function(userid, reason, duration, callback) {
-    return sendRPC(rpcNames.MODERATE_BAN, [userid, String(reason || 0), duration || -1], callback);
+    return sendGateway(rpcNames.MODERATE_BAN, [userid, String(reason || 0), duration || -1], callback);
 }
 PlugAPI.prototype.moderateUnBanUser = function(userid, callback) {
-    return sendRPC(rpcNames.MODERATE_UNBAN, [userid], callback);
+    return sendGateway(rpcNames.MODERATE_UNBAN, [userid], callback);
 }
 PlugAPI.prototype.moderateForceSkip = function(callback) {
-    return room.getDJ() === null ? false : sendRPC(rpcNames.MODERATE_SKIP, [room.getDJ().id, this.historyID], callback);
+    return room.getDJ() === null ? false : sendGateway(rpcNames.MODERATE_SKIP, [room.getDJ().id, this.historyID], callback);
 }
 PlugAPI.prototype.moderateDeleteChat = function(chatID, callback) {
-    return sendRPC(rpcNames.MODERATE_CHAT_DELETE, [chatID], callback);
+    return sendGateway(rpcNames.MODERATE_CHAT_DELETE, [chatID], callback);
 }
 PlugAPI.prototype.moderateLockWaitList = function(locked, clear, callback) {
     return this.moderateLockBooth(locked, clear, callback);
 }
 PlugAPI.prototype.moderateSetRole = function(id, role, callback) {
-    return sendRPC(rpcNames.MODERATE_PERMISSIONS, [id, role], callback);
+    return sendGateway(rpcNames.MODERATE_PERMISSIONS, [id, role], callback);
 }
 PlugAPI.prototype.moderateLockBooth = function(locked, clear, callback) {
-    return sendRPC(rpcNames.ROOM_LOCK_BOOTH, [this.roomId, locked, clear], callback);
+    return sendGateway(rpcNames.ROOM_LOCK_BOOTH, [this.roomId, locked, clear], callback);
 }
 PlugAPI.prototype.getUsers = function() {
     return room.getUsers();
@@ -858,19 +888,19 @@ PlugAPI.prototype.getRoomScore = function() {
     return room.getRoomScore();
 }
 PlugAPI.prototype.createPlaylist = function(name, callback) {
-    return sendRPC(rpcNames.PLAYLIST_CREATE, name, callback);
+    return sendGateway(rpcNames.PLAYLIST_CREATE, name, callback);
 }
 PlugAPI.prototype.addSongToPlaylist = function(playlistId, songid, callback) {
-    return sendRPC(rpcNames.PLAYLIST_MEDIA_INSERT, [playlistId, null, -1, [songid]], callback);
+    return sendGateway(rpcNames.PLAYLIST_MEDIA_INSERT, [playlistId, null, -1, [songid]], callback);
 }
 PlugAPI.prototype.getPlaylists = function(callback) {
-    return sendRPC(rpcNames.PLAYLIST_SELECT, [new Date(0).toISOString().replace('T', ' '), null, 100, null], callback);
+    return sendGateway(rpcNames.PLAYLIST_SELECT, [new Date(0).toISOString().replace('T', ' '), null, 100, null], callback);
 }
 PlugAPI.prototype.activatePlaylist = function(playlist_id, callback) {
-    return sendRPC(rpcNames.PLAYLIST_ACTIVATE, [playlist_id], callback);
+    return sendGateway(rpcNames.PLAYLIST_ACTIVATE, [playlist_id], callback);
 }
 PlugAPI.prototype.playlistMoveSong = function(playlist, song_id, position, callback) {
-    return sendRPC(rpcNames.PLAYLIST_MEDIA_MOVE, [playlist.id, playlist.items[position],
+    return sendGateway(rpcNames.PLAYLIST_MEDIA_MOVE, [playlist.id, playlist.items[position],
         [song_id]
     ], callback);
 }
