@@ -208,7 +208,7 @@ function sendGateway(name, args, successCallback, failureCallback) {
         if (err) {
             if (typeof failureCallback === 'function')
                 failureCallback(err);
-            return console.log('[GATEWAY ERROR]',err);
+            return console.log('[GATEWAY ERROR]', err);
         }
         body = JSON.parse(body);
         if (body.status === 0) {
@@ -245,7 +245,7 @@ function connectChat(roomID) {
     };
     request(opts, function(err, res, body) {
         if (err) {
-            logger.log('[Chat Server] Error under connecting:', err);
+            logger.log('[Chat Server] Error while connecting:', err);
             process.nextTick(function() {
                 logger.log('[Chat Server] Reconnecting');
                 connectChat(roomID);

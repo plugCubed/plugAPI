@@ -1,16 +1,14 @@
 plugapi
 =======
 
-A generic API for creating Plug.dj bots
+A generic API for creating Plug.dj bots.
 
-'''VERSION IS IN PRE-RELEASE BECAUSE THE API IS UNDER CHANGES - THINGS CAN BREAK'''
+Originally by [Chris Vickery](https://github.com/chrisinajar), now maintained by [TAT](https://github.com/TATDK).
 
 ## How to use
-Due to a Plug update, the original version of PlugAPI from npm no longer works. You will have to use this fork for now.
-
 Run the following:
 
-```npm install https://github.com/TATDK/plugapi/tarball/master```
+```npm install plugapi```
 
 To connect, do this!
 

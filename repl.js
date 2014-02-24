@@ -1,33 +1,34 @@
 (function() {
-  var AUTH, PlugAPI, ROOM, bot, repl,
-    _this = this;
+    var AUTH, PlugAPI, ROOM, UPDATECODE, bot, repl;
 
-  PlugAPI = require("./src/index.js");
+    PlugAPI = require('./src/client.js');
 
-  repl = require("repl");
+    repl = require('repl');
 
-  AUTH = "YOUR AUTH HERE";
+    AUTH = 'YOUR AUTH HERE';
 
-  ROOM = "ROOM-URL";
+    ROOM = 'ROOM-URL';
 
-  if(AUTH == "YOUR AUTH HERE" || ROOM == "ROOM-URL"){
-      console.log("You have not configured the repl.");
-      console.log("Set the AUTH and ROOM variables in repl.js");
-      process.exit(0);
-  }
-  bot = new PlugAPI(AUTH);
+    UPDATECODE = 'UPDATECODE';
 
-  bot.connect();
+    if (AUTH == 'YOUR AUTH HERE' || ROOM == 'ROOM-URL' || UPDATECODE == 'UPDATECODE') {
+        console.log('You have not configured the repl.');
+        console.log('Set the AUTH, ROOM and UPDATECODE variables in repl.js');
+        process.exit(0);
+    }
 
-  bot.on("connected", function() {
-    return bot.joinRoom(ROOM);
-  });
+    bot = new PlugAPI(AUTH, UPDATECODE);
 
-  bot.on("roomChanged", function() {
-    var botrepl;
-    console.log("[+] Joined " + ROOM);
-    botrepl = repl.start("bot>");
-    return botrepl.context.bot = bot;
-  });
+    bot.connect(ROOM);
 
+    bot.on('connected', function() {
+        console.log('[+] Connected to server');
+    });
+
+    bot.on('roomChanged', function() {
+        var botrepl;
+        console.log('[+] Joined ' + ROOM);
+        botrepl = repl.start('bot>');
+        return botrepl.context.bot = bot;
+    });
 }).call(this);

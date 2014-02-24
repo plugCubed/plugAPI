@@ -1,40 +1,40 @@
 {
-	"name": "plugapi",
-	"version": "0.3.0",
-	"author": "Chris Vickery <chrisinajar@gmail.com>",
-	"contributors": [
-		{
-			"name": "ging"
-		},
-		{
-			"name": "Nicolas Jeker",
-			"email": "n.jeker@gmx.net"
-		},
-		{
-			"name": "Chris Bellew",
-			"email": "atomjack@gmail.com"
-		},
-		{
-			"name": "TAT",
-			"email": "TAT@plugCubed.net"
-		}
-	],
-	"description": "Generic API for building Plug.dj bots",
-	"main": "./src/client.js",
-	"lib": "./src/client.js",
-	"dependencies": {
-		"node-html-encoder": "*",
-		"cheerio": "*",
-		"ws": "*",
-		"request": "*",
-		"sockjs-client-node": "https://github.com/TATDK/sockjs-client-node/tarball/master"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/chrisinajar/plugapi"
-	},
-	"license": "freeBSD",
-	"engines": {
-		"node": ">=0.6"
-	}
+    "name": "plugapi",
+    "version": "1.0.0",
+    "author": "Thomas Andresen <TAT@plugCubed.net>",
+    "description": "Generic API for building Plug.dj bots",
+    "contributors": [{
+        "name": "Chris Vickery",
+        "email": "chrisinajar@gmail.com"
+    }, {
+        "name": "ging"
+    }, {
+        "name": "Nicolas Jeker",
+        "email": "n.jeker@gmx.net"
+    }, {
+        "name": "Chris Bellew",
+        "email": "atomjack@gmail.com"
+    }],
+    "main": "./src/client.js",
+    "lib": "./src/client.js",
+    "keywords": [
+        "plug.dj",
+        "plug",
+        "api"
+    ],
+    "dependencies": {
+        "node-html-encoder": "*",
+        "cheerio": "*",
+        "ws": "*",
+        "request": "*",
+        "sockjs-client-node": "https://github.com/TATDK/sockjs-client-node/tarball/master"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/TATDK/plugapi"
+    },
+    "license": "freeBSD",
+    "engines": {
+        "node": ">=0.6"
+    }
 }
