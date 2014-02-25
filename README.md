@@ -1,7 +1,7 @@
 plugapi
 =======
 
-A generic API for creating Plug.dj bots.
+A generic API for creating plug.dj bots.
 
 Originally by [Chris Vickery](https://github.com/chrisinajar), now maintained by [TAT](https://github.com/TATDK).
 
