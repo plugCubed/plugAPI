@@ -275,7 +275,7 @@ function connectChat(roomID) {
                 m.message = encoder.htmlDecode(m.message);
 
                 if (m.type == 'message' && m.message.indexOf('!') === 0 && m.from.id != room.self.id) {
-                    if (typeof _this.preCommandHandler === 'function' && _this.preCommandHandler(data) === false) return;
+                    if (typeof _this.preCommandHandler === 'function' && _this.preCommandHandler(m) === false) return;
                     var cmd = m.message.substr(1).split(' ')[0],
                         obj = {
                             message: m,
@@ -287,6 +287,12 @@ function connectChat(roomID) {
                             respond: function() {
                                 var message = Array.prototype.slice.call(arguments).join(' ');
                                 return _this.sendChat('@' + m.from + ' ' + message);
+                            },
+                            respondTimeout: function() {
+                                var args = Array.prototype.slice.call(arguments),
+                                    timeout = args.splice(args.length - 1, 1),
+                                    message = args.join(' ');
+                                return _this.sendChat('@' + m.from + ' ' + message, timeout);
                             },
                             havePermission: function(permission, success, failure) {
                                 if (permission === undefined) permission = 0;
@@ -730,31 +736,37 @@ PlugAPI.prototype.initRoom = function(data, callback) {
 PlugAPI.prototype.roomRegister = function(name, callback) {
     return joinRoom(name, callback);
 }
-PlugAPI.prototype.intChat = function(msg) {
-    return ws.send('5::/room:' + JSON.stringify({
+PlugAPI.prototype.intChat = function(msg, timeout) {
+    var cID = room.self.id.substr(0, 6) + Math.floor(Math.random() * 4294967295).toString(16);
+    ws.send('5::/room:' + JSON.stringify({
         name: 'chat',
         args: [{
             msg: msg,
-            chatID: room.self.id.substr(0, 6) + Math.floor(Math.random() * 4294967295).toString(16)
+            chatID: cID
         }]
     }));
+    if (timeout !== undefined && ~~timeout !== NaN && ~~timeout > 0) {
+        setTimeout(function() {
+            _this.moderateDeleteChat(cID);
+        }, ~~timeout * 1E3);
+    }
 }
-PlugAPI.prototype.chat = function(msg) {
+PlugAPI.prototype.chat = function(msg, timeout) {
     if (msg.length > 235 && this.multiLine) {
         var lines = msg.replace(/.{235}\S*\s+/g, '$&¤').split(/\s+¤/);
         for (var i = 0; i < lines.length; i++) {
             var msg = lines[i];
             if (i > 0)
                 msg = '(continued) ' + msg;
-            this.intChat(msg);
+            this.intChat(msg, timeout);
             if (i + 1 >= this.multiLineLimit)
                 break;
         }
     } else
-        this.intChat(msg);
+        this.intChat(msg, timeout);
 }
-PlugAPI.prototype.sendChat = function(msg) {
-    return this.chat(msg);
+PlugAPI.prototype.sendChat = function(msg, timeout) {
+    return this.chat(msg, timeout);
 }
 PlugAPI.prototype.woot = function(callback) {
     sendGateway(rpcNames.ROOM_CAST, [true, this.historyID, this.lastHistoryID === this.historyID], callback);
