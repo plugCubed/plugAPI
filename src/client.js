@@ -210,12 +210,18 @@ function sendGateway(name, args, successCallback, failureCallback) {
                 failureCallback(err);
             return console.log('[GATEWAY ERROR]', err);
         }
-        body = JSON.parse(body);
-        if (body.status === 0) {
-            if (typeof successCallback === 'function')
-                successCallback(body.body);
-        } else if (typeof failureCallback === 'function')
-            failureCallback(body.body);
+        try {
+            body = JSON.parse(body);
+            if (body.status === 0) {
+                if (typeof successCallback === 'function')
+                    successCallback(body.body);
+            } else if (typeof failureCallback === 'function')
+                failureCallback(body.body);
+        } catch (e) {
+            if (typeof failureCallback === 'function')
+                failureCallback(e);
+            console.log('[GATEWAY ERROR]', e);
+        }
     });
 }
 

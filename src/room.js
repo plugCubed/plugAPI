@@ -114,9 +114,8 @@ Room.prototype.addUser = function(user) {
         return this.users[user.id]['permission'] = 0;
 };
 
-Room.prototype.remUser = function(user) {
-    this.users[user.id] = undefined;
-    return delete this.users[user.id];
+Room.prototype.remUser = function(userID) {
+    delete this.users[userID];
 };
 
 Room.prototype.updateUser = function(user) {
