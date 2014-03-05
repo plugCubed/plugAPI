@@ -1,6 +1,10 @@
 plugAPI Changelog
 =================
 
+1.1.2
+-----
+* **CHANGE:** Now getting the updateCode from server. (Commit [b32bc48](https://github.com/TATDK/plugapi/commit/b32bc4801c1208236f81fa46441a7e72a845786b))
+
 1.1.1
 -----
 * **FIXED:** Hopefully give an error when gateway returns invalid JSON (Commit [dfb9c6c](https://github.com/TATDK/plugapi/commit/dfb9c6c19ed19bac5c6f318d349b97963d0ee0bf))
