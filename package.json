@@ -24,7 +24,6 @@
     ],
     "dependencies": {
         "node-html-encoder": "*",
-        "cheerio": "*",
         "ws": "*",
         "request": "*",
         "sockjs-client-node": "https://github.com/TATDK/sockjs-client-node/tarball/master"
