@@ -225,17 +225,31 @@ function sendGateway(name, args, successCallback, failureCallback) {
     });
 }
 
+function getUpdateCode(callback) {
+    request('https://d1rfegul30378.cloudfront.net/updatecode.txt', function(err, res, body) {
+        _updateCode = body;
+        if (typeof callback === 'function')
+            callback();
+    });
+}
+
 function joinRoom(name, callback) {
-    return sendRPC(rpcNames.ROOM_JOIN, [name, _updateCode], function(data) {
-        if (data.status && data.status !== 0) throw new Error('Wrong updateCode');
-        DateUtilities.setServerTime(data.serverTime);
-        return sendGateway(rpcNames.ROOM_DETAILS, [name], function(data) {
-            return _this.initRoom(data, function() {
-                if (callback != null)
-                    return callback(data);
+    var execute = function() {
+        sendRPC(rpcNames.ROOM_JOIN, [name, _updateCode], function(data) {
+            if (data.status && data.status !== 0) throw new Error('Wrong updateCode');
+            DateUtilities.setServerTime(data.serverTime);
+            return sendGateway(rpcNames.ROOM_DETAILS, [name], function(data) {
+                return _this.initRoom(data, function() {
+                    if (callback != null)
+                        return callback(data);
+                });
             });
         });
-    });
+    };
+    if (_updateCode === null)
+        getUpdateCode(execute);
+    else
+        execute();
 }
 
 function send(data) {
@@ -422,14 +436,11 @@ function reconnectChat() {
     connectChat(_this.roomId);
 }
 
-var PlugAPI = function(key, updateCode) {
+var PlugAPI = function(key) {
     if (!key)
         throw new Error('You must pass the authentication cookie into the PlugAPI object to connect correctly');
-    if (!updateCode)
-        throw new Error('You must pass the update code into the PlugAPI object to connect correctly');
     _this = this;
     _key = key;
-    _updateCode = updateCode;
 
     this.multiLine = false;
     this.multiLineLimit = 5;

@@ -15,10 +15,9 @@ To connect, do this!
 ```
 var PlugAPI = require('plugapi'),
     AUTH = 'xxxxxxxxxxxxxxxxxxxxxxxxxxx=?_expires=xxxxxxxxxxxxxxxxxx==&user_id=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx=', // Put your auth token here, it's the cookie value for usr
-    ROOM = '',
-    UPDATECODE = '';
+    ROOM = '';
 
-var bot = new PlugAPI(AUTH, UPDATECODE);
+var bot = new PlugAPI(AUTH);
 bot.connect(ROOM);
 
 bot.on('roomJoin', function(room) {
