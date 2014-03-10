@@ -8,6 +8,7 @@ var SockJS = require('sockjs-client'),
     WebSocket = require('ws'),
     encoder = new Encoder('entity'),
     util = require('util'),
+    zlib = require('zlib'),
 
     rpcNames = {
         BOOTH_JOIN: 'booth.join',
@@ -226,10 +227,18 @@ function sendGateway(name, args, successCallback, failureCallback) {
 }
 
 function getUpdateCode(callback) {
-    request('https://d1rfegul30378.cloudfront.net/updatecode.txt', function(err, res, body) {
-        _updateCode = body;
-        if (typeof callback === 'function')
-            callback();
+    request({
+        url: 'https://d1rfegul30378.cloudfront.net/updatecode.txt',
+        headers: {
+            'Accept-Encoding': 'gzip'
+        },
+        encoding: null
+    }, function(err, res, body) {
+        zlib.unzip(body, function(err, data) {
+            _updateCode = data.toString();
+            if (typeof callback === 'function')
+                callback();
+        });
     });
 }
 
@@ -240,7 +249,7 @@ function joinRoom(name, callback) {
             DateUtilities.setServerTime(data.serverTime);
             return sendGateway(rpcNames.ROOM_DETAILS, [name], function(data) {
                 return _this.initRoom(data, function() {
-                    if (callback != null)
+                    if (typeof callback !== 'undefined')
                         return callback(data);
                 });
             });
