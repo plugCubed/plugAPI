@@ -1,9 +1,14 @@
 plugAPI Changelog
 =================
 
+1.1.3
+-----
+* **FIXED:** Uncompress the updatecode from the server (Commit [963235a](https://github.com/TATDK/plugapi/commit/963235af51a80e160f1a07a7ca162203c59720ea))
+* **REMOVE:** Removed cheerio as a dependency as it wasn't used (Commit [52731a6](https://github.com/TATDK/plugapi/commit/52731a6af870120888731e6b559eb0b82b65cdd8))
+
 1.1.2
 -----
-* **CHANGE:** Now getting the updateCode from server. (Commit [b32bc48](https://github.com/TATDK/plugapi/commit/b32bc4801c1208236f81fa46441a7e72a845786b))
+* **CHANGE:** Now getting the updateCode from server (Commit [b32bc48](https://github.com/TATDK/plugapi/commit/b32bc4801c1208236f81fa46441a7e72a845786b))
 
 1.1.1
 -----
