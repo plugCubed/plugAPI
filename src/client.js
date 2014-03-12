@@ -191,6 +191,9 @@ function sendRPC(name, args, callback) {
 }
 
 function sendGateway(name, args, successCallback, failureCallback) {
+    args = args === undefined ? [] : args;
+    if (!util.isArray(args))
+        args = [args];
     var bodyString = JSON.stringify({
         service: name,
         body: args
