@@ -774,7 +774,7 @@ PlugAPI.prototype.intChat = function(msg, timeout) {
             chatID: cID
         }]
     }));
-    if (timeout !== undefined && ~~timeout !== NaN && ~~timeout > 0) {
+    if (timeout !== undefined && !isNaN(~~timeout) && ~~timeout > 0) {
         setTimeout(function() {
             _this.moderateDeleteChat(cID);
         }, ~~timeout * 1E3);

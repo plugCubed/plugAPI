@@ -15,8 +15,7 @@
         "name": "Chris Bellew",
         "email": "atomjack@gmail.com"
     }],
-    "main": "./src/client.js",
-    "lib": "./src/client.js",
+    "main": "./bin/client.js",
     "keywords": [
         "plug.dj",
         "plug",
@@ -27,6 +26,10 @@
         "ws": "*",
         "request": "*",
         "sockjs-client-node": "https://github.com/TATDK/sockjs-client-node/tarball/master"
+    },
+    "devDependencies": {
+        "grunt": "*",
+        "grunt-closurecompiler": "*"
     },
     "repository": {
         "type": "git",
