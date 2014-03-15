@@ -60,6 +60,14 @@ Read about some of the events on the [wiki](https://github.com/TATDK/plugapi/wik
 
 Read about the actions on the [wiki](https://github.com/TATDK/plugapi/wiki/actions).
 
+## Contribute
+1. Clone repository to empty folder.
+2. Cd to the repository.
+3. Run `npm install` to set up the environment.
+4. Edit your code.
+5. Run `grunt` to compile the code and test.
+6. After it's bug free, you may submit it as a Pull Request to the main repo.
+
 ## Misc
 
 #### setLogObject(logger)
@@ -71,14 +79,6 @@ The logger object must have a function called "log" that takes any number of par
 var prompt = new Prompt();
 bot.setLogObject(prompt);
 ```
-
-## Contribute
-1. Clone repository to empty folder.
-2. Cd to the repository.
-3. Run `npm install` to set up the environment.
-4. Edit your code.
-5. Run `grunt` to compile the code and test.
-6. After it's bug free, you may submit it as a Pull Request to the main repo.
 
 #### Multi line chat
 Since Plug.dj cuts off chat messages at 250 characters, you can choose to have your bot split up chat messages into multiple lines:
