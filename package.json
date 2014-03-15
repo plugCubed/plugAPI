@@ -31,6 +31,9 @@
         "grunt": "*",
         "grunt-closurecompiler": "*"
     },
+    "optionalDependencies": {
+        "plug-dj-login": "*"
+    },
     "repository": {
         "type": "git",
         "url": "https://github.com/TATDK/plugapi"

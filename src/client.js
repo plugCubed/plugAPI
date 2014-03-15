@@ -106,6 +106,22 @@ function __bind(fn, me) {
     };
 }
 
+function intChat(msg, timeout) {
+    var cID = room.self.id.substr(0, 6) + Math.floor(Math.random() * 4294967295).toString(16);
+    ws.send('5::/room:' + JSON.stringify({
+        name: 'chat',
+        args: [{
+            msg: msg,
+            chatID: cID
+        }]
+    }));
+    if (timeout !== undefined && !isNaN(~~timeout) && ~~timeout > 0) {
+        setTimeout(function() {
+            _this.moderateDeleteChat(cID);
+        }, ~~timeout * 1E3);
+    }
+}
+
 /**
 DateUtilities
 Copyright (C) 2014 by Plug DJ, Inc.
@@ -578,7 +594,13 @@ var PlugAPI = function(key) {
 util.inherits(PlugAPI, EventEmitter);
 
 PlugAPI.prototype.getAuth = function(creds, callback) {
-    require('plug-dj-login')(creds, function(err, cookie) {
+    var module;
+    try {
+        module = require('plug-dj-login');
+    } catch () {
+        throw new Error('Error loading module plug-dj-login. Try running `npm install plug-dj-login`.');
+    }
+    module(creds, function(err, cookie) {
         if (err) {
             if (typeof callback == 'function')
                 callback(err, null);
@@ -762,24 +784,6 @@ PlugAPI.prototype.initRoom = function(data, callback) {
     }
     return callback();
 }
-PlugAPI.prototype.roomRegister = function(name, callback) {
-    return joinRoom(name, callback);
-}
-PlugAPI.prototype.intChat = function(msg, timeout) {
-    var cID = room.self.id.substr(0, 6) + Math.floor(Math.random() * 4294967295).toString(16);
-    ws.send('5::/room:' + JSON.stringify({
-        name: 'chat',
-        args: [{
-            msg: msg,
-            chatID: cID
-        }]
-    }));
-    if (timeout !== undefined && !isNaN(~~timeout) && ~~timeout > 0) {
-        setTimeout(function() {
-            _this.moderateDeleteChat(cID);
-        }, ~~timeout * 1E3);
-    }
-}
 PlugAPI.prototype.chat = function(msg, timeout) {
     if (msg.length > 235 && this.multiLine) {
         var lines = msg.replace(/.{235}\S*\s+/g, '$&¤').split(/\s+¤/);
@@ -787,12 +791,12 @@ PlugAPI.prototype.chat = function(msg, timeout) {
             var msg = lines[i];
             if (i > 0)
                 msg = '(continued) ' + msg;
-            this.intChat(msg, timeout);
+            intChat(msg, timeout);
             if (i + 1 >= this.multiLineLimit)
                 break;
         }
     } else
-        this.intChat(msg, timeout);
+        intChat(msg, timeout);
 }
 PlugAPI.prototype.sendChat = function(msg, timeout) {
     return this.chat(msg, timeout);
