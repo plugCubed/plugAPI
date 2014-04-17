@@ -4,6 +4,7 @@ var SockJS = require('sockjs-client'),
     EventEmitter = require('events').EventEmitter,
     Encoder = require('node-html-encoder').Encoder,
     Room = require('./room'),
+    PlugAPIInfo = require('../package.json'),
     request = require('request'),
     WebSocket = require('ws'),
     encoder = new Encoder('entity'),
@@ -11,65 +12,121 @@ var SockJS = require('sockjs-client'),
     zlib = require('zlib'),
 
     rpcNames = {
-        BOOTH_JOIN: 'booth.join',
-        BOOTH_LEAVE: 'booth.leave',
-        BOOTH_SKIP: 'booth.skip',
+        BOOTH_JOIN: 'booth.join_1',
+        BOOTH_LEAVE: 'booth.leave_1',
+        BOOTH_SKIP: 'booth.skip_1',
         DURATION_MISMATCH: 'duration.mismatch',
         DURATION_UPDATE: 'duration.update',
-        HISTORY_SELECT: 'history.select',
-        MEDIA_RECOVER: 'media.recover',
-        MEDIA_SELECT: 'media.select',
-        MEDIA_UPDATE: 'media.update',
-        MODERATE_ADD_DJ: 'moderate.add_dj',
-        MODERATE_BAN: 'moderate.ban',
-        MODERATE_BANS: 'moderate.bans',
-        MODERATE_CHAT_DELETE: 'moderate.chat_delete',
-        MODERATE_MOVE_DJ: 'moderate.move_dj',
-        MODERATE_PERMISSIONS: 'moderate.permissions',
-        MODERATE_REMOVE_DJ: 'moderate.remove_dj',
-        MODERATE_SKIP: 'moderate.skip',
-        MODERATE_UNBAN: 'moderate.unban',
-        MODERATE_UPDATE_DESCRIPTION: 'moderate.update_description',
-        MODERATE_UPDATE_NAME: 'moderate.update_name',
-        MODERATE_UPDATE_WELCOME: 'moderate.update_welcome',
-        PLAYLIST_ACTIVATE: 'playlist.activate',
-        PLAYLIST_CREATE: 'playlist.create',
-        PLAYLIST_DELETE: 'playlist.delete',
-        PLAYLIST_MEDIA_DELETE: 'playlist.media.delete',
-        PLAYLIST_MEDIA_INSERT: 'playlist.media.insert',
-        PLAYLIST_MEDIA_MOVE: 'playlist.media.move',
-        PLAYLIST_MEDIA_SHUFFLE: 'playlist.media.shuffle',
-        PLAYLIST_RENAME: 'playlist.rename',
-        PLAYLIST_SELECT: 'playlist.select',
-        REPORT_DISCONNECT: 'report.disconnect',
-        REPORT_RECONNECT: 'report.reconnect',
-        ROOM_CAST: 'room.cast',
-        ROOM_CREATE: 'room.create',
-        ROOM_CURATE: 'room.curate',
-        ROOM_CYCLE_BOOTH: 'room.cycle_booth',
-        ROOM_DETAILS: 'room.details',
-        ROOM_JOIN: 'room.join',
-        ROOM_LOCK_BOOTH: 'room.lock_booth',
-        ROOM_SEARCH: 'room.search',
-        ROOM_STAFF: 'room.staff',
-        ROOM_STATE: 'room.state',
-        USER_CHANGE_NAME: 'user.change_name',
-        USER_GET_BY_IDS: 'user.get_by_ids',
-        USER_IGNORING: 'user.ignoring',
-        USER_NAME_AVAILABLE: 'user.name_available',
-        USER_PONG: 'user.pong',
-        USER_SET_AVATAR: 'user.set_avatar',
-        USER_SET_LANGUAGE: 'user.set_language',
-        USER_SET_STATUS: 'user.set_status'
+        HISTORY_SELECT: 'history.select_1',
+        MEDIA_RECOVER: 'media.recover_1',
+        MEDIA_SELECT: 'media.select_1',
+        MEDIA_UPDATE: 'media.update_1',
+        MODERATE_ADD_DJ: 'moderate.add_dj_1',
+        MODERATE_BAN: 'moderate.ban_1',
+        MODERATE_BANS: 'moderate.bans_1',
+        MODERATE_CHAT_DELETE: 'moderate.chat_delete_1',
+        MODERATE_MOVE_DJ: 'moderate.move_dj_1',
+        MODERATE_PERMISSIONS: 'moderate.permissions_1',
+        MODERATE_REMOVE_DJ: 'moderate.remove_dj_1',
+        MODERATE_SKIP: 'moderate.skip_1',
+        MODERATE_UNBAN: 'moderate.unban_1',
+        MODERATE_UPDATE_DESCRIPTION: 'moderate.update_description_1',
+        MODERATE_UPDATE_NAME: 'moderate.update_name_1',
+        MODERATE_UPDATE_WELCOME: 'moderate.update_welcome_1',
+        PLAYLIST_ACTIVATE: 'playlist.activate_1',
+        PLAYLIST_CREATE: 'playlist.create_1',
+        PLAYLIST_DELETE: 'playlist.delete_1',
+        PLAYLIST_MEDIA_DELETE: 'playlist.media.delete_1',
+        PLAYLIST_MEDIA_INSERT: 'playlist.media.insert_1',
+        PLAYLIST_MEDIA_MOVE: 'playlist.media.move_1',
+        PLAYLIST_MEDIA_SHUFFLE: 'playlist.media.shuffle_1',
+        PLAYLIST_RENAME: 'playlist.rename_1',
+        PLAYLIST_SELECT: 'playlist.select_1',
+        REPORT_DISCONNECT: 'report.disconnect_1',
+        REPORT_RECONNECT: 'report.reconnect_1',
+        ROOM_CAST: 'room.cast_1',
+        ROOM_CREATE: 'room.create_1',
+        ROOM_CURATE: 'room.curate_1',
+        ROOM_CYCLE_BOOTH: 'room.cycle_booth_1',
+        ROOM_DETAILS: 'room.details_1',
+        ROOM_JOIN: 'room.join_1',
+        ROOM_LOCK_BOOTH: 'room.lock_booth_1',
+        ROOM_SEARCH: 'room.search_1',
+        ROOM_STAFF: 'room.staff_1',
+        ROOM_STATE: 'room.state_1',
+        USER_CHANGE_NAME: 'user.change_name_1',
+        USER_GET_BY_IDS: 'user.get_by_ids_1',
+        USER_IGNORING: 'user.ignoring_1',
+        USER_NAME_AVAILABLE: 'user.name_available_1',
+        USER_PONG: 'user.pong_1',
+        USER_SET_AVATAR: 'user.set_avatar_1',
+        USER_SET_LANGUAGE: 'user.set_language_1',
+        USER_SET_STATUS: 'user.set_status_1'
+    },
+
+    messageTypes = {
+        BAN: 'ban',
+        BOOTH_CYCLE: 'boothCycle',
+        BOOTH_LOCKED: 'boothLocked',
+        CHAT: 'chat',
+        CHAT_COMMAND: 'command',
+        CHAT_DELETE: 'chatDelete',
+        CHAT_EMOTE: 'emote',
+        COMMAND: 'command',
+        CURATE_UPDATE: 'curateUpdate',
+        DJ_ADVANCE: 'djAdvance',
+        DJ_UPDATE: 'djUpdate',
+        EMOTE: 'emote',
+        FOLLOW_JOIN: 'followJoin',
+        MODERATE_ADD_DJ: 'modAddDJ',
+        MODERATE_ADD_WAITLIST: 'modAddWaitList',
+        MODERATE_AMBASSADOR: 'modAmbassador',
+        MODERATE_BAN: 'modBan',
+        MODERATE_MOVE_DJ: 'modMoveDJ',
+        MODERATE_REMOVE_DJ: 'modRemoveDJ',
+        MODERATE_REMOVE_WAITLIST: 'modRemoveWaitList',
+        MODERATE_SKIP: 'modSkip',
+        MODERATE_STAFF: 'modStaff',
+        PDJ_MESSAGE: 'pdjMessage',
+        PDJ_UPDATE: 'pdjUpdate',
+        PING: 'ping',
+        PLAYLIST_CYCLE: 'playlistCycle',
+        REQUEST_DURATION: 'requestDuration',
+        REQUEST_DURATION_RETRY: 'requestDurationRetry',
+        ROOM_CHANGE: 'roomChanged',
+        ROOM_DESCRIPTION_UPDATE: 'roomDescriptionUpdate',
+        ROOM_JOIN: 'roomJoin',
+        ROOM_NAME_UPDATE: 'roomNameUpdate',
+        ROOM_VOTE_SKIP: 'roomVoteSkip',
+        ROOM_WELCOME_UPDATE: 'roomWelcomeUpdate',
+        SESSION_CLOSE: 'sessionClose',
+        SKIP: 'skip',
+        STROBE_TOGGLE: 'strobeToggle',
+        USER_COUNTER_UPDATE: 'userCounterUpdate',
+        USER_FOLLOW: 'userFollow',
+        USER_JOIN: 'userJoin',
+        USER_LEAVE: 'userLeave',
+        USER_UPDATE: 'userUpdate',
+        VOTE_UPDATE: 'voteUpdate',
+        VOTE_UPDATE_MULTI: 'voteUpdateMulti'
     },
 
     client = null,
     ws = null,
+    p3Socket = null,
+    initialized = false,
     apiId = 0,
     _this = null,
     _key = null,
     _updateCode = null,
     lastRpcMessage = Date.now(),
+    historyID,
+    lastHistoryID = '',
+    serverRequests = {
+        queue: [],
+        sent: 0,
+        limit: 10
+    },
     room = new Room(),
     rpcHandlers = {},
     logger = {
@@ -104,6 +161,17 @@ function __bind(fn, me) {
     return function() {
         return fn.apply(me, arguments);
     };
+}
+
+function intPM(receiver, msg) {
+    var cID = room.self.id.substr(0, 6) + Math.floor(Math.random() * 4294967295).toString(16);
+    p3Socket.send({
+        type: 'PM',
+        value: {
+            id: typeof receiver === 'object' ? receiver.id : receiver,
+            message: msg
+        }
+    });
 }
 
 function intChat(msg, timeout) {
@@ -187,7 +255,31 @@ var DateUtilities = {
     }
 };
 
-function sendRPC(name, args, callback) {
+function queueTicker() {
+    var canSend = serverRequests.sent < serverRequests.limit,
+        obj = serverRequests.queue.pop();
+    if (canSend && obj) {
+        serverRequests.sent++;
+        if (obj.type == 'rpc')
+            sendRPC(obj);
+        else if (obj.type == 'gateway')
+            sendGateway(obj.opts, obj.callbacks.success, obj.callbacks.failure);
+        else if (obj.type == 'connect') {
+            if (obj.server == 'socket')
+                connectSocket(obj.room);
+            else if (obj.server == 'chat')
+                connectChat(obj.room);
+        }
+
+        setTimeout(function() {
+            serverRequests.sent--;
+        }, 6e4);
+    }
+    setImmediate(queueTicker);
+}
+queueTicker();
+
+function queueRPC(name, args, callback, skipQueue) {
     args = args === undefined ? [] : args;
     if (!util.isArray(args))
         args = [args];
@@ -203,44 +295,72 @@ function sendRPC(name, args, callback) {
         type: name,
         args: args
     };
-    return client.send(sendArgs);
+    if (skipQueue && skipQueue === true)
+        sendRPC(sendArgs);
+    else
+        serverRequests.queue.push(sendArgs);
 }
 
-function sendGateway(name, args, successCallback, failureCallback) {
+function sendRPC(args) {
+    client.send(args);
+}
+
+function queueGateway(name, args, successCallback, failureCallback, skipQueue) {
     args = args === undefined ? [] : args;
+
     if (!util.isArray(args))
         args = [args];
-    var bodyString = JSON.stringify({
+
+    successCallback = typeof successCallback === 'function' ? __bind(successCallback, _this) : function() {};
+    failureCallback = typeof failureCallback === 'function' ? __bind(failureCallback, _this) : function() {};
+
+    var bodyString, opts;
+
+    bodyString = JSON.stringify({
         service: name,
         body: args
-    }),
-        opts = {
-            method: 'POST',
-            url: 'http://plug.dj/_/gateway/' + name,
-            headers: {
-                Accept: 'application/json, text/javascript, */*; q=0.01',
-                Cookie: 'usr=' + _key,
-                'Content-Type': 'application/json'
-            },
-            body: bodyString
-        };
+    });
+
+    opts = {
+        method: 'POST',
+        url: 'http://plug.dj/_/gateway/' + name,
+        headers: {
+            Accept: 'application/json, text/javascript, */*; q=0.01',
+            Cookie: 'usr=' + _key,
+            'Content-Type': 'application/json'
+        },
+        body: bodyString
+    };
+
+    if (skipQueue && skipQueue === true)
+        sendGateway(opts, successCallback, failureCallback);
+    else
+        serverRequests.queue.push({
+            type: 'gateway',
+            opts: opts,
+            callbacks: {
+                success: successCallback,
+                failure: failureCallback
+            }
+        });
+}
+
+function sendGateway(opts, successCallback, failureCallback) {
     request(opts, function(err, res, body) {
         if (err) {
             if (typeof failureCallback === 'function')
                 failureCallback(err);
-            return console.log('[GATEWAY ERROR]', err);
+            return logger.log('[GATEWAY ERROR]', err);
         }
         try {
             body = JSON.parse(body);
-            if (body.status === 0) {
-                if (typeof successCallback === 'function')
-                    successCallback(body.body);
-            } else if (typeof failureCallback === 'function')
+            if (body.status === 0)
+                successCallback(body.body);
+            else
                 failureCallback(body.body);
         } catch (e) {
-            if (typeof failureCallback === 'function')
-                failureCallback(e);
-            console.log('[GATEWAY ERROR]', e);
+            failureCallback(e);
+            logger.log('[GATEWAY ERROR]', e);
         }
     });
 }
@@ -263,11 +383,11 @@ function getUpdateCode(callback) {
 
 function joinRoom(name, callback) {
     var execute = function() {
-        sendRPC(rpcNames.ROOM_JOIN, [name, _updateCode], function(data) {
+        queueRPC(rpcNames.ROOM_JOIN, [name, _updateCode], function(data) {
             if (data.status && data.status !== 0) throw new Error('Wrong updateCode');
             DateUtilities.setServerTime(data.serverTime);
-            return sendGateway(rpcNames.ROOM_DETAILS, [name], function(data) {
-                return _this.initRoom(data, function() {
+            return queueGateway(rpcNames.ROOM_DETAILS, [name], function(data) {
+                return initRoom(data, function() {
                     if (typeof callback !== 'undefined')
                         return callback(data);
                 });
@@ -284,7 +404,107 @@ function send(data) {
     return client.send(data);
 }
 
-function connectChat(roomID) {
+function receivedChatMessage(m) {
+    if (!initialized) return;
+    m.message = encoder.htmlDecode(m.message);
+
+    if ((m.type == 'message' || m.type == 'pm') && m.message.indexOf('!') === 0 && m.from.id != room.self.id) {
+        if (typeof _this.preCommandHandler === 'function' && _this.preCommandHandler(m) === false) return;
+        var isPM = m.type == 'pm',
+            cmd = m.message.substr(1).split(' ')[0],
+            obj = {
+                message: m,
+                chatID: m.chatID,
+                from: room.getUser(m.fromID),
+                command: cmd,
+                args: m.message.substr(2 + cmd.length),
+                mentions: [],
+                respond: function() {
+                    var message = Array.prototype.slice.call(arguments).join(' ');
+                    if (isPM)
+                        return intPM(this.from, message);
+                    return _this.sendChat('@' + m.from + ' ' + message);
+                },
+                respondTimeout: function() {
+                    var args = Array.prototype.slice.call(arguments),
+                        timeout = args.splice(args.length - 1, 1),
+                        message = args.join(' ');
+                    if (isPM)
+                        return intPM(this.from, message);
+                    return _this.sendChat('@' + m.from + ' ' + message, timeout);
+                },
+                havePermission: function(permission, success, failure) {
+                    if (permission === undefined) permission = 0;
+                    var havePermission = room.getUser(m.fromID) !== undefined && room.getUser(m.fromID).permission >= permission;
+                    if (havePermission && typeof success === 'function')
+                        success();
+                    else if (!havePermission && typeof failure === 'function')
+                        failure();
+                    return havePermission;
+                },
+                isFrom: function(ids, success, failure) {
+                    if (typeof ids === 'string') ids = [ids];
+                    if (ids === undefined || !util.isArray(ids)) {
+                        if (typeof failure === 'function')
+                            failure();
+                        return false;
+                    }
+                    var isFrom = ids.indexOf(m.fromID) > -1;
+                    if (isFrom && typeof success === 'function')
+                        success();
+                    else if (!isFrom && typeof failure === 'function')
+                        failure();
+                    return isFrom;
+                }
+            },
+            lastIndex = obj.args.indexOf('@'),
+            allUsers = room.getUsers(),
+            random = Math.ceil(Math.random() * 1E10);
+        while (lastIndex > -1) {
+            var test = obj.args.substr(lastIndex),
+                found = null;
+            for (var i in allUsers) {
+                if (test.indexOf(allUsers[i].username) === 1) {
+                    if (found === null || allUsers[i].username.length > found.username.length)
+                        found = allUsers[i];
+                }
+            }
+            if (found !== null) {
+                obj.args = obj.args.substr(0, lastIndex) + '%MENTION-' + random + '-' + obj.mentions.length + '%' + obj.args.substr(lastIndex + found.username.length + 1);
+                obj.mentions.push(found);
+            }
+            lastIndex = obj.args.indexOf('@', lastIndex + 1);
+        }
+        obj.args = obj.args.split(' ');
+        for (var i in obj.mentions)
+            obj.args[obj.args.indexOf('%MENTION-' + random + '-' + i + '%')] = obj.mentions[i];
+        _this.emit(messageTypes.CHAT_COMMAND, obj);
+        _this.emit(messageTypes.CHAT_COMMAND + ':' + cmd, obj);
+        _this.moderateDeleteChat(m.chatID);
+    } else if (m.type == 'emote') {
+        _this.emit(messageTypes.CHAT_EMOTE, m);
+    }
+    if (m.type == 'pm')
+        _this.emit('pm', m);
+    else {
+        _this.emit(messageTypes.CHAT, m);
+        _this.emit(messageTypes.CHAT + ':' + m.type, m);
+        if (room.getUser() !== undefined && m.message.indexOf('@' + room.getUser().username) > -1) {
+            _this.emit(messageTypes.CHAT + ':mention', m);
+            _this.emit('mention', m);
+        }
+    }
+}
+
+function queueConnectChat(roomId) {
+    serverRequests.queue.push({
+        type: 'connect',
+        server: 'chat',
+        room: roomId
+    });
+}
+
+function connectChat(roomId) {
     var opts = {
         url: 'https://sio2.plug.dj/socket.io/1/?t=' + Date.now(),
         headers: {
@@ -296,7 +516,7 @@ function connectChat(roomID) {
             logger.log('[Chat Server] Error while connecting:', err);
             process.nextTick(function() {
                 logger.log('[Chat Server] Reconnecting');
-                connectChat(roomID);
+                queueConnectChat(roomId);
             });
             return;
         }
@@ -308,7 +528,7 @@ function connectChat(roomID) {
             this.send('1::/room');
             var roomOpts = {
                 name: 'join',
-                args: [roomID]
+                args: [roomId]
             };
             this.send('5::/room:' + JSON.stringify(roomOpts));
         });
@@ -320,108 +540,38 @@ function connectChat(roomID) {
                 var mStr = data.split('5::/room:')[1];
                 var m = JSON.parse(mStr).args[0];
 
-                m.message = encoder.htmlDecode(m.message);
-
-                if (m.type == 'message' && m.message.indexOf('!') === 0 && m.from.id != room.self.id) {
-                    if (typeof _this.preCommandHandler === 'function' && _this.preCommandHandler(m) === false) return;
-                    var cmd = m.message.substr(1).split(' ')[0],
-                        obj = {
-                            message: m,
-                            chatID: m.chatID,
-                            from: room.getUser(m.fromID),
-                            command: cmd,
-                            args: m.message.substr(2 + cmd.length),
-                            mentions: [],
-                            respond: function() {
-                                var message = Array.prototype.slice.call(arguments).join(' ');
-                                return _this.sendChat('@' + m.from + ' ' + message);
-                            },
-                            respondTimeout: function() {
-                                var args = Array.prototype.slice.call(arguments),
-                                    timeout = args.splice(args.length - 1, 1),
-                                    message = args.join(' ');
-                                return _this.sendChat('@' + m.from + ' ' + message, timeout);
-                            },
-                            havePermission: function(permission, success, failure) {
-                                if (permission === undefined) permission = 0;
-                                var havePermission = room.getUser(m.fromID) !== undefined && room.getUser(m.fromID).permission >= permission;
-                                if (havePermission && typeof success === 'function')
-                                    success();
-                                else if (!havePermission && typeof failure === 'function')
-                                    failure();
-                                return havePermission;
-                            },
-                            isFrom: function(ids, success, failure) {
-                                if (typeof ids === 'string') ids = [ids];
-                                if (ids === undefined || !util.isArray(ids)) {
-                                    if (typeof failure === 'function')
-                                        failure();
-                                    return false;
-                                }
-                                var isFrom = ids.indexOf(m.fromID) > -1;
-                                if (isFrom && typeof success === 'function')
-                                    success();
-                                else if (!isFrom && typeof failure === 'function')
-                                    failure();
-                                return isFrom;
-                            }
-                        },
-                        lastIndex = obj.args.indexOf('@'),
-                        allUsers = room.getUsers(),
-                        random = Math.ceil(Math.random() * 1E10);
-                    while (lastIndex > -1) {
-                        var test = obj.args.substr(lastIndex),
-                            found = null;
-                        for (var i in allUsers) {
-                            if (test.indexOf(allUsers[i].username) === 1) {
-                                if (found === null || allUsers[i].username.length > found.username.length)
-                                    found = allUsers[i];
-                            }
-                        }
-                        if (found !== null) {
-                            obj.args = obj.args.substr(0, lastIndex) + '%MENTION-' + random + '-' + obj.mentions.length + '%' + obj.args.substr(lastIndex + found.username.length + 1);
-                            obj.mentions.push(found);
-                        }
-                        lastIndex = obj.args.indexOf('@', lastIndex + 1);
-                    }
-                    obj.args = obj.args.split(' ');
-                    for (var i in obj.mentions)
-                        obj.args[obj.args.indexOf('%MENTION-' + random + '-' + i + '%')] = obj.mentions[i];
-                    _this.emit(_this.messageTypes.CHAT_COMMAND, obj);
-                    _this.emit(_this.messageTypes.CHAT_COMMAND + ':' + cmd, obj);
-                    _this.moderateDeleteChat(m.chatID);
-                } else if (m.type == 'emote') {
-                    _this.emit(_this.messageTypes.CHAT_EMOTE, m);
-                }
-                _this.emit(_this.messageTypes.CHAT, m);
-                _this.emit(_this.messageTypes.CHAT + ':' + m.type, m);
-                if (room.getUser() !== undefined && m.message.indexOf('@' + room.getUser().username) > -1) {
-                    _this.emit(_this.messageTypes.CHAT + ':mention', m);
-                    _this.emit('mention', m);
-                }
+                receivedChatMessage(m);
             }
         });
         ws.on('error', function(a) {
             logger.log('[Chat Server] Error:', a);
             process.nextTick(function() {
                 logger.log('[Chat Server] Reconnecting');
-                connectChat(_this.roomId);
+                queueConnectChat(_this.roomId);
             });
         });
         ws.on('close', function(a) {
             logger.log('[Chat Server] Closed with code', a);
             process.nextTick(function() {
                 logger.log('[Chat Server] Reconnecting');
-                connectChat(_this.roomId);
+                queueConnectChat(_this.roomId);
             });
         });
     });
 }
 
-function connectSocket(roomID) {
+function queueConnectSocket(roomId) {
+    serverRequests.queue.push({
+        type: 'connect',
+        server: 'socket',
+        room: roomId
+    });
+}
+
+function connectSocket(roomId) {
     apiId = 0;
     rpcHandlers = {};
-    client = SockJS.create('https://sjs.plug.dj:443/plug');
+    client = SockJS.create('https://sjs.plug.dj/plug');
     client.send = function(data) {
         return this.write(JSON.stringify(data));
     };
@@ -429,10 +579,10 @@ function connectSocket(roomID) {
         logger.log('[Socket Server] Error:', e);
         process.nextTick(function() {
             logger.log('[Socket Server] Reconnecting');
-            connectSocket(_this.roomId);
+            queueConnectSocket(_this.roomId);
         });
     });
-    client.on('data', _this.dataHandler);
+    client.on('data', dataHandler);
     client.on('data', function(data) {
         return _this.emit('tcpMessage', data);
     });
@@ -440,28 +590,237 @@ function connectSocket(roomID) {
         logger.log('[Socket Server] Closed');
         process.nextTick(function() {
             logger.log('[Socket Server] Reconnecting');
-            connectSocket(_this.roomId);
+            queueConnectSocket(_this.roomId);
         });
     });
     return client.on('connection', function() {
         logger.log('[Socket Server] Connected');
-        if (roomID)
-            joinRoom(roomID);
+        if (roomId)
+            joinRoom(roomId);
         _this.emit('connected');
         _this.emit('server:socket:connected');
         return _this.emit('tcpConnect', client);
     });
 }
 
-function reconnectChat() {
-    if (ws.readyState === 1)
-        ws.close();
-    if (ws.readyState !== 3)
-        return setTimeout(function() {
-            reconnectChat();
-        }, 100);
-    logger.log('[Chat Server] Reconnecting');
-    connectChat(_this.roomId);
+function connectPlugCubedSocket() {
+    var validated = false;
+    p3Socket = SockJS.create('http://socket.plugcubed.net:81/gateway');
+    p3Socket.send = function(data) {
+        var msg = JSON.stringify(data);
+        return this.write(msg);
+    };
+    p3Socket.on('error', function(e) {
+        logger.log('[p3Socket Server] Error:', e);
+        process.nextTick(function() {
+            logger.log('[p3Socket Server] Reconnecting');
+            connectPlugCubedSocket();
+        });
+    });
+    p3Socket.on('data', function(msg) {
+        var obj = JSON.parse(msg),
+            type = obj.type,
+            data = obj.data;
+        if (!validated) {
+            if (type === 'validate' && data.status === 1)
+                validated = true;
+            return;
+        }
+        if (type === 'pm') {
+            if (!data.chatID) return;
+            receivedChatMessage(data);
+        }
+    });
+    p3Socket.on('close', function() {
+        logger.log('[p3Socket Server] Closed');
+        process.nextTick(function() {
+            logger.log('[p3Socket Server] Reconnecting');
+            connectPlugCubedSocket();
+        });
+    });
+    return p3Socket.on('connection', function() {
+        logger.log('[p3Socket Server] Connected');
+        _this.emit('server:p3socket:connected');
+        var userData = _this.getUser();
+        p3Socket.send({
+            type: 'userdata',
+            id: userData.id,
+            username: userData.username,
+            room: _this.roomId,
+            version: 'plugAPIv' + PlugAPIInfo.version
+        });
+        return _this.emit('tcpConnect', p3Socket);
+    });
+}
+
+function initRoom(data, callback) {
+    room.reset();
+    lastRpcMessage = Date.now();
+    if (data.room === undefined || data.user === undefined)
+        return client.close();
+    room.setUsers(data.room.users);
+    room.setStaff(data.room.staff);
+    room.setAmbassadors(data.room.ambassadors);
+    room.setAdmins(data.room.admins);
+    room.setOwner(data.room.owner);
+    room.setSelf(data.user.profile);
+    room.setDjs(data.room.djs);
+    room.setMedia(data.room.media, data.room.mediaStartTime, data.room.votes, data.room.curates);
+    if (historyID !== data.room.historyID) {
+        _this.roomId = data.room.id;
+        historyID = data.room.historyID;
+        _this.emit(messageTypes.DJ_ADVANCE, {
+            currentDJ: data.room.currentDJ,
+            djs: data.room.djs.splice(1),
+            media: room.media.info,
+            mediaStartTime: data.room.mediaStartTime,
+            historyID: historyID
+        });
+        queueGateway(rpcNames.HISTORY_SELECT, [data.room.id], __bind(room.setHistory, room));
+        if (_this.enablePlugCubedSocket)
+            connectPlugCubedSocket();
+        _this.emit(messageTypes.ROOM_JOIN, data.room.name, data);
+    }
+    initialized = true;
+    return callback();
+}
+
+function parseRPCReply(name, data) {
+    if (name === rpcNames.ROOM_JOIN) {
+        _this.emit(messageTypes.ROOM_CHANGE, data);
+        if (typeof data.room !== 'undefined' && typeof data.room.historyID !== 'undefined') {
+            historyID = data.room.historyID;
+            _this.roomId = data.room.id;
+            _this.userId = data.user.profile.id;
+        }
+    }
+}
+
+function dataHandler(data) {
+    if (typeof data === 'string')
+        data = JSON.parse(data);
+    if (data.messages) {
+        for (var i = 0; i < data.messages.length; i++)
+            messageHandler(data.messages[i]);
+        return;
+    }
+    if (data.type === 'rpc') {
+        reply = data.result;
+        if (reply) {
+            if (data.status !== 0)
+                reply = data;
+            if (rpcHandlers[data.id] != null && typeof rpcHandlers[data.id].callback === 'function')
+                rpcHandlers[data.id].callback(reply);
+            parseRPCReply(rpcHandlers[data.id] != null ? rpcHandlers[data.id].type : undefined, reply);
+            return delete rpcHandlers[data.id];
+        }
+    }
+}
+
+function messageHandler(msg) {
+    switch (msg.type) {
+        case messageTypes.PING:
+            queueRPC(rpcNames.USER_PONG);
+            break;
+        case messageTypes.MODERATE_STAFF:
+            for (var i in msg.data.users)
+                room.staffIds[msg.data.users[i].user.id] = msg.data.users[i].permission;
+            room.setPermissions();
+            break;
+        case messageTypes.MODERATE_ADD_DJ:
+            if (_this.getUser() !== undefined && msg.data.moderator === _this.getUser().username) {
+                (function() {
+                    for (var i in rpcHandlers) {
+                        if (rpcHandlers[i].type === rpcNames.MODERATE_ADD_DJ && room.getUser(rpcHandlers[i].args[0]).username === msg.data.username && typeof rpcHandlers[i].callback === 'function') {
+                            rpcHandlers[i].callback();
+                            return delete rpcHandlers[i];
+                        }
+                    }
+                })();
+            }
+            break;
+        case messageTypes.MODERATE_REMOVE_DJ:
+            if (_this.getUser() !== undefined && msg.data.moderator === _this.getUser().username) {
+                (function() {
+                    for (var i in rpcHandlers) {
+                        if (rpcHandlers[i].type === rpcNames.MODERATE_REMOVE_DJ && room.getUser(rpcHandlers[i].args[0]).username === msg.data.username && typeof rpcHandlers[i].callback === 'function') {
+                            rpcHandlers[i].callback();
+                            return delete rpcHandlers[i];
+                        }
+                    }
+                })();
+            }
+            break;
+        case messageTypes.MODERATE_MOVE_DJ:
+            if (_this.getUser() !== undefined && msg.data.moderator === _this.getUser().username) {
+                (function() {
+                    for (var i in rpcHandlers) {
+                        if (rpcHandlers[i].type === rpcNames.MODERATE_MOVE_DJ && rpcHandlers[i].args[0] === msg.data.userID && typeof rpcHandlers[i].callback === 'function') {
+                            rpcHandlers[i].callback();
+                            return delete rpcHandlers[i];
+                        }
+                    }
+                })();
+            }
+            break;
+        case messageTypes.MODERATE_SKIP:
+            if (_this.getUser() !== undefined && msg.data.id === _this.getUser().id) {
+                (function() {
+                    for (var i in rpcHandlers) {
+                        if (rpcHandlers[i].type === rpcNames.MODERATE_SKIP && typeof rpcHandlers[i].callback === 'function') {
+                            rpcHandlers[i].callback();
+                            return delete rpcHandlers[i];
+                        }
+                    }
+                })();
+            }
+            break;
+        case messageTypes.USER_JOIN:
+            room.addUser(msg.data);
+            lastRpcMessage = Date.now();
+            break;
+        case messageTypes.USER_LEAVE:
+            room.remUser(msg.data.id);
+            lastRpcMessage = Date.now();
+            break;
+        case messageTypes.VOTE_UPDATE:
+            room.logVote(msg.data.id, msg.data.vote === 1 ? 'woot' : 'meh');
+            lastRpcMessage = Date.now();
+            break;
+        case messageTypes.DJ_UPDATE:
+            room.setDjs(msg.data.djs);
+            lastRpcMessage = Date.now();
+            break;
+        case messageTypes.DJ_ADVANCE:
+            var djAdvanceEvent = {
+                dj: msg.data.djs[0],
+                lastPlay: {
+                    dj: _this.getDJ(),
+                    media: _this.getMedia(),
+                    score: _this.getRoomScore()
+                },
+                media: msg.data.media,
+                mediaStartTime: msg.data.mediaStartTime,
+                earn: msg.data.earn
+            };
+            var lastPlay = room.getMedia();
+            room.setDjs(msg.data.djs);
+            room.djAdvance(msg.data);
+            historyID = msg.data.historyID;
+            lastRpcMessage = Date.now();
+            return _this.emit(msg.type, djAdvanceEvent);
+        case messageTypes.CURATE_UPDATE:
+            room.logVote(msg.data.id, 'curate');
+            lastRpcMessage = Date.now();
+            break;
+        case messageTypes.USER_UPDATE:
+            room.updateUser(msg.data);
+            break;
+        case void 0:
+            logger.log('UNKNOWN MESSAGE FORMAT', msg);
+    }
+    if (msg.type)
+        return _this.emit(msg.type, msg.data);
 }
 
 var PlugAPI = function(key) {
@@ -473,6 +832,7 @@ var PlugAPI = function(key) {
     this.multiLine = false;
     this.multiLineLimit = 5;
     this.roomId = null;
+    this.enablePlugCubedSocket = false;
 
     room.User.prototype.addToWaitlist = function() {
         _this.moderateAddDJ(this.id);
@@ -505,52 +865,7 @@ var PlugAPI = function(key) {
         PERMA: -1
     };
 
-    this.messageTypes = {
-        BAN: 'ban',
-        BOOTH_CYCLE: 'boothCycle',
-        BOOTH_LOCKED: 'boothLocked',
-        CHAT: 'chat',
-        CHAT_COMMAND: 'command',
-        CHAT_DELETE: 'chatDelete',
-        CHAT_EMOTE: 'emote',
-        COMMAND: 'command',
-        CURATE_UPDATE: 'curateUpdate',
-        DJ_ADVANCE: 'djAdvance',
-        DJ_UPDATE: 'djUpdate',
-        EMOTE: 'emote',
-        FOLLOW_JOIN: 'followJoin',
-        MODERATE_ADD_DJ: 'modAddDJ',
-        MODERATE_ADD_WAITLIST: 'modAddWaitList',
-        MODERATE_AMBASSADOR: 'modAmbassador',
-        MODERATE_BAN: 'modBan',
-        MODERATE_MOVE_DJ: 'modMoveDJ',
-        MODERATE_REMOVE_DJ: 'modRemoveDJ',
-        MODERATE_REMOVE_WAITLIST: 'modRemoveWaitList',
-        MODERATE_SKIP: 'modSkip',
-        MODERATE_STAFF: 'modStaff',
-        PDJ_MESSAGE: 'pdjMessage',
-        PDJ_UPDATE: 'pdjUpdate',
-        PING: 'ping',
-        PLAYLIST_CYCLE: 'playlistCycle',
-        REQUEST_DURATION: 'requestDuration',
-        REQUEST_DURATION_RETRY: 'requestDurationRetry',
-        ROOM_CHANGE: 'roomChanged',
-        ROOM_DESCRIPTION_UPDATE: 'roomDescriptionUpdate',
-        ROOM_JOIN: 'roomJoin',
-        ROOM_NAME_UPDATE: 'roomNameUpdate',
-        ROOM_VOTE_SKIP: 'roomVoteSkip',
-        ROOM_WELCOME_UPDATE: 'roomWelcomeUpdate',
-        SESSION_CLOSE: 'sessionClose',
-        SKIP: 'skip',
-        STROBE_TOGGLE: 'strobeToggle',
-        USER_COUNTER_UPDATE: 'userCounterUpdate',
-        USER_FOLLOW: 'userFollow',
-        USER_JOIN: 'userJoin',
-        USER_LEAVE: 'userLeave',
-        USER_UPDATE: 'userUpdate',
-        VOTE_UPDATE: 'voteUpdate',
-        VOTE_UPDATE_MULTI: 'voteUpdateMulti'
-    };
+    this.messageTypes = messageTypes;
 
     this.preCommandHandler = function() {
         return true;
@@ -580,24 +895,24 @@ var PlugAPI = function(key) {
     this.moderateSetRole = __bind(this.moderateSetRole, this);
     this.getTimeElapsed = __bind(this.getTimeElapsed, this);
     this.getTimeRemaining = __bind(this.getTimeRemaining, this);
-    this.initRoom = __bind(this.initRoom, this);
     this.joinRoom = __bind(this.joinRoom, this);
     this.createPlaylist = __bind(this.createPlaylist, this);
     this.addSongToPlaylist = __bind(this.addSongToPlaylist, this);
     this.getPlaylists = __bind(this.getPlaylists, this);
     this.activatePlaylist = __bind(this.activatePlaylist, this);
     this.playlistMoveSong = __bind(this.playlistMoveSong, this);
-    this.dataHandler = __bind(this.dataHandler, this);
     this.log = __bind(logger.log, logger);
+
+    logger.log('Running plugAPI v.' + PlugAPIInfo.version);
 };
 
 util.inherits(PlugAPI, EventEmitter);
 
-PlugAPI.prototype.getAuth = function(creds, callback) {
+PlugAPI.prototype.getTwitterAuth = function(creds, callback) {
     var module;
     try {
         module = require('plug-dj-login');
-    } catch () {
+    } catch (e) {
         throw new Error('Error loading module plug-dj-login. Try running `npm install plug-dj-login`.');
     }
     module(creds, function(err, cookie) {
@@ -617,174 +932,10 @@ PlugAPI.prototype.setLogObject = function(c) {
     return this.logger = c;
 }
 PlugAPI.prototype.connect = function(a) {
-    connectChat(a);
-    connectSocket(a);
+    queueConnectChat(a);
+    queueConnectSocket(a);
 }
-PlugAPI.prototype.dataHandler = function(data) {
-    if (typeof data === 'string')
-        data = JSON.parse(data);
-    if (data.messages) {
-        for (var i = 0; i < data.messages.length; i++)
-            this.messageHandler(data.messages[i]);
-        return;
-    }
-    if (data.type === 'rpc') {
-        reply = data.result;
-        if (reply) {
-            if (data.status !== 0)
-                reply = data;
-            if (rpcHandlers[data.id] != null && typeof rpcHandlers[data.id].callback === 'function')
-                rpcHandlers[data.id].callback(reply);
-            this.parseRPCReply(rpcHandlers[data.id] != null ? rpcHandlers[data.id].type : undefined, reply);
-            return delete rpcHandlers[data.id];
-        }
-    }
-}
-PlugAPI.prototype.parseRPCReply = function(name, data) {
-    switch (name) {
-        case rpcNames.ROOM_JOIN:
-            this.emit(this.messageTypes.ROOM_CHANGE, data);
-            if (typeof data.room !== 'undefined' && typeof data.room.historyID !== 'undefined') {
-                this.historyID = data.room.historyID;
-                this.roomId = data.room.id;
-                this.userId = data.user.profile.id;
-            }
-    }
-}
-PlugAPI.prototype.messageHandler = function(msg) {
-    switch (msg.type) {
-        case this.messageTypes.PING:
-            sendRPC(rpcNames.USER_PONG);
-            break;
-        case this.messageTypes.MODERATE_STAFF:
-            for (var i in msg.data.users)
-                room.staffIds[msg.data.users[i].user.id] = msg.data.users[i].permission;
-            room.setPermissions();
-            break;
-        case this.messageTypes.MODERATE_ADD_DJ:
-            if (this.getUser() !== undefined && msg.data.moderator === this.getUser().username) {
-                (function() {
-                    for (var i in rpcHandlers) {
-                        if (rpcHandlers[i].type === rpcNames.MODERATE_ADD_DJ && room.getUser(rpcHandlers[i].args[0]).username === msg.data.username && typeof rpcHandlers[i].callback === 'function') {
-                            rpcHandlers[i].callback();
-                            return delete rpcHandlers[i];
-                        }
-                    }
-                })();
-            }
-            break;
-        case this.messageTypes.MODERATE_REMOVE_DJ:
-            if (this.getUser() !== undefined && msg.data.moderator === this.getUser().username) {
-                (function() {
-                    for (var i in rpcHandlers) {
-                        if (rpcHandlers[i].type === rpcNames.MODERATE_REMOVE_DJ && room.getUser(rpcHandlers[i].args[0]).username === msg.data.username && typeof rpcHandlers[i].callback === 'function') {
-                            rpcHandlers[i].callback();
-                            return delete rpcHandlers[i];
-                        }
-                    }
-                })();
-            }
-            break;
-        case this.messageTypes.MODERATE_MOVE_DJ:
-            if (this.getUser() !== undefined && msg.data.moderator === this.getUser().username) {
-                (function() {
-                    for (var i in rpcHandlers) {
-                        if (rpcHandlers[i].type === rpcNames.MODERATE_MOVE_DJ && rpcHandlers[i].args[0] === msg.data.userID && typeof rpcHandlers[i].callback === 'function') {
-                            rpcHandlers[i].callback();
-                            return delete rpcHandlers[i];
-                        }
-                    }
-                })();
-            }
-            break;
-        case this.messageTypes.MODERATE_SKIP:
-            if (this.getUser() !== undefined && msg.data.id === this.getUser().id) {
-                (function() {
-                    for (var i in rpcHandlers) {
-                        if (rpcHandlers[i].type === rpcNames.MODERATE_SKIP && typeof rpcHandlers[i].callback === 'function') {
-                            rpcHandlers[i].callback();
-                            return delete rpcHandlers[i];
-                        }
-                    }
-                })();
-            }
-            break;
-        case this.messageTypes.USER_JOIN:
-            room.addUser(msg.data);
-            lastRpcMessage = Date.now();
-            break;
-        case this.messageTypes.USER_LEAVE:
-            room.remUser(msg.data.id);
-            lastRpcMessage = Date.now();
-            break;
-        case this.messageTypes.VOTE_UPDATE:
-            room.logVote(msg.data.id, msg.data.vote === 1 ? 'woot' : 'meh');
-            lastRpcMessage = Date.now();
-            break;
-        case this.messageTypes.DJ_UPDATE:
-            room.setDjs(msg.data.djs);
-            lastRpcMessage = Date.now();
-            break;
-        case this.messageTypes.DJ_ADVANCE:
-            var djAdvanceEvent = {
-                dj: msg.data.djs[0],
-                lastPlay: {
-                    dj: this.getDJ(),
-                    media: this.getMedia(),
-                    score: this.getRoomScore()
-                },
-                media: msg.data.media,
-                mediaStartTime: msg.data.mediaStartTime,
-                earn: msg.data.earn
-            };
-            var lastPlay = room.getMedia();
-            room.setDjs(msg.data.djs);
-            room.djAdvance(msg.data);
-            this.historyID = msg.data.historyID;
-            lastRpcMessage = Date.now();
-            return this.emit(msg.type, djAdvanceEvent);
-        case this.messageTypes.CURATE_UPDATE:
-            room.logVote(msg.data.id, 'curate');
-            lastRpcMessage = Date.now();
-            break;
-        case this.messageTypes.USER_UPDATE:
-            room.updateUser(msg.data);
-            break;
-        case void 0:
-            logger.log('UNKNOWN MESSAGE FORMAT', msg);
-    }
-    if (msg.type)
-        return this.emit(msg.type, msg.data);
-}
-PlugAPI.prototype.initRoom = function(data, callback) {
-    room.reset();
-    lastRpcMessage = Date.now();
-    if (data.room === undefined || data.user === undefined)
-        return client.close();
-    room.setUsers(data.room.users);
-    room.setStaff(data.room.staff);
-    room.setAmbassadors(data.room.ambassadors);
-    room.setAdmins(data.room.admins);
-    room.setOwner(data.room.owner);
-    room.setSelf(data.user.profile);
-    room.setDjs(data.room.djs);
-    room.setMedia(data.room.media, data.room.mediaStartTime, data.room.votes, data.room.curates);
-    if (this.historyID !== data.room.historyID) {
-        this.roomId = data.room.id;
-        this.historyID = data.room.historyID;
-        this.emit(this.messageTypes.ROOM_JOIN, data.room.name, data);
-        this.emit(this.messageTypes.DJ_ADVANCE, {
-            currentDJ: data.room.currentDJ,
-            djs: data.room.djs.splice(1),
-            media: room.media.info,
-            mediaStartTime: data.room.mediaStartTime,
-            historyID: this.historyID
-        });
-        sendGateway(rpcNames.HISTORY_SELECT, [data.room.id], __bind(room.setHistory, room));
-    }
-    return callback();
-}
-PlugAPI.prototype.chat = function(msg, timeout) {
+PlugAPI.prototype.sendChat = function(msg, timeout) {
     if (msg.length > 235 && this.multiLine) {
         var lines = msg.replace(/.{235}\S*\s+/g, '$&¤').split(/\s+¤/);
         for (var i = 0; i < lines.length; i++) {
@@ -798,50 +949,56 @@ PlugAPI.prototype.chat = function(msg, timeout) {
     } else
         intChat(msg, timeout);
 }
-PlugAPI.prototype.sendChat = function(msg, timeout) {
-    return this.chat(msg, timeout);
+PlugAPI.prototype.sendPM = function(receiver, msg) {
+    return intPM(receiver, msg);
 }
 PlugAPI.prototype.woot = function(callback) {
-    sendGateway(rpcNames.ROOM_CAST, [true, this.historyID, this.lastHistoryID === this.historyID], callback);
-    return this.lastHistoryID = this.historyID;
+    queueGateway(rpcNames.ROOM_CAST, [true, historyID, lastHistoryID === historyID], callback);
+    return lastHistoryID = historyID;
 }
 PlugAPI.prototype.meh = function(callback) {
-    sendGateway(rpcNames.ROOM_CAST, [false, this.historyID, this.lastHistoryID === this.historyID], callback);
-    return this.lastHistoryID = this.historyID;
+    queueGateway(rpcNames.ROOM_CAST, [false, historyID, lastHistoryID === historyID], callback);
+    return lastHistoryID = historyID;
 }
 PlugAPI.prototype.getHistory = function(callback, counter) {
     if (typeof callback !== 'function') throw new Error('You must specify callback!');
     if (!counter) counter = 0;
-    else if (counter % 6e4) sendGateway(rpcNames.HISTORY_SELECT, [this.roomId], __bind(room.setHistory, room));
-    var history = room.getHistory();
-    if (history.length > 1)
-        return callback(history);
+    else if (counter % 6e4) queueGateway(rpcNames.HISTORY_SELECT, [this.roomId], __bind(room.setHistory, room));
+    if (!initialized) {
+        var history = room.getHistory();
+        if (history.length > 1)
+            return callback(history);
+    }
     setImmediate(function() {
         _this.getHistory(callback, ++counter);
     });
 }
 PlugAPI.prototype.isUsernameAvailable = function(name, callback) {
-    return sendGateway(rpcNames.USER_NAME_AVAILABLE, [name], callback);
+    return queueGateway(rpcNames.USER_NAME_AVAILABLE, [name], callback);
 }
 PlugAPI.prototype.changeUsername = function(name, callback) {
-    return sendGateway(rpcNames.USER_CHANGE_NAME, [name], callback);
+    return queueGateway(rpcNames.USER_CHANGE_NAME, [name], callback);
 }
 PlugAPI.prototype.changeRoomName = function(name, callback) {
     if (!this.roomId)
         throw new Error('You must be in a room to change its name');
     if (this.getSelf().permission < this.ROLE.COHOST)
         throw new Error('You must be co-host or higher to change room name');
-    return sendGateway(rpcNames.MODERATE_UPDATE_NAME, [name], callback);
+    return queueGateway(rpcNames.MODERATE_UPDATE_NAME, [name], callback);
 }
 PlugAPI.prototype.changeRoomDescription = function(description, callback) {
+    if (!this.roomId)
+        throw new Error('You must be in a room to change its name');
     if (this.getSelf().permission < this.ROLE.COHOST)
         throw new Error('You must be co-host or higher to change room description');
-    return sendGateway(rpcNames.MODERATE_UPDATE_DESCRIPTION, [description], callback);
+    return queueGateway(rpcNames.MODERATE_UPDATE_DESCRIPTION, [description], callback);
 }
 PlugAPI.prototype.changeDJCycle = function(enabled, callback) {
+    if (!this.roomId)
+        throw new Error('You must be in a room to change its name');
     if (this.getSelf().permission < this.ROLE.MANAGER)
         throw new Error('You must be manager or higher to change DJ cycle');
-    return sendGateway(rpcNames.ROOM_CYCLE_BOOTH, [this.roomId, enabled], callback);
+    return queueGateway(rpcNames.ROOM_CYCLE_BOOTH, [this.roomId, enabled], callback);
 }
 PlugAPI.prototype.getTimeElapsed = function() {
     if (room.getMedia() == null)
@@ -855,40 +1012,40 @@ PlugAPI.prototype.getTimeRemaining = function() {
 }
 
 PlugAPI.prototype.joinBooth = function(callback) {
-    return sendGateway(rpcNames.BOOTH_JOIN, [], callback);
+    return queueGateway(rpcNames.BOOTH_JOIN, [], callback);
 }
 PlugAPI.prototype.leaveBooth = function(callback) {
-    return sendGateway(rpcNames.BOOTH_LEAVE, [], callback);
+    return queueGateway(rpcNames.BOOTH_LEAVE, [], callback);
 }
 PlugAPI.prototype.moderateAddDJ = function(userid, callback) {
-    return sendGateway(rpcNames.MODERATE_ADD_DJ, userid, callback);
+    return queueGateway(rpcNames.MODERATE_ADD_DJ, userid, callback);
 }
 PlugAPI.prototype.moderateRemoveDJ = function(userid, callback) {
-    return sendGateway(rpcNames.MODERATE_REMOVE_DJ, userid, callback);
+    return queueGateway(rpcNames.MODERATE_REMOVE_DJ, userid, callback);
 }
 PlugAPI.prototype.moderateMoveDJ = function(userid, index, callback) {
-    return sendGateway(rpcNames.MODERATE_MOVE_DJ, [userid, index > 50 ? 50 : index < 1 ? 1 : index], callback);
+    return queueGateway(rpcNames.MODERATE_MOVE_DJ, [userid, index > 50 ? 50 : index < 1 ? 1 : index], callback);
 }
 PlugAPI.prototype.moderateBanUser = function(userid, reason, duration, callback) {
-    return sendGateway(rpcNames.MODERATE_BAN, [userid, String(reason || 0), duration || -1], callback);
+    return queueGateway(rpcNames.MODERATE_BAN, [userid, String(reason || 0), duration || -1], callback);
 }
 PlugAPI.prototype.moderateUnBanUser = function(userid, callback) {
-    return sendGateway(rpcNames.MODERATE_UNBAN, [userid], callback);
+    return queueGateway(rpcNames.MODERATE_UNBAN, [userid], callback);
 }
 PlugAPI.prototype.moderateForceSkip = function(callback) {
-    return room.getDJ() === null ? false : sendGateway(rpcNames.MODERATE_SKIP, [room.getDJ().id, this.historyID], callback);
+    return room.getDJ() === null ? false : queueGateway(rpcNames.MODERATE_SKIP, [room.getDJ().id, historyID], callback);
 }
 PlugAPI.prototype.moderateDeleteChat = function(chatID, callback) {
-    return sendGateway(rpcNames.MODERATE_CHAT_DELETE, [chatID], callback);
+    return queueGateway(rpcNames.MODERATE_CHAT_DELETE, [chatID], callback, undefined, true);
 }
 PlugAPI.prototype.moderateLockWaitList = function(locked, clear, callback) {
     return this.moderateLockBooth(locked, clear, callback);
 }
 PlugAPI.prototype.moderateSetRole = function(id, role, callback) {
-    return sendGateway(rpcNames.MODERATE_PERMISSIONS, [id, role], callback);
+    return queueGateway(rpcNames.MODERATE_PERMISSIONS, [id, role], callback);
 }
 PlugAPI.prototype.moderateLockBooth = function(locked, clear, callback) {
-    return sendGateway(rpcNames.ROOM_LOCK_BOOTH, [this.roomId, locked, clear], callback);
+    return queueGateway(rpcNames.ROOM_LOCK_BOOTH, [this.roomId, locked, clear], callback);
 }
 PlugAPI.prototype.getUsers = function() {
     return room.getUsers();
@@ -933,21 +1090,24 @@ PlugAPI.prototype.getRoomScore = function() {
     return room.getRoomScore();
 }
 PlugAPI.prototype.createPlaylist = function(name, callback) {
-    return sendGateway(rpcNames.PLAYLIST_CREATE, name, callback);
+    return queueGateway(rpcNames.PLAYLIST_CREATE, name, callback);
 }
 PlugAPI.prototype.addSongToPlaylist = function(playlistId, songid, callback) {
-    return sendGateway(rpcNames.PLAYLIST_MEDIA_INSERT, [playlistId, null, -1, [songid]], callback);
+    return queueGateway(rpcNames.PLAYLIST_MEDIA_INSERT, [playlistId, null, -1, [songid]], callback);
 }
 PlugAPI.prototype.getPlaylists = function(callback) {
-    return sendGateway(rpcNames.PLAYLIST_SELECT, [new Date(0).toISOString().replace('T', ' '), null, 100, null], callback);
+    return queueGateway(rpcNames.PLAYLIST_SELECT, [new Date(0).toISOString().replace('T', ' '), null, 100, null], callback);
 }
 PlugAPI.prototype.activatePlaylist = function(playlist_id, callback) {
-    return sendGateway(rpcNames.PLAYLIST_ACTIVATE, [playlist_id], callback);
+    return queueGateway(rpcNames.PLAYLIST_ACTIVATE, [playlist_id], callback);
 }
 PlugAPI.prototype.playlistMoveSong = function(playlist, song_id, position, callback) {
-    return sendGateway(rpcNames.PLAYLIST_MEDIA_MOVE, [playlist.id, playlist.items[position],
+    return queueGateway(rpcNames.PLAYLIST_MEDIA_MOVE, [playlist.id, playlist.items[position],
         [song_id]
     ], callback);
+}
+PlugAPI.prototype.setAvatar = function(avatar, callback) {
+    return queueGateway(rpcNames.USER_SET_AVATAR, [avatar], callback);
 }
 
 PlugAPI.prototype.listen = function(port, address) {

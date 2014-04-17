@@ -56,6 +56,7 @@ var Room = function() {
     this.addUser = __bind(this.addUser, this);
     this.reset = __bind(this.reset, this);
     this.isStaff = __bind(this.isStaff, this);
+    this.djAdvance = __bind(this.djAdvance, this);
 
     this.users = {};
     this.staffIds = {};
@@ -193,6 +194,7 @@ Room.prototype.setMedia = function(mediaInfo, mediaStartTime, votes, curates) {
 };
 
 Room.prototype.djAdvance = function(data) {
+    if (songHistory.length < 1) return setImmediate(this.djAdvance, data);
     songHistory[0].room = this.getRoomScore();
     this.setMedia(data.media, data.mediaStartTime);
     var historyObj = {
