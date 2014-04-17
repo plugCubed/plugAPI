@@ -125,7 +125,8 @@ var SockJS = require('sockjs-client'),
     serverRequests = {
         queue: [],
         sent: 0,
-        limit: 10
+        limit: 10,
+        running: false
     },
     room = new Room(),
     rpcHandlers = {},
@@ -256,6 +257,7 @@ var DateUtilities = {
 };
 
 function queueTicker() {
+    serverRequests.running = true;
     var canSend = serverRequests.sent < serverRequests.limit,
         obj = serverRequests.queue.pop();
     if (canSend && obj) {
@@ -275,9 +277,11 @@ function queueTicker() {
             serverRequests.sent--;
         }, 6e4);
     }
-    setImmediate(queueTicker);
+    if (serverRequests.queue.length > 0)
+        setImmediate(queueTicker);
+    else
+        serverRequests.running = false;
 }
-queueTicker();
 
 function queueRPC(name, args, callback, skipQueue) {
     args = args === undefined ? [] : args;
@@ -297,8 +301,11 @@ function queueRPC(name, args, callback, skipQueue) {
     };
     if (skipQueue && skipQueue === true)
         sendRPC(sendArgs);
-    else
+    else {
         serverRequests.queue.push(sendArgs);
+        if (!serverRequests.running)
+            queueTicker();
+    }
 }
 
 function sendRPC(args) {
@@ -334,7 +341,7 @@ function queueGateway(name, args, successCallback, failureCallback, skipQueue) {
 
     if (skipQueue && skipQueue === true)
         sendGateway(opts, successCallback, failureCallback);
-    else
+    else {
         serverRequests.queue.push({
             type: 'gateway',
             opts: opts,
@@ -343,6 +350,9 @@ function queueGateway(name, args, successCallback, failureCallback, skipQueue) {
                 failure: failureCallback
             }
         });
+        if (!serverRequests.running)
+            queueTicker();
+    }
 }
 
 function sendGateway(opts, successCallback, failureCallback) {
@@ -502,6 +512,8 @@ function queueConnectChat(roomId) {
         server: 'chat',
         room: roomId
     });
+    if (!serverRequests.running)
+        queueTicker();
 }
 
 function connectChat(roomId) {
@@ -566,6 +578,8 @@ function queueConnectSocket(roomId) {
         server: 'socket',
         room: roomId
     });
+    if (!serverRequests.running)
+        queueTicker();
 }
 
 function connectSocket(roomId) {
