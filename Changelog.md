@@ -1,6 +1,10 @@
 plugAPI Changelog
 =================
 
+2.0.1
+-----
+* **FIXED:** Changed required node version from 0.6 to 0.10 (Commit [78ec90f](https://github.com/TATDK/plugapi/commit/78ec90fca5d2fa1404e85e8df49b14ea76bc3372))
+
 2.0.0
 -----
 * **ADDED:** Settings files for formatting in .jsbeautifyrc and .editorconfig format (Commit [5123fbc](https://github.com/TATDK/plugapi/commit/5123fbce7206c15d0e985cc73c0e3ba82c8bb258))
