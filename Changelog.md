@@ -1,6 +1,10 @@
 plugAPI Changelog
 =================
 
+2.0.2
+-----
+* **FIXED:** More inteligent way of running the queueTicker (Commit [80e314c](https://github.com/TATDK/plugapi/commit/80e314c6bc4a18a109d3bf14f3602c6d8ccbc3de))
+
 2.0.1
 -----
 * **FIXED:** Changed required node version from 0.6 to 0.10 (Commit [78ec90f](https://github.com/TATDK/plugapi/commit/78ec90fca5d2fa1404e85e8df49b14ea76bc3372))
