@@ -1,6 +1,10 @@
 plugAPI Changelog
 =================
 
+2.0.3
+-----
+* **FIXED:** Fix broken getHistory (Commit [645f03a](https://github.com/TATDK/plugapi/commit/645f03a30504183ce24d7034c66fe08579657281))
+
 2.0.2
 -----
 * **FIXED:** More inteligent way of running the queueTicker (Commit [80e314c](https://github.com/TATDK/plugapi/commit/80e314c6bc4a18a109d3bf14f3602c6d8ccbc3de))
