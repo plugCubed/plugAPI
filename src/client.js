@@ -319,7 +319,10 @@ function queueGateway(name, args, successCallback, failureCallback, skipQueue) {
         args = [args];
 
     successCallback = typeof successCallback === 'function' ? __bind(successCallback, _this) : function() {};
-    failureCallback = typeof failureCallback === 'function' ? __bind(failureCallback, _this) : function() {};
+    failureCallback = typeof failureCallback === 'function' ? __bind(failureCallback, _this) : function() {
+        // Retry
+        queueGateway(name, args, successCallback);
+    };
 
     var bodyString, opts;
 
@@ -559,14 +562,14 @@ function connectChat(roomId) {
             logger.log('[Chat Server] Error:', a);
             process.nextTick(function() {
                 logger.log('[Chat Server] Reconnecting');
-                queueConnectChat(_this.roomId);
+                queueConnectChat(_this.roomId ? _this.roomId : roomId);
             });
         });
         ws.on('close', function(a) {
             logger.log('[Chat Server] Closed with code', a);
             process.nextTick(function() {
                 logger.log('[Chat Server] Reconnecting');
-                queueConnectChat(_this.roomId);
+                queueConnectChat(_this.roomId ? _this.roomId : roomId);
             });
         });
     });
@@ -593,7 +596,7 @@ function connectSocket(roomId) {
         logger.log('[Socket Server] Error:', e);
         process.nextTick(function() {
             logger.log('[Socket Server] Reconnecting');
-            queueConnectSocket(_this.roomId);
+            queueConnectSocket(_this.roomId ? _this.roomId : roomId);
         });
     });
     client.on('data', dataHandler);
@@ -604,7 +607,7 @@ function connectSocket(roomId) {
         logger.log('[Socket Server] Closed');
         process.nextTick(function() {
             logger.log('[Socket Server] Reconnecting');
-            queueConnectSocket(_this.roomId);
+            queueConnectSocket(_this.roomId ? _this.roomId : roomId);
         });
     });
     return client.on('connection', function() {
@@ -974,17 +977,15 @@ PlugAPI.prototype.meh = function(callback) {
     queueGateway(rpcNames.ROOM_CAST, [false, historyID, lastHistoryID === historyID], callback);
     return lastHistoryID = historyID;
 }
-PlugAPI.prototype.getHistory = function(callback, counter) {
+PlugAPI.prototype.getHistory = function(callback) {
     if (typeof callback !== 'function') throw new Error('You must specify callback!');
-    if (!counter) counter = 0;
-    else if (counter % 6e4) queueGateway(rpcNames.HISTORY_SELECT, [this.roomId], __bind(room.setHistory, room));
-    if (!initialized) {
+    if (initialized) {
         var history = room.getHistory();
         if (history.length > 1)
             return callback(history);
     }
     setImmediate(function() {
-        _this.getHistory(callback, ++counter);
+        _this.getHistory(callback);
     });
 }
 PlugAPI.prototype.isUsernameAvailable = function(name, callback) {
