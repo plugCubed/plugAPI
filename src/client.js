@@ -866,6 +866,9 @@ var PlugAPI = function(key) {
     room.User.prototype.removeFromWaitlist = function() {
         _this.moderateRemoveDJ(this.id);
     }
+    room.User.prototype.moveInWaitlist = function(pos) {
+        _this.moderateMoveDJ(this.id, pos);
+    }
 
     this.ROLE = {
         NONE: 0,
