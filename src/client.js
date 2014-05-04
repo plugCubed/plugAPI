@@ -862,12 +862,20 @@ var PlugAPI = function(key) {
     this.enablePlugCubedSocket = false;
 
     room.User.prototype.addToWaitlist = function() {
+        console.error('Using deprecated addToWaitlist - change to addToWaitList');
+        _this.moderateAddDJ(this.id);
+    }
+    room.User.prototype.addToWaitList = function() {
         _this.moderateAddDJ(this.id);
     }
     room.User.prototype.removeFromWaitlist = function() {
+        console.error('Using deprecated removeFromWaitlist - change to removeFromWaitList');
+        _this.moderateAddDJ(this.id);
+    }
+    room.User.prototype.removeFromWaitList = function() {
         _this.moderateRemoveDJ(this.id);
     }
-    room.User.prototype.moveInWaitlist = function(pos) {
+    room.User.prototype.moveInWaitList = function(pos) {
         _this.moderateMoveDJ(this.id, pos);
     }
 
