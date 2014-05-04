@@ -908,8 +908,26 @@ var PlugAPI = function(key) {
 
 util.inherits(PlugAPI, EventEmitter);
 
-PlugAPI.prototype.getTwitterAuth = function(creds, callback) {
-    var module;
+PlugAPI.prototype.getTwitterAuth = function(username, password, callback) {
+    if (!username || !password) throw new Error('Missing arguments');
+    var creds, callback, module;
+    if (typeof password === 'string') {
+        // 2.1.0 and later
+        creds = {
+            username: username,
+            password: password
+        };
+        if (!callback || typeof callback !== 'function')
+            throw new Error('Missing callback');
+    } else {
+        console.error('Using deprecated parameters for getTwitterAuth - please update.');
+        // Pre-2.1.0
+        creds = username;
+        callback = password;
+
+        if (!callback || typeof callback !== 'function')
+            throw new Error('Missing callback');
+    }
     try {
         module = require('plug-dj-login');
     } catch (e) {
@@ -917,15 +935,13 @@ PlugAPI.prototype.getTwitterAuth = function(creds, callback) {
     }
     module(creds, function(err, cookie) {
         if (err) {
-            if (typeof callback == 'function')
-                callback(err, null);
+            callback(err, null);
             return;
         }
 
         var cookieVal = cookie.value;
         cookieVal = cookieVal.replace(/^\"/, '').replace(/\"$/, '');
-        if (typeof callback == 'function')
-            callback(err, cookieVal);
+        callback(null, cookieVal);
     });
 }
 
