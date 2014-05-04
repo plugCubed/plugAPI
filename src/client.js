@@ -398,7 +398,15 @@ function getUpdateCode(callback) {
 function joinRoom(name, callback) {
     var execute = function() {
         queueRPC(rpcNames.ROOM_JOIN, [name, _updateCode], function(data) {
-            if (data.status && data.status !== 0) throw new Error('Wrong updateCode');
+            if (data.status) {
+                if (data.status === 999) {
+                    logger.log(data.result ? data.result : 'Unknown error');
+                    setImmediate(function() {
+                        joinRoom(name, callback);
+                    });
+                    return;
+                } else throw new Error('Wrong updateCode');
+            }
             DateUtilities.setServerTime(data.serverTime);
             return queueGateway(rpcNames.ROOM_DETAILS, [name], function(data) {
                 return initRoom(data, function() {
