@@ -147,7 +147,7 @@ var SockJS = require('sockjs-client'),
         log: function() {
             var args = Array.prototype.slice.call(arguments);
             args.unshift(this.timestamp());
-            return console.log.apply(console, args);
+            console.log.apply(console, args);
         }
     };
 
@@ -889,36 +889,7 @@ var PlugAPI = function(key) {
         return true;
     };
 
-    this.getRoomScore = __bind(this.getRoomScore, this);
-    this.getMedia = __bind(this.getMedia, this);
-    this.getAmbassadors = __bind(this.getAmbassadors, this);
-    this.getWaitList = __bind(this.getWaitList, this);
-    this.getWaitListPosition = __bind(this.getWaitListPosition, this);
-    this.getSelf = __bind(this.getSelf, this);
-    this.getHost = __bind(this.getHost, this);
-    this.getAdmins = __bind(this.getAdmins, this);
-    this.getStaff = __bind(this.getStaff, this);
-    this.getDJ = __bind(this.getDJ, this);
-    this.getDJs = __bind(this.getDJs, this);
-    this.getAudience = __bind(this.getAudience, this);
-    this.getUser = __bind(this.getUser, this);
-    this.getUsers = __bind(this.getUsers, this);
-    this.moderateBanUser = __bind(this.moderateBanUser, this);
-    this.moderateUnBanUser = __bind(this.moderateUnBanUser, this);
-    this.moderateForceSkip = __bind(this.moderateForceSkip, this);
-    this.moderateAddDJ = __bind(this.moderateAddDJ, this);
-    this.moderateRemoveDJ = __bind(this.moderateRemoveDJ, this);
-    this.moderateDeleteChat = __bind(this.moderateDeleteChat, this);
-    this.moderateLockWaitList = __bind(this.moderateLockWaitList, this);
-    this.moderateSetRole = __bind(this.moderateSetRole, this);
-    this.getTimeElapsed = __bind(this.getTimeElapsed, this);
-    this.getTimeRemaining = __bind(this.getTimeRemaining, this);
-    this.joinRoom = __bind(this.joinRoom, this);
-    this.createPlaylist = __bind(this.createPlaylist, this);
-    this.addSongToPlaylist = __bind(this.addSongToPlaylist, this);
-    this.getPlaylists = __bind(this.getPlaylists, this);
-    this.activatePlaylist = __bind(this.activatePlaylist, this);
-    this.playlistMoveSong = __bind(this.playlistMoveSong, this);
+    // Logger
     this.log = __bind(logger.log, logger);
 
     logger.log('Running plugAPI v.' + PlugAPIInfo.version);
@@ -955,7 +926,16 @@ PlugAPI.prototype.setCommandPrefix = function(a) {
 }
 
 PlugAPI.prototype.setLogObject = function(a) {
-    return this.logger = a;
+    console.error('Using deprecated setLogObject - change to setLogger');
+    return this.setLogger(a);
+}
+
+PlugAPI.prototype.setLogger = function(a) {
+    if (a && typeof a === 'object' && !util.isArray(a) && typeof a.log === 'function') {
+        this.logger = a;
+        return true;
+    }
+    return false;
 }
 
 PlugAPI.prototype.connect = function(a) {
