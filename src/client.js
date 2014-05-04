@@ -1080,7 +1080,16 @@ PlugAPI.prototype.moderateBanUser = function(userid, reason, duration, callback)
 }
 
 PlugAPI.prototype.moderateUnBanUser = function(userid, callback) {
-    return queueGateway(rpcNames.MODERATE_UNBAN, [userid], callback);
+    console.error('Using deprecated moderateUnBanUser - change to moderateUnbanUser');
+    return this.moderateUnbanUser(userid, callback);
+}
+
+PlugAPI.prototype.moderateUnbanUser = function(userid, callback) {
+    // Check: Have permission
+    if (this.getUser().permission < this.ROLE.MANAGER)
+        return false;
+    queueGateway(rpcNames.MODERATE_UNBAN, [userid], callback);
+    return true;
 }
 
 PlugAPI.prototype.moderateForceSkip = function(callback) {
