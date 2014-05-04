@@ -29,35 +29,7 @@ var Room = function() {
         return this.username;
     }
 
-    this.getRoomScore = __bind(this.getRoomScore, this);
-    this.getMedia = __bind(this.getMedia, this);
-    this.getMediaStartTime = __bind(this.getMediaStartTime, this);
-    this.getWaitlist = __bind(this.getWaitlist, this);
-    this.getHost = __bind(this.getHost, this);
-    this.getAdmins = __bind(this.getAdmins, this);
-    this.getStaff = __bind(this.getStaff, this);
-    this.getAmbassadors = __bind(this.getAmbassadors, this);
-    this.getAudience = __bind(this.getAudience, this);
-    this.getDJ = __bind(this.getDJ, this);
-    this.getDJs = __bind(this.getDJs, this);
-    this.getSelf = __bind(this.getSelf, this);
-    this.getUser = __bind(this.getUser, this);
-    this.getUsers = __bind(this.getUsers, this);
-    this.logVote = __bind(this.logVote, this);
-    this.setPermissions = __bind(this.setPermissions, this);
-    this.setMedia = __bind(this.setMedia, this);
-    this.setDjs = __bind(this.setDjs, this);
-    this.setSelf = __bind(this.setSelf, this);
-    this.setOwner = __bind(this.setOwner, this);
-    this.setAdmins = __bind(this.setAdmins, this);
-    this.setStaff = __bind(this.setStaff, this);
-    this.setUsers = __bind(this.setUsers, this);
-    this.remUser = __bind(this.remUser, this);
-    this.addUser = __bind(this.addUser, this);
-    this.reset = __bind(this.reset, this);
-    this.isStaff = __bind(this.isStaff, this);
-    this.djAdvance = __bind(this.djAdvance, this);
-
+    this.boothLocked = false;
     this.users = {};
     this.staffIds = {};
     this.ambassadorIds = {};
@@ -85,13 +57,26 @@ Room.prototype.usersToArray = function(usersObj) {
 };
 
 Room.prototype.isAmbassador = function(userid) {
+    if (!userid) userid = this.self.id;
     return this.ambassadorIds[userid] != null;
 };
 
 Room.prototype.isStaff = function(userid) {
+    if (!userid) userid = this.self.id;
     return this.staffIds[userid] != null;
 };
 
+Room.prototype.isDJ = function(userid) {
+    if (!userid) userid = this.self.id;
+    if (this.djs.length > 0)
+        return this.djs[0].id === userid;
+    return false;
+};
+
+Room.prototype.isInWaitList = function(userid) {
+    if (!userid) userid = this.self.id;
+    return this.getWaitListPosition(userid) > -1;
+};
 
 Room.prototype.reset = function() {
     this.users = {};
@@ -115,8 +100,8 @@ Room.prototype.addUser = function(user) {
         return this.users[user.id]['permission'] = 0;
 };
 
-Room.prototype.remUser = function(userID) {
-    delete this.users[userID];
+Room.prototype.remUser = function(userid) {
+    delete this.users[userid];
 };
 
 Room.prototype.updateUser = function(user) {
@@ -243,15 +228,14 @@ Room.prototype.getUsers = function() {
     return this.usersToArray(this.users);
 };
 
-Room.prototype.getUser = function(userId) {
-    if (!userId) userId = this.self.id;
-    if (this.users[userId] != null)
-        return new this.User(this.users[userId]);
+Room.prototype.getUser = function(userid) {
+    if (!userid) userid = this.self.id;
+    if (this.users[userid] != null)
+        return new this.User(this.users[userid]);
 };
 
 Room.prototype.getSelf = function() {
-    if (this.self != null)
-        return this.getUser();
+    return this.self == null ? {} : this.getUser();
 };
 
 Room.prototype.getDJ = function() {
@@ -324,12 +308,12 @@ Room.prototype.getHost = function() {
     return null;
 };
 
-Room.prototype.getWaitlist = function() {
+Room.prototype.getWaitList = function() {
     return this.usersToArray(this.djs).splice(1);
 };
 
 Room.prototype.getWaitListPosition = function(userid) {
-    var waitlist = this.getWaitlist(),
+    var waitlist = this.getWaitList(),
         spot = 0;
     for (var i in waitlist) {
         if (waitlist[i].id === userid)

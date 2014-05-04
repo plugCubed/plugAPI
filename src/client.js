@@ -692,6 +692,7 @@ function initRoom(data, callback) {
     room.setSelf(data.user.profile);
     room.setDjs(data.room.djs);
     room.setMedia(data.room.media, data.room.mediaStartTime, data.room.votes, data.room.curates);
+    room.boothLocked = data.boothLocked;
     if (historyID !== data.room.historyID) {
         _this.roomId = data.room.id;
         historyID = data.room.historyID;
@@ -966,6 +967,8 @@ PlugAPI.prototype.setLogger = function(a) {
 }
 
 PlugAPI.prototype.connect = function(a) {
+    if (a && typeof a === 'string' && a.length > 0 && a.indexOf('/') > -1)
+        throw new Error('Invalid room name');
     queueConnectChat(a);
     queueConnectSocket(a);
 }
@@ -1020,63 +1023,83 @@ PlugAPI.prototype.changeUsername = function(name, callback) {
 }
 
 PlugAPI.prototype.changeRoomName = function(name, callback) {
-    if (!this.roomId)
-        throw new Error('You must be in a room to change its name');
-    if (this.getSelf().permission < this.ROLE.COHOST)
-        throw new Error('You must be co-host or higher to change room name');
-    return queueGateway(rpcNames.MODERATE_UPDATE_NAME, [name], callback);
+    if (!this.roomId || this.getSelf().permission < this.ROLE.COHOST)
+        return false;
+    queueGatewy(rpcNames.MODERATE_UPDATE_NAME, [name], callback);
+    return true;
 }
 
 PlugAPI.prototype.changeRoomDescription = function(description, callback) {
-    if (!this.roomId)
-        throw new Error('You must be in a room to change its name');
-    if (this.getSelf().permission < this.ROLE.COHOST)
-        throw new Error('You must be co-host or higher to change room description');
-    return queueGateway(rpcNames.MODERATE_UPDATE_DESCRIPTION, [description], callback);
+    if (!this.roomId || this.getSelf().permission < this.ROLE.COHOST)
+        return false;
+    queueGateway(rpcNames.MODERATE_UPDATE_DESCRIPTION, [description], callback);
+    return true;
 }
 
 PlugAPI.prototype.changeDJCycle = function(enabled, callback) {
-    if (!this.roomId)
-        throw new Error('You must be in a room to change its name');
-    if (this.getSelf().permission < this.ROLE.MANAGER)
-        throw new Error('You must be manager or higher to change DJ cycle');
-    return queueGateway(rpcNames.ROOM_CYCLE_BOOTH, [this.roomId, enabled], callback);
+    if (!this.roomId || this.getSelf().permission < this.ROLE.MANAGER)
+        return false;
+    queueGateway(rpcNames.ROOM_CYCLE_BOOTH, [this.roomId, enabled], callback);
+    return true;
 }
 
 PlugAPI.prototype.getTimeElapsed = function() {
-    if (room.getMedia() == null)
-        return 0;
+    if (!this.roomId || room.getMedia() == null)
+        return -1;
     return Math.min(room.getMedia().duration, DateUtilities.getSecondsElapsed(room.getMediaStartTime()));
 }
 
 PlugAPI.prototype.getTimeRemaining = function() {
-    if (room.getMedia() == null)
-        return 0;
+    if (!this.roomId || room.getMedia() == null)
+        return -1;
     return room.getMedia().duration - this.getTimeElapsed();
 }
 
 PlugAPI.prototype.joinBooth = function(callback) {
-    return queueGateway(rpcNames.BOOTH_JOIN, [], callback);
+    if (!this.roomId || room.isDJ() || room.isInWaitList() || (room.boothLocked && this.getSelf().permission < this.ROLE.RESIDENTDJ) || this.getDJs().length >= 50)
+        return false;
+    queueGateway(rpcNames.BOOTH_JOIN, [], callback);
+    return true;
 }
 
 PlugAPI.prototype.leaveBooth = function(callback) {
-    return queueGateway(rpcNames.BOOTH_LEAVE, [], callback);
+    if (!this.roomId || (!room.isDJ() && !room.isInWaitList()))
+        return false;
+    queueGateway(rpcNames.BOOTH_LEAVE, [], callback);
+    return true;
 }
 
 PlugAPI.prototype.moderateAddDJ = function(userid, callback) {
-    return queueGateway(rpcNames.MODERATE_ADD_DJ, userid, callback);
+    if (!this.roomId || this.getSelf().permission < this.ROLE.BOUNCER || room.isDJ(userid) || room.isInWaitList(userid) || (room.boothLocked && this.getSelf().permission < this.ROLE.MANAGER))
+        return false;
+    queueGateway(rpcNames.MODERATE_ADD_DJ, userid, callback);
+    return true;
 }
 
 PlugAPI.prototype.moderateRemoveDJ = function(userid, callback) {
-    return queueGateway(rpcNames.MODERATE_REMOVE_DJ, userid, callback);
+    if (!this.roomId || this.getSelf().permission < this.ROLE.BOUNCER || (!room.isDJ(userid) && !room.isInWaitList(userid)) || (room.boothLocked && this.getSelf().permission < this.ROLE.MANAGER))
+        return false;
+    queueGateway(rpcNames.MODERATE_REMOVE_DJ, userid, callback);
+    return true;
 }
 
 PlugAPI.prototype.moderateMoveDJ = function(userid, index, callback) {
-    return queueGateway(rpcNames.MODERATE_MOVE_DJ, [userid, index > 50 ? 50 : index < 1 ? 1 : index], callback);
+    if (!this.roomId || this.getSelf().permission < this.ROLE.MANAGER || !room.isInWaitList(userid) || isNaN(index))
+        return false;
+    queueGateway(rpcNames.MODERATE_MOVE_DJ, [userid, index > 50 ? 50 : index < 1 ? 1 : index], callback);
+    return true;
 }
 
 PlugAPI.prototype.moderateBanUser = function(userid, reason, duration, callback) {
-    return queueGateway(rpcNames.MODERATE_BAN, [userid, String(reason || 0), duration || -1], callback);
+    if (!this.roomId || this.getUser().permission < this.ROLE.BOUNCER || this.getUser().permission < this.getUser(userid).permission)
+        return false;
+    reason = String(reason || 0);
+    if (!duration)
+        duration = this.BAN.PERMA;
+    if (duration === this.BAN.PERMA && this.getUser().permission === this.ROLE.BOUNCER)
+        duration = this.BAN.DAY;
+    queueGateway(rpcNames.MODERATE_BAN, [userid, reason, duration], callback);
+    return true;
 }
 
 PlugAPI.prototype.moderateUnBanUser = function(userid, callback) {
@@ -1085,31 +1108,42 @@ PlugAPI.prototype.moderateUnBanUser = function(userid, callback) {
 }
 
 PlugAPI.prototype.moderateUnbanUser = function(userid, callback) {
-    // Check: Have permission
-    if (this.getUser().permission < this.ROLE.MANAGER)
+    if (!this.roomId || this.getUser().permission < this.ROLE.MANAGER)
         return false;
     queueGateway(rpcNames.MODERATE_UNBAN, [userid], callback);
     return true;
 }
 
 PlugAPI.prototype.moderateForceSkip = function(callback) {
-    return room.getDJ() === null ? false : queueGateway(rpcNames.MODERATE_SKIP, [room.getDJ().id, historyID], callback);
+    if (!this.roomId || this.getUser().permission < this.ROLE.BOUNCER || room.getDJ() === null)
+        return false;
+    queueGateway(rpcNames.MODERATE_SKIP, [room.getDJ().id, historyID], callback);
+    return true;
 }
 
 PlugAPI.prototype.moderateDeleteChat = function(chatID, callback) {
-    return queueGateway(rpcNames.MODERATE_CHAT_DELETE, [chatID], callback, undefined, true);
+    if (!this.roomId || this.getUser().permission < this.ROLE.BOUNCER)
+        return false;
+    queueGateway(rpcNames.MODERATE_CHAT_DELETE, [chatID], callback, undefined, true);
+    return true;
 }
 
 PlugAPI.prototype.moderateLockWaitList = function(locked, clear, callback) {
     return this.moderateLockBooth(locked, clear, callback);
 }
 
-PlugAPI.prototype.moderateSetRole = function(id, role, callback) {
-    return queueGateway(rpcNames.MODERATE_PERMISSIONS, [id, role], callback);
+PlugAPI.prototype.moderateSetRole = function(userid, role, callback) {
+    if (!this.roomId || this.getUser(userid) === null || isNaN(role))
+        return false;
+    queueGateway(rpcNames.MODERATE_PERMISSIONS, [userid, role], callback);
+    return true;
 }
 
 PlugAPI.prototype.moderateLockBooth = function(locked, clear, callback) {
-    return queueGateway(rpcNames.ROOM_LOCK_BOOTH, [this.roomId, locked, clear], callback);
+    if (!this.roomId || this.getUser().permission < this.ROLE.MANAGER || (locked === room.boothLocked && !clear))
+        return false;
+    queueGateway(rpcNames.ROOM_LOCK_BOOTH, [this.roomId, locked, clear], callback);
+    return true;
 }
 
 PlugAPI.prototype.getUsers = function() {
@@ -1149,7 +1183,7 @@ PlugAPI.prototype.getSelf = function() {
 }
 
 PlugAPI.prototype.getWaitList = function() {
-    return room.getWaitlist();
+    return room.getWaitList();
 }
 
 PlugAPI.prototype.getWaitListPosition = function(userid) {
@@ -1169,29 +1203,45 @@ PlugAPI.prototype.getRoomScore = function() {
 }
 
 PlugAPI.prototype.createPlaylist = function(name, callback) {
-    return queueGateway(rpcNames.PLAYLIST_CREATE, name, callback);
+    if (!this.roomId)
+        return false;
+    queueGateway(rpcNames.PLAYLIST_CREATE, name, callback);
+    return true;
 }
 
 PlugAPI.prototype.addSongToPlaylist = function(playlistId, songid, callback) {
-    return queueGateway(rpcNames.PLAYLIST_MEDIA_INSERT, [playlistId, null, -1, [songid]], callback);
+    if (!this.roomId)
+        return false;
+    queueGateway(rpcNames.PLAYLIST_MEDIA_INSERT, [playlistId, null, -1, [songid]], callback);
+    return true;
 }
 
 PlugAPI.prototype.getPlaylists = function(callback) {
-    return queueGateway(rpcNames.PLAYLIST_SELECT, [new Date(0).toISOString().replace('T', ' '), null, 100, null], callback);
+    if (!this.roomId)
+        return false;
+    queueGateway(rpcNames.PLAYLIST_SELECT, [new Date(0).toISOString().replace('T', ' '), null, 100, null], callback);
+    return true;
 }
 
 PlugAPI.prototype.activatePlaylist = function(playlist_id, callback) {
-    return queueGateway(rpcNames.PLAYLIST_ACTIVATE, [playlist_id], callback);
+    if (!this.roomId || !playlist_id)
+        return false;
+    queueGateway(rpcNames.PLAYLIST_ACTIVATE, [playlist_id], callback);
+    return true;
 }
 
 PlugAPI.prototype.playlistMoveSong = function(playlist, song_id, position, callback) {
-    return queueGateway(rpcNames.PLAYLIST_MEDIA_MOVE, [playlist.id, playlist.items[position],
+    if (!this.roomId)
+        return false;
+    queueGateway(rpcNames.PLAYLIST_MEDIA_MOVE, [playlist.id, playlist.items[position],
         [song_id]
     ], callback);
+    return true;
 }
 
 PlugAPI.prototype.setAvatar = function(avatar, callback) {
-    return queueGateway(rpcNames.USER_SET_AVATAR, [avatar], callback);
+    queueGateway(rpcNames.USER_SET_AVATAR, [avatar], callback);
+    return true;
 }
 
 PlugAPI.prototype.listen = function(port, address) {
