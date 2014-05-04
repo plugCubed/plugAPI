@@ -115,6 +115,7 @@ var SockJS = require('sockjs-client'),
     ws = null,
     p3Socket = null,
     initialized = false,
+    commandPrefix = '!',
     apiId = 0,
     _this = null,
     _key = null,
@@ -421,7 +422,7 @@ function receivedChatMessage(m) {
     if (!initialized) return;
     m.message = encoder.htmlDecode(m.message);
 
-    if ((m.type == 'message' || m.type == 'pm') && m.message.indexOf('!') === 0 && m.from.id != room.self.id) {
+    if ((m.type == 'message' || m.type == 'pm') && m.message.indexOf(commandPrefix) === 0 && m.from.id != room.self.id) {
         if (typeof _this.preCommandHandler === 'function' && _this.preCommandHandler(m) === false) return;
         var isPM = m.type == 'pm',
             cmd = m.message.substr(1).split(' ')[0],
@@ -945,13 +946,23 @@ PlugAPI.prototype.getTwitterAuth = function(creds, callback) {
             callback(err, cookieVal);
     });
 }
-PlugAPI.prototype.setLogObject = function(c) {
-    return this.logger = c;
+
+PlugAPI.prototype.setCommandPrefix = function(a) {
+    if (!a || typeof a !== 'string' || a.length < 1)
+        return false;
+    commandPrefix = a.substr(0, 1);
+    return true;
 }
+
+PlugAPI.prototype.setLogObject = function(a) {
+    return this.logger = a;
+}
+
 PlugAPI.prototype.connect = function(a) {
     queueConnectChat(a);
     queueConnectSocket(a);
 }
+
 PlugAPI.prototype.sendChat = function(msg, timeout) {
     if (msg.length > 235 && this.multiLine) {
         var lines = msg.replace(/.{235}\S*\s+/g, '$&¤').split(/\s+¤/);
@@ -966,17 +977,21 @@ PlugAPI.prototype.sendChat = function(msg, timeout) {
     } else
         intChat(msg, timeout);
 }
+
 PlugAPI.prototype.sendPM = function(receiver, msg) {
     return intPM(receiver, msg);
 }
+
 PlugAPI.prototype.woot = function(callback) {
     queueGateway(rpcNames.ROOM_CAST, [true, historyID, lastHistoryID === historyID], callback);
     return lastHistoryID = historyID;
 }
+
 PlugAPI.prototype.meh = function(callback) {
     queueGateway(rpcNames.ROOM_CAST, [false, historyID, lastHistoryID === historyID], callback);
     return lastHistoryID = historyID;
 }
+
 PlugAPI.prototype.getHistory = function(callback) {
     if (typeof callback !== 'function') throw new Error('You must specify callback!');
     if (initialized) {
@@ -988,12 +1003,15 @@ PlugAPI.prototype.getHistory = function(callback) {
         _this.getHistory(callback);
     });
 }
+
 PlugAPI.prototype.isUsernameAvailable = function(name, callback) {
     return queueGateway(rpcNames.USER_NAME_AVAILABLE, [name], callback);
 }
+
 PlugAPI.prototype.changeUsername = function(name, callback) {
     return queueGateway(rpcNames.USER_CHANGE_NAME, [name], callback);
 }
+
 PlugAPI.prototype.changeRoomName = function(name, callback) {
     if (!this.roomId)
         throw new Error('You must be in a room to change its name');
@@ -1001,6 +1019,7 @@ PlugAPI.prototype.changeRoomName = function(name, callback) {
         throw new Error('You must be co-host or higher to change room name');
     return queueGateway(rpcNames.MODERATE_UPDATE_NAME, [name], callback);
 }
+
 PlugAPI.prototype.changeRoomDescription = function(description, callback) {
     if (!this.roomId)
         throw new Error('You must be in a room to change its name');
@@ -1008,6 +1027,7 @@ PlugAPI.prototype.changeRoomDescription = function(description, callback) {
         throw new Error('You must be co-host or higher to change room description');
     return queueGateway(rpcNames.MODERATE_UPDATE_DESCRIPTION, [description], callback);
 }
+
 PlugAPI.prototype.changeDJCycle = function(enabled, callback) {
     if (!this.roomId)
         throw new Error('You must be in a room to change its name');
@@ -1015,11 +1035,13 @@ PlugAPI.prototype.changeDJCycle = function(enabled, callback) {
         throw new Error('You must be manager or higher to change DJ cycle');
     return queueGateway(rpcNames.ROOM_CYCLE_BOOTH, [this.roomId, enabled], callback);
 }
+
 PlugAPI.prototype.getTimeElapsed = function() {
     if (room.getMedia() == null)
         return 0;
     return Math.min(room.getMedia().duration, DateUtilities.getSecondsElapsed(room.getMediaStartTime()));
 }
+
 PlugAPI.prototype.getTimeRemaining = function() {
     if (room.getMedia() == null)
         return 0;
@@ -1029,98 +1051,129 @@ PlugAPI.prototype.getTimeRemaining = function() {
 PlugAPI.prototype.joinBooth = function(callback) {
     return queueGateway(rpcNames.BOOTH_JOIN, [], callback);
 }
+
 PlugAPI.prototype.leaveBooth = function(callback) {
     return queueGateway(rpcNames.BOOTH_LEAVE, [], callback);
 }
+
 PlugAPI.prototype.moderateAddDJ = function(userid, callback) {
     return queueGateway(rpcNames.MODERATE_ADD_DJ, userid, callback);
 }
+
 PlugAPI.prototype.moderateRemoveDJ = function(userid, callback) {
     return queueGateway(rpcNames.MODERATE_REMOVE_DJ, userid, callback);
 }
+
 PlugAPI.prototype.moderateMoveDJ = function(userid, index, callback) {
     return queueGateway(rpcNames.MODERATE_MOVE_DJ, [userid, index > 50 ? 50 : index < 1 ? 1 : index], callback);
 }
+
 PlugAPI.prototype.moderateBanUser = function(userid, reason, duration, callback) {
     return queueGateway(rpcNames.MODERATE_BAN, [userid, String(reason || 0), duration || -1], callback);
 }
+
 PlugAPI.prototype.moderateUnBanUser = function(userid, callback) {
     return queueGateway(rpcNames.MODERATE_UNBAN, [userid], callback);
 }
+
 PlugAPI.prototype.moderateForceSkip = function(callback) {
     return room.getDJ() === null ? false : queueGateway(rpcNames.MODERATE_SKIP, [room.getDJ().id, historyID], callback);
 }
+
 PlugAPI.prototype.moderateDeleteChat = function(chatID, callback) {
     return queueGateway(rpcNames.MODERATE_CHAT_DELETE, [chatID], callback, undefined, true);
 }
+
 PlugAPI.prototype.moderateLockWaitList = function(locked, clear, callback) {
     return this.moderateLockBooth(locked, clear, callback);
 }
+
 PlugAPI.prototype.moderateSetRole = function(id, role, callback) {
     return queueGateway(rpcNames.MODERATE_PERMISSIONS, [id, role], callback);
 }
+
 PlugAPI.prototype.moderateLockBooth = function(locked, clear, callback) {
     return queueGateway(rpcNames.ROOM_LOCK_BOOTH, [this.roomId, locked, clear], callback);
 }
+
 PlugAPI.prototype.getUsers = function() {
     return room.getUsers();
 }
+
 PlugAPI.prototype.getUser = function(userid) {
     return room.getUser(userid);
 }
+
 PlugAPI.prototype.getAudience = function(name) {
     return room.getAudience();
 }
+
 PlugAPI.prototype.getDJ = function() {
     return room.getDJ();
 }
+
 PlugAPI.prototype.getDJs = function() {
     return room.getDJs();
 }
+
 PlugAPI.prototype.getStaff = function() {
     return room.getStaff();
 }
+
 PlugAPI.prototype.getAdmins = function() {
     return room.getAdmins();
 }
+
 PlugAPI.prototype.getHost = function() {
     return room.getHost();
 }
+
 PlugAPI.prototype.getSelf = function() {
     return room.getSelf();
 }
+
 PlugAPI.prototype.getWaitList = function() {
     return room.getWaitlist();
 }
+
 PlugAPI.prototype.getWaitListPosition = function(userid) {
     return room.getWaitListPosition(userid);
 }
+
 PlugAPI.prototype.getAmbassadors = function() {
     return room.getAmbassadors();
 }
+
 PlugAPI.prototype.getMedia = function() {
     return room.getMedia();
 }
+
 PlugAPI.prototype.getRoomScore = function() {
     return room.getRoomScore();
 }
+
 PlugAPI.prototype.createPlaylist = function(name, callback) {
     return queueGateway(rpcNames.PLAYLIST_CREATE, name, callback);
 }
+
 PlugAPI.prototype.addSongToPlaylist = function(playlistId, songid, callback) {
     return queueGateway(rpcNames.PLAYLIST_MEDIA_INSERT, [playlistId, null, -1, [songid]], callback);
 }
+
 PlugAPI.prototype.getPlaylists = function(callback) {
     return queueGateway(rpcNames.PLAYLIST_SELECT, [new Date(0).toISOString().replace('T', ' '), null, 100, null], callback);
 }
+
 PlugAPI.prototype.activatePlaylist = function(playlist_id, callback) {
     return queueGateway(rpcNames.PLAYLIST_ACTIVATE, [playlist_id], callback);
 }
+
 PlugAPI.prototype.playlistMoveSong = function(playlist, song_id, position, callback) {
     return queueGateway(rpcNames.PLAYLIST_MEDIA_MOVE, [playlist.id, playlist.items[position],
         [song_id]
     ], callback);
 }
+
 PlugAPI.prototype.setAvatar = function(avatar, callback) {
     return queueGateway(rpcNames.USER_SET_AVATAR, [avatar], callback);
 }
