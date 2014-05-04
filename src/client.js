@@ -430,7 +430,7 @@ function receivedChatMessage(m) {
     if (!initialized) return;
     m.message = encoder.htmlDecode(m.message);
 
-    if ((m.type == 'message' || m.type == 'pm') && m.message.indexOf(commandPrefix) === 0 && m.from.id != room.self.id) {
+    if ((m.type == 'message' || m.type == 'pm') && m.message.indexOf(commandPrefix) === 0 && (_this.processOwnMessages || m.from.id != room.self.id)) {
         if (typeof _this.preCommandHandler === 'function' && _this.preCommandHandler(m) === false) return;
         var isPM = m.type == 'pm',
             cmd = m.message.substr(1).split(' ')[0],
@@ -860,6 +860,7 @@ var PlugAPI = function(key) {
     this.multiLineLimit = 5;
     this.roomId = null;
     this.enablePlugCubedSocket = false;
+    this.processOwnMessages = false;
 
     room.User.prototype.addToWaitlist = function() {
         console.error('Using deprecated addToWaitlist - change to addToWaitList');
