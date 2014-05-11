@@ -232,6 +232,7 @@ Room.prototype.getUser = function(userid) {
     if (!userid) userid = this.self.id;
     if (this.users[userid] != null)
         return new this.User(this.users[userid]);
+    return null;
 };
 
 Room.prototype.getSelf = function() {
