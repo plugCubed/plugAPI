@@ -3,11 +3,13 @@ plugAPI Changelog
 
 2.1.0
 -----
+* **ADDED:** Added close (Commit [ffa6f65](https://github.com/TATDK/plugapi/commit/ffa6f65efc1a9f57a8417637f5978185a95f6fe6))
 * **ADDED:** Ability to set other command prefix (Commit [a122f47](https://github.com/TATDK/plugapi/commit/a122f473b4934b49d09a8f73c1263433eb6f18ab))
 * **ADDED:** Ability to have bot's own messages processed (Commit [ea226c8](https://github.com/TATDK/plugapi/commit/ea226c8fdaab117560d9e235c0d3e05bb6129cca))
 * **ADDED:** Add function to move a user in waitlist through user object (Commit [303d5fc](https://github.com/TATDK/plugapi/commit/303d5fced045d0e6e06aea54fa912347122349ac))
 * **IMPROVE:** Improve code for joining room (Commit [47335b2](https://github.com/TATDK/plugapi/commit/47335b257ff4bbdb62231e014e9818ed374ca5ae))
 * **IMPROVE:** Added checks to prevent unnecessary requests (Commit [c1691ca](https://github.com/TATDK/plugapi/commit/c1691cac98c557b65a91bc9b5ef3993eb2e41d4a))
+* **FIXED:** Connect to p3's socket server via HTTPS (Commit [d5b32d3](https://github.com/TATDK/plugapi/commit/d5b32d3da5bcaf89e54c65f704b39d71ee05248e))
 * **DEPRECATE:** Deprecate setLogObject (Commit [3e8c690](https://github.com/TATDK/plugapi/commit/3e8c690caba5946e198b361c0693419a84ff3054))
 * **DEPRECATE:** Deprecate old parameters for getTwitterAuth (Commit [b7e2579](https://github.com/TATDK/plugapi/commit/b7e2579064f438ba94f63e82d269583320798d32))
 * **DEPRECATE:** Deprecate moderateUnBanUser (Commit [5bb2fda](https://github.com/TATDK/plugapi/commit/5bb2fda5fd1900a2a64ad9de106f10e9a42a8de6))
