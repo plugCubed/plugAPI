@@ -631,7 +631,7 @@ function connectSocket(roomId) {
 
 function connectPlugCubedSocket() {
     var validated = false;
-    p3Socket = SockJS.create('http://socket.plugcubed.net:81/gateway');
+    p3Socket = SockJS.create('https://socket.plugcubed.net/gateway');
     p3Socket.send = function(data) {
         var msg = JSON.stringify(data);
         return this.write(msg);
