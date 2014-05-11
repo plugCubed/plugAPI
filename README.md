@@ -70,16 +70,6 @@ Read about the actions on the [wiki](https://github.com/TATDK/plugapi/wiki/actio
 
 ## Misc
 
-#### setLogObject(logger)
-You can set your own custom logger for the API to use when it logs important events, such as errors or stack traces from the server.
-
-The logger object must have a function called "log" that takes any number of parameters and prints them.
-
-```
-var prompt = new Prompt();
-bot.setLogObject(prompt);
-```
-
 #### Multi line chat
 Since Plug.dj cuts off chat messages at 250 characters, you can choose to have your bot split up chat messages into multiple lines:
 
