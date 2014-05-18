@@ -47,4 +47,7 @@ node_modules
 lib
 assets
 
+# IntelliJ #
+.idea
+
 .gitignore

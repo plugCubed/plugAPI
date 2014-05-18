@@ -28,6 +28,7 @@ bot.on('roomJoin', function(room) {
 ##Examples
 Here are some bots using this API.
 
+* FoxBot in Approaching Nirvana
 * Upcoming LiteBot in Radiant Music
 
 Have a bot that uses the API? Let me know!
