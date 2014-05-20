@@ -1,6 +1,10 @@
 plugAPI Changelog
 =================
 
+2.2.0
+-----
+* **ADDED:** Added havePermission (Commit [a323aa8](https://github.com/TATDK/plugapi/commit/a323aa8f0860ee5e0b2444b5fded4fa80174cac0))
+
 2.1.0
 -----
 * **ADDED:** Added close (Commit [ffa6f65](https://github.com/TATDK/plugapi/commit/ffa6f65efc1a9f57a8417637f5978185a95f6fe6))
