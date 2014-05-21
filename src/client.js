@@ -1235,10 +1235,10 @@ PlugAPI.prototype.setAvatar = function(avatar, callback) {
     return true;
 };
 
-PlugAPI.prototype.havePermission(function(userid, permission) {
+PlugAPI.prototype.havePermission = function(userid, permission) {
     var user = this.getUser(userid);
     return !(user == null || user.permission < permission);
-});
+};
 
 PlugAPI.prototype.listen = function(port, address) {
     var _this = this;
