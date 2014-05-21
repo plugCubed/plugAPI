@@ -1,6 +1,10 @@
 plugAPI Changelog
 =================
 
+2.2.1
+-----
+* **FIXED:** Fixed coding error (Commit [ba52159](https://github.com/TATDK/plugapi/commit/ba5215962360a48300e1ddb2b2a3aeb7d2df0c4e))
+
 2.2.0
 -----
 * **ADDED:** Added havePermission (Commit [a323aa8](https://github.com/TATDK/plugapi/commit/a323aa8f0860ee5e0b2444b5fded4fa80174cac0))
