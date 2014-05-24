@@ -1082,7 +1082,7 @@ PlugAPI.prototype.moderateMoveDJ = function(userId, index, callback) {
 };
 
 PlugAPI.prototype.moderateBanUser = function(userId, reason, duration, callback) {
-    if (!this.roomId || !this.havePermission(undefined, this.ROLE.BOUNCER) || this.getUser(userId) == null || this.getUser().permission < this.getUser(userId).permission)
+    if (!this.roomId || !this.havePermission(undefined, this.ROLE.BOUNCER))
         return false;
     reason = String(reason || 0);
     if (!duration)
