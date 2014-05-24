@@ -1,6 +1,10 @@
 plugAPI Changelog
 =================
 
+2.2.2
+-----
+* **IMPROVE:** Allow banning people not in the room (Commit [78e7945](https://github.com/TATDK/plugapi/commit/78e794527174635a57adbd11a3f9be0ac0fabd2c))
+
 2.2.1
 -----
 * **FIXED:** Fixed coding error (Commit [ba52159](https://github.com/TATDK/plugapi/commit/ba5215962360a48300e1ddb2b2a3aeb7d2df0c4e))
