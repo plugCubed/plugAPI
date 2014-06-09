@@ -1,6 +1,10 @@
 plugAPI Changelog
 =================
 
+2.2.3
+-----
+* **IMPROVE:** Improve invalid roomname detection (Commit [3d0dbee](https://github.com/TATDK/plugapi/commit/3d0dbeeb28fa6073ef53dd530517d86dea928a90))
+
 2.2.2
 -----
 * **IMPROVE:** Allow banning people not in the room (Commit [78e7945](https://github.com/TATDK/plugapi/commit/78e794527174635a57adbd11a3f9be0ac0fabd2c))
