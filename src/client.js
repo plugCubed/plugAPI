@@ -347,7 +347,7 @@ function sendGateway(opts, successCallback, failureCallback) {
             if (typeof failureCallback === 'function') {
                 failureCallback(err);
             }
-            logger.log('[GATEWAY ERROR]', err);
+            logger.log('[Gateway Error]', err);
             return;
         }
         try {
@@ -359,7 +359,7 @@ function sendGateway(opts, successCallback, failureCallback) {
             }
         } catch (e) {
             failureCallback(e);
-            logger.log('[GATEWAY ERROR]', e);
+            logger.log('[Gateway Error]', e);
         }
     });
 }
@@ -386,10 +386,10 @@ function joinRoom(name, callback) {
         queueRPC(rpcNames.ROOM_JOIN, [name, _updateCode], function(data) {
             if (data.status) {
                 if (data.status === 999) {
-                    logger.log(data.result ? data.result : 'Unknown error');
-                    setImmediate(function() {
+                    logger.log('Error while joining:', data.result ? data.result : 'Unknown error');
+                    setTimeout(function() {
                         joinRoom(name, callback);
-                    });
+                    }, 1e3);
                     return;
                 } else {
                     throw new Error('Wrong updateCode');
@@ -942,7 +942,7 @@ PlugAPI.prototype.setLogger = function(a) {
 };
 
 PlugAPI.prototype.connect = function(a) {
-    if (a && typeof a === 'string' && a.length > 0 && a.indexOf('/') > -1) {
+    if (!a || typeof a !== 'string' || a.length === 0 || a.indexOf('/') > -1) {
         throw new Error('Invalid room name');
     }
     queueConnectChat(a);
