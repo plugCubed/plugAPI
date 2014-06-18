@@ -1,6 +1,11 @@
 plugAPI Changelog
 =================
 
+2.2.4
+-----
+* **IMPROVE:** Allow command prefixes longer than 1 character (Commit [56374ed](https://github.com/TATDK/plugapi/commit/56374ed0bb970416bb825918ae20b7c7c78fee41))
+* **IMPROVE:** Added sourcemap for easier tracking of issues and bugs (Commit [56374ed](https://github.com/TATDK/plugapi/commit/56374ed0bb970416bb825918ae20b7c7c78fee41))
+
 2.2.3
 -----
 * **IMPROVE:** Improve invalid roomname detection (Commit [3d0dbee](https://github.com/TATDK/plugapi/commit/3d0dbeeb28fa6073ef53dd530517d86dea928a90))
