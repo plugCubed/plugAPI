@@ -1,6 +1,10 @@
 plugAPI Changelog
 =================
 
+2.2.5
+-----
+* **FIXED:** Be sure the user exists while handling MODERATE_STAFF messages - Fixes #14 (Commit [7883859](https://github.com/TATDK/plugapi/commit/788385993247e01eb9633e65bf524edaf868eecf))
+
 2.2.4
 -----
 * **IMPROVE:** Allow command prefixes longer than 1 character (Commit [56374ed](https://github.com/TATDK/plugapi/commit/56374ed0bb970416bb825918ae20b7c7c78fee41))
