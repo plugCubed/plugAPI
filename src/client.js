@@ -776,8 +776,11 @@ function messageHandler(msg) {
             queueRPC(rpcNames.USER_PONG);
             break;
         case messageTypes.MODERATE_STAFF:
-            for (var i in msg.data.users)
-                room.staff[msg.data.users[i].user.id] = msg.data.users[i].permission;
+            for (var i in msg.data.users) {
+                // Be sure the user exists
+                if (msg.data.users[i].user && msg.data.users[i].user.id)
+                    room.staff[msg.data.users[i].user.id] = msg.data.users[i].permission;
+            }
             room.setPermissions();
             break;
         case messageTypes.USER_JOIN:
