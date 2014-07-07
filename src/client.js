@@ -8,7 +8,7 @@ util = require('util');
 zlib = require('zlib');
 
 // Third-party modules
-SockJS = require('sockjs-client');
+SockJS = require('sockjs-client-node');
 request = require('request');
 WebSocket = require('ws');
 encoder = new require('node-html-encoder').Encoder('entity');

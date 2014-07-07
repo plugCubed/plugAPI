@@ -22,46 +22,16 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.*/
-var SockJS, net, http, EventEmitter, Room, PlugAPIInfo, request, WebSocket, encoder, util, zlib, rpcNames, messageTypes, client, ws, p3Socket, initialized, commandPrefix, apiId, _this, _key, _updateCode, lastRpcMessage, historyID, lastHistoryID, serverRequests, room, rpcHandlers, logger;
-net = require("net");
-http = require("http");
-EventEmitter = require("events").EventEmitter;
-util = require("util");
-zlib = require("zlib");
-SockJS = require("sockjs-client");
-request = require("request");
-WebSocket = require("ws");
-encoder = (new require("node-html-encoder")).Encoder("entity");
-Room = require("./room");
-PlugAPIInfo = require("../package.json");
-rpcNames = {BOOTH_JOIN: "booth.join_1", BOOTH_LEAVE: "booth.leave_1", BOOTH_SKIP: "booth.skip_1", DURATION_MISMATCH: "duration.mismatch", DURATION_UPDATE: "duration.update", HISTORY_SELECT: "history.select_1", MEDIA_RECOVER: "media.recover_1", MEDIA_SELECT: "media.select_1", MEDIA_UPDATE: "media.update_1", MODERATE_ADD_DJ: "moderate.add_dj_1", MODERATE_BAN: "moderate.ban_1", MODERATE_BANS: "moderate.bans_1", MODERATE_CHAT_DELETE: "moderate.chat_delete_1", MODERATE_MOVE_DJ: "moderate.move_dj_1", MODERATE_PERMISSIONS: "moderate.permissions_1",
-    MODERATE_REMOVE_DJ: "moderate.remove_dj_1", MODERATE_SKIP: "moderate.skip_1", MODERATE_UNBAN: "moderate.unban_1", MODERATE_UPDATE_DESCRIPTION: "moderate.update_description_1", MODERATE_UPDATE_NAME: "moderate.update_name_1", MODERATE_UPDATE_WELCOME: "moderate.update_welcome_1", PLAYLIST_ACTIVATE: "playlist.activate_1", PLAYLIST_CREATE: "playlist.create_1", PLAYLIST_DELETE: "playlist.delete_1", PLAYLIST_MEDIA_DELETE: "playlist.media.delete_1", PLAYLIST_MEDIA_INSERT: "playlist.media.insert_1", PLAYLIST_MEDIA_MOVE: "playlist.media.move_1",
-    PLAYLIST_MEDIA_SHUFFLE: "playlist.media.shuffle_1", PLAYLIST_RENAME: "playlist.rename_1", PLAYLIST_SELECT: "playlist.select_1", REPORT_DISCONNECT: "report.disconnect_1", REPORT_RECONNECT: "report.reconnect_1", ROOM_CAST: "room.cast_1", ROOM_CREATE: "room.create_1", ROOM_CURATE: "room.curate_1", ROOM_CYCLE_BOOTH: "room.cycle_booth_1", ROOM_DETAILS: "room.details_1", ROOM_JOIN: "room.join_1", ROOM_LOCK_BOOTH: "room.lock_booth_1", ROOM_SEARCH: "room.search_1", ROOM_STAFF: "room.staff_1", ROOM_STATE: "room.state_1", USER_CHANGE_NAME: "user.change_name_1",
-    USER_GET_BY_IDS: "user.get_by_ids_1", USER_IGNORING: "user.ignoring_1", USER_NAME_AVAILABLE: "user.name_available_1", USER_PONG: "user.pong_1", USER_SET_AVATAR: "user.set_avatar_1", USER_SET_LANGUAGE: "user.set_language_1", USER_SET_STATUS: "user.set_status_1"};
-messageTypes = {BAN: "ban", BOOTH_CYCLE: "boothCycle", BOOTH_LOCKED: "boothLocked", CHAT: "chat", CHAT_COMMAND: "command", CHAT_DELETE: "chatDelete", CHAT_EMOTE: "emote", COMMAND: "command", CURATE_UPDATE: "curateUpdate", DJ_ADVANCE: "djAdvance", DJ_UPDATE: "djUpdate", EMOTE: "emote", FOLLOW_JOIN: "followJoin", MODERATE_ADD_DJ: "modAddDJ", MODERATE_ADD_WAITLIST: "modAddWaitList", MODERATE_AMBASSADOR: "modAmbassador", MODERATE_BAN: "modBan", MODERATE_MOVE_DJ: "modMoveDJ", MODERATE_REMOVE_DJ: "modRemoveDJ", MODERATE_REMOVE_WAITLIST: "modRemoveWaitList",
-    MODERATE_SKIP: "modSkip", MODERATE_STAFF: "modStaff", PDJ_MESSAGE: "pdjMessage", PDJ_UPDATE: "pdjUpdate", PING: "ping", PLAYLIST_CYCLE: "playlistCycle", REQUEST_DURATION: "requestDuration", REQUEST_DURATION_RETRY: "requestDurationRetry", ROOM_CHANGE: "roomChanged", ROOM_DESCRIPTION_UPDATE: "roomDescriptionUpdate", ROOM_JOIN: "roomJoin", ROOM_NAME_UPDATE: "roomNameUpdate", ROOM_VOTE_SKIP: "roomVoteSkip", ROOM_WELCOME_UPDATE: "roomWelcomeUpdate", SESSION_CLOSE: "sessionClose", SKIP: "skip", STROBE_TOGGLE: "strobeToggle", USER_COUNTER_UPDATE: "userCounterUpdate",
-    USER_FOLLOW: "userFollow", USER_JOIN: "userJoin", USER_LEAVE: "userLeave", USER_UPDATE: "userUpdate", VOTE_UPDATE: "voteUpdate", VOTE_UPDATE_MULTI: "voteUpdateMulti"};
-p3Socket = ws = client = null;
-initialized = !1;
-commandPrefix = "!";
-apiId = 0;
-_updateCode = _key = _this = null;
-lastRpcMessage = Date.now();
-lastHistoryID = "";
-serverRequests = {queue: [], sent: 0, limit: 10, running: !1};
-room = new Room;
-rpcHandlers = {};
-logger = {pad: function(a) {
-    return 10 > a ? "0" + a.toString(10) : a.toString(10)
-}, months: "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(" "), timestamp: function() {
-    var a = new Date, b = [this.pad(a.getHours()), this.pad(a.getMinutes()), this.pad(a.getSeconds())].join(":");
-    return[a.getDate(), this.months[a.getMonth()], b].join(" ")
-}, log: function() {
-    var a = Array.prototype.slice.call(arguments);
-    a.unshift(this.timestamp());
-    console.log.apply(console, a)
-}};
-http.OutgoingMessage.prototype.__renderHeaders = http.OutgoingMessage.prototype._renderHeaders;
+var SockJS,net,http,EventEmitter,Room,PlugAPIInfo,request,WebSocket,encoder,util,zlib,rpcNames,messageTypes,client,ws,p3Socket,initialized,commandPrefix,apiId,_this,_key,_updateCode,lastRpcMessage,historyID,lastHistoryID,serverRequests,room,rpcHandlers,logger;net=require("net");http=require("http");EventEmitter=require("events").EventEmitter;util=require("util");zlib=require("zlib");SockJS=require("sockjs-client-node");request=require("request");WebSocket=require("ws");encoder=(new require("node-html-encoder")).Encoder("entity");
+Room=require("./room");PlugAPIInfo=require("../package.json");
+rpcNames={BOOTH_JOIN:"booth.join_1",BOOTH_LEAVE:"booth.leave_1",BOOTH_SKIP:"booth.skip_1",DURATION_MISMATCH:"duration.mismatch",DURATION_UPDATE:"duration.update",HISTORY_SELECT:"history.select_1",MEDIA_RECOVER:"media.recover_1",MEDIA_SELECT:"media.select_1",MEDIA_UPDATE:"media.update_1",MODERATE_ADD_DJ:"moderate.add_dj_1",MODERATE_BAN:"moderate.ban_1",MODERATE_BANS:"moderate.bans_1",MODERATE_CHAT_DELETE:"moderate.chat_delete_1",MODERATE_MOVE_DJ:"moderate.move_dj_1",MODERATE_PERMISSIONS:"moderate.permissions_1",
+MODERATE_REMOVE_DJ:"moderate.remove_dj_1",MODERATE_SKIP:"moderate.skip_1",MODERATE_UNBAN:"moderate.unban_1",MODERATE_UPDATE_DESCRIPTION:"moderate.update_description_1",MODERATE_UPDATE_NAME:"moderate.update_name_1",MODERATE_UPDATE_WELCOME:"moderate.update_welcome_1",PLAYLIST_ACTIVATE:"playlist.activate_1",PLAYLIST_CREATE:"playlist.create_1",PLAYLIST_DELETE:"playlist.delete_1",PLAYLIST_MEDIA_DELETE:"playlist.media.delete_1",PLAYLIST_MEDIA_INSERT:"playlist.media.insert_1",PLAYLIST_MEDIA_MOVE:"playlist.media.move_1",
+PLAYLIST_MEDIA_SHUFFLE:"playlist.media.shuffle_1",PLAYLIST_RENAME:"playlist.rename_1",PLAYLIST_SELECT:"playlist.select_1",REPORT_DISCONNECT:"report.disconnect_1",REPORT_RECONNECT:"report.reconnect_1",ROOM_CAST:"room.cast_1",ROOM_CREATE:"room.create_1",ROOM_CURATE:"room.curate_1",ROOM_CYCLE_BOOTH:"room.cycle_booth_1",ROOM_DETAILS:"room.details_1",ROOM_JOIN:"room.join_1",ROOM_LOCK_BOOTH:"room.lock_booth_1",ROOM_SEARCH:"room.search_1",ROOM_STAFF:"room.staff_1",ROOM_STATE:"room.state_1",USER_CHANGE_NAME:"user.change_name_1",
+USER_GET_BY_IDS:"user.get_by_ids_1",USER_IGNORING:"user.ignoring_1",USER_NAME_AVAILABLE:"user.name_available_1",USER_PONG:"user.pong_1",USER_SET_AVATAR:"user.set_avatar_1",USER_SET_LANGUAGE:"user.set_language_1",USER_SET_STATUS:"user.set_status_1"};
+messageTypes={BAN:"ban",BOOTH_CYCLE:"boothCycle",BOOTH_LOCKED:"boothLocked",CHAT:"chat",CHAT_COMMAND:"command",CHAT_DELETE:"chatDelete",CHAT_EMOTE:"emote",COMMAND:"command",CURATE_UPDATE:"curateUpdate",DJ_ADVANCE:"djAdvance",DJ_UPDATE:"djUpdate",EMOTE:"emote",FOLLOW_JOIN:"followJoin",MODERATE_ADD_DJ:"modAddDJ",MODERATE_ADD_WAITLIST:"modAddWaitList",MODERATE_AMBASSADOR:"modAmbassador",MODERATE_BAN:"modBan",MODERATE_MOVE_DJ:"modMoveDJ",MODERATE_REMOVE_DJ:"modRemoveDJ",MODERATE_REMOVE_WAITLIST:"modRemoveWaitList",
+MODERATE_SKIP:"modSkip",MODERATE_STAFF:"modStaff",PDJ_MESSAGE:"pdjMessage",PDJ_UPDATE:"pdjUpdate",PING:"ping",PLAYLIST_CYCLE:"playlistCycle",REQUEST_DURATION:"requestDuration",REQUEST_DURATION_RETRY:"requestDurationRetry",ROOM_CHANGE:"roomChanged",ROOM_DESCRIPTION_UPDATE:"roomDescriptionUpdate",ROOM_JOIN:"roomJoin",ROOM_NAME_UPDATE:"roomNameUpdate",ROOM_VOTE_SKIP:"roomVoteSkip",ROOM_WELCOME_UPDATE:"roomWelcomeUpdate",SESSION_CLOSE:"sessionClose",SKIP:"skip",STROBE_TOGGLE:"strobeToggle",USER_COUNTER_UPDATE:"userCounterUpdate",
+USER_FOLLOW:"userFollow",USER_JOIN:"userJoin",USER_LEAVE:"userLeave",USER_UPDATE:"userUpdate",VOTE_UPDATE:"voteUpdate",VOTE_UPDATE_MULTI:"voteUpdateMulti"};p3Socket=ws=client=null;initialized=!1;commandPrefix="!";apiId=0;_updateCode=_key=_this=null;lastRpcMessage=Date.now();lastHistoryID="";serverRequests={queue:[],sent:0,limit:10,running:!1};room=new Room;rpcHandlers={};
+logger={pad:function(a){return 10>a?"0"+a.toString(10):a.toString(10)},months:"Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(" "),timestamp:function(){var a=new Date,b=[this.pad(a.getHours()),this.pad(a.getMinutes()),this.pad(a.getSeconds())].join(":");return[a.getDate(),this.months[a.getMonth()],b].join(" ")},log:function(){var a=Array.prototype.slice.call(arguments);a.unshift(this.timestamp());console.log.apply(console,a)}};http.OutgoingMessage.prototype.__renderHeaders=http.OutgoingMessage.prototype._renderHeaders;
 http.OutgoingMessage.prototype._renderHeaders=function(){if(this._header)throw Error("Can't render headers after they are sent to the client.");this.setHeader("Cookie",'usr="'+_key+'"');return this.__renderHeaders()};function __bind(a,b){return function(){return a.apply(b,arguments)}}function intPM(a,b){p3Socket.send({type:"PM",value:{id:"object"===typeof a?a.id:a,message:b}})}
 function intChat(a,b){var c=room.self.id.substr(0,6)+Math.floor(4294967295*Math.random()).toString(16);ws.send("5::/room:"+JSON.stringify({name:"chat",args:[{msg:a,chatID:c}]}));void 0!==b&&!isNaN(~~b)&&0<~~b&&setTimeout(function(){_this.moderateDeleteChat(c)},1E3*~~b)}
 var DateUtilities={MONTHS:"January February March April May June July August September October November December".split(" "),SERVER_TIME:null,OFFSET:0,setServerTime:function(a){this.SERVER_TIME=this.convertUnixDateStringToDate(a);this.OFFSET=this.SERVER_TIME.getTime()-(new Date).getTime()},yearsSince:function(a){return this.ServerDate().getFullYear()-a.getFullYear()},monthsSince:function(a){var b=this.ServerDate();return 12*(b.getFullYear()-a.getFullYear())+(b.getMonth()-a.getMonth())},daysSince:function(a){var b=
@@ -91,78 +61,14 @@ function initRoom(a,b){room.reset();lastRpcMessage=Date.now();if(void 0===a.room
 _this.emit(messageTypes.DJ_ADVANCE,{currentDJ:a.room.currentDJ,djs:a.room.djs.splice(1),media:room.media.info,mediaStartTime:a.room.mediaStartTime,historyID:historyID}),queueGateway(rpcNames.HISTORY_SELECT,[a.room.id],__bind(room.setHistory,room)),_this.enablePlugCubedSocket&&connectPlugCubedSocket(),_this.emit(messageTypes.ROOM_JOIN,a.room.name,a));initialized=!0;return b()}
 function parseRPCReply(a,b){a===rpcNames.ROOM_JOIN&&(_this.emit(messageTypes.ROOM_CHANGE,b),"undefined"!==typeof b.room&&"undefined"!==typeof b.room.historyID&&(historyID=b.room.historyID,_this.roomId=b.room.id,_this.userId=b.user.profile.id))}
 function dataHandler(a){"string"===typeof a&&(a=JSON.parse(a));if(a.messages)for(var b=0;b<a.messages.length;b++)messageHandler(a.messages[b]);else"rpc"===a.type&&(reply=a.result)&&(0!==a.status&&(reply=a),null!=rpcHandlers[a.id]&&"function"===typeof rpcHandlers[a.id].callback&&rpcHandlers[a.id].callback(reply),parseRPCReply(null!=rpcHandlers[a.id]?rpcHandlers[a.id].type:void 0,reply),delete rpcHandlers[a.id])}
-function messageHandler(a) {
-    switch (a.type) {
-        case messageTypes.PING:
-            queueRPC(rpcNames.USER_PONG);
-            break;
-        case messageTypes.MODERATE_STAFF:
-            for (var b in a.data.users)a.data.users[b].user && a.data.users[b].user.id && (room.staff[a.data.users[b].user.id] = a.data.users[b].permission);
-            room.setPermissions();
-            break;
-        case messageTypes.USER_JOIN:
-            room.addUser(a.data);
-            lastRpcMessage = Date.now();
-            break;
-        case messageTypes.USER_LEAVE:
-            room.remUser(a.data.id);
-            lastRpcMessage = Date.now();
-            break;
-        case messageTypes.VOTE_UPDATE:
-            room.logVote(a.data.id, 1 === a.data.vote ? "woot" : "meh");
-            lastRpcMessage = Date.now();
-            break;
-        case messageTypes.DJ_UPDATE:
-            room.setDjs(a.data.djs);
-            lastRpcMessage = Date.now();
-            break;
-        case messageTypes.DJ_ADVANCE:
-            b = {dj: a.data.djs[0], lastPlay: {dj: _this.getDJ(), media: _this.getMedia(), score: _this.getRoomScore()}, media: a.data.media, mediaStartTime: a.data.mediaStartTime, earn: a.data.earn};
-            room.getMedia();
-            room.setDjs(a.data.djs);
-            room.djAdvance(a.data);
-            historyID = a.data.historyID;
-            lastRpcMessage = Date.now();
-            _this.emit(a.type, b);
-            return;
-        case messageTypes.CURATE_UPDATE:
-            room.logVote(a.data.id, "curate");lastRpcMessage=Date.now();break;case messageTypes.USER_UPDATE:room.updateUser(a.data);break;case void 0:logger.log("UNKNOWN MESSAGE FORMAT",a)}a.type&&_this.emit(a.type,a.data)}
+function messageHandler(a){switch(a.type){case messageTypes.PING:queueRPC(rpcNames.USER_PONG);break;case messageTypes.MODERATE_STAFF:for(var b in a.data.users)a.data.users[b].user&&a.data.users[b].user.id&&(room.staff[a.data.users[b].user.id]=a.data.users[b].permission);room.setPermissions();break;case messageTypes.USER_JOIN:room.addUser(a.data);lastRpcMessage=Date.now();break;case messageTypes.USER_LEAVE:room.remUser(a.data.id);lastRpcMessage=Date.now();break;case messageTypes.VOTE_UPDATE:room.logVote(a.data.id,
+1===a.data.vote?"woot":"meh");lastRpcMessage=Date.now();break;case messageTypes.DJ_UPDATE:room.setDjs(a.data.djs);lastRpcMessage=Date.now();break;case messageTypes.DJ_ADVANCE:b={dj:a.data.djs[0],lastPlay:{dj:_this.getDJ(),media:_this.getMedia(),score:_this.getRoomScore()},media:a.data.media,mediaStartTime:a.data.mediaStartTime,earn:a.data.earn};room.getMedia();room.setDjs(a.data.djs);room.djAdvance(a.data);historyID=a.data.historyID;lastRpcMessage=Date.now();_this.emit(a.type,b);return;case messageTypes.CURATE_UPDATE:room.logVote(a.data.id,
+"curate");lastRpcMessage=Date.now();break;case messageTypes.USER_UPDATE:room.updateUser(a.data);break;case void 0:logger.log("UNKNOWN MESSAGE FORMAT",a)}a.type&&_this.emit(a.type,a.data)}
 var PlugAPI=function(a){if(!a)throw Error("You must pass the authentication cookie into the PlugAPI object to connect correctly");_this=this;_key=a;this.multiLine=!1;this.multiLineLimit=5;this.roomId=null;this.processOwnMessages=this.enablePlugCubedSocket=!1;room.User.prototype.addToWaitlist=function(){console.error("Using deprecated addToWaitlist - change to addToWaitList");_this.moderateAddDJ(this.id)};room.User.prototype.addToWaitList=function(){_this.moderateAddDJ(this.id)};room.User.prototype.removeFromWaitlist=
 function(){console.error("Using deprecated removeFromWaitlist - change to removeFromWaitList");_this.moderateAddDJ(this.id)};room.User.prototype.removeFromWaitList=function(){_this.moderateRemoveDJ(this.id)};room.User.prototype.moveInWaitList=function(a){_this.moderateMoveDJ(this.id,a)};this.ROLE={NONE:0,RESIDENTDJ:1,BOUNCER:2,MANAGER:3,COHOST:4,HOST:5,AMBASSADOR:8,ADMIN:10};this.STATUS={AVAILABLE:0,AFK:1,WORKING:2,GAMING:3};this.BAN={HOUR:60,DAY:1440,PERMA:-1};this.messageTypes=messageTypes;this.preCommandHandler=
 function(){return!0};this.log=__bind(logger.log,logger);logger.log("Running plugAPI v."+PlugAPIInfo.version)};util.inherits(PlugAPI,EventEmitter);
-PlugAPI.prototype.getTwitterAuth = function(a, b, c) {
-    if (!a || !b)throw Error("Missing arguments");
-    var d;
-    "string" === typeof b ? a = {username: a, password: b} : (console.error("Using deprecated parameters for getTwitterAuth - please update."), c = b);
-    if (!c || "function" !== typeof c)throw Error("Missing callback");
-    try {
-        d = require("plug-dj-login")
-    } catch (e) {
-        throw Error("Error loading module plug-dj-login. Try running `npm install plug-dj-login`.");
-    }
-    d(a, function(a, b) {
-        if (a)c(a, null); else {
-            var d = b.value, d = d.replace(/^"/, "").replace(/"$/, "");
-            c(null, d)
-        }
-    })
-};
-PlugAPI.prototype.close = function() {
-    client.removeAllListeners("close");
-    client.close();
-    ws.removeAllListeners("close");
-    ws.close();
-    this.enablePlugCubedSocket && (p3Socket.removeAllListeners("close"), p3Socket.close())
-};
-PlugAPI.prototype.setCommandPrefix = function(a) {
-    if (!a || "string" !== typeof a || 1 > a.length)return!1;
-    commandPrefix = a;
-    return!0
-};
-PlugAPI.prototype.setLogObject = function(a) {
-    console.error("Using deprecated setLogObject - change to setLogger");
-    return this.setLogger(a)
-};
+PlugAPI.prototype.getTwitterAuth=function(a,b,c){if(!a||!b)throw Error("Missing arguments");var d;"string"===typeof b?a={username:a,password:b}:(console.error("Using deprecated parameters for getTwitterAuth - please update."),c=b);if(!c||"function"!==typeof c)throw Error("Missing callback");try{d=require("plug-dj-login")}catch(e){throw Error("Error loading module plug-dj-login. Try running `npm install plug-dj-login`.");}d(a,function(a,b){if(a)c(a,null);else{var d=b.value,d=d.replace(/^"/,"").replace(/"$/,
+"");c(null,d)}})};PlugAPI.prototype.close=function(){client.removeAllListeners("close");client.close();ws.removeAllListeners("close");ws.close();this.enablePlugCubedSocket&&(p3Socket.removeAllListeners("close"),p3Socket.close())};PlugAPI.prototype.setCommandPrefix=function(a){if(!a||"string"!==typeof a||1>a.length)return!1;commandPrefix=a;return!0};PlugAPI.prototype.setLogObject=function(a){console.error("Using deprecated setLogObject - change to setLogger");return this.setLogger(a)};
 PlugAPI.prototype.setLogger=function(a){return a&&"object"===typeof a&&!util.isArray(a)&&"function"===typeof a.log?(this.logger=a,!0):!1};PlugAPI.prototype.connect=function(a){if(!a||"string"!==typeof a||0===a.length||-1<a.indexOf("/"))throw Error("Invalid room name");queueConnectChat(a);queueConnectSocket(a)};
 PlugAPI.prototype.sendChat=function(a,b){if(235<a.length&&this.multiLine)for(var c=a.replace(/.{235}\S*\s+/g,"$&\u00a4").split(/\s+\u00a4/),d=0;d<c.length&&!(a=c[d],0<d&&(a="(continued) "+a),intChat(a,b),d+1>=this.multiLineLimit);d++);else intChat(a,b)};PlugAPI.prototype.sendPM=function(a,b){return intPM(a,b)};PlugAPI.prototype.woot=function(a){queueGateway(rpcNames.ROOM_CAST,[!0,historyID,lastHistoryID===historyID],a);return lastHistoryID=historyID};
 PlugAPI.prototype.meh=function(a){queueGateway(rpcNames.ROOM_CAST,[!1,historyID,lastHistoryID===historyID],a);return lastHistoryID=historyID};PlugAPI.prototype.getHistory=function(a){if("function"!==typeof a)throw Error("You must specify callback!");if(initialized){var b=room.getHistory();if(1<b.length){a(b);return}}setImmediate(function(){_this.getHistory(a)})};PlugAPI.prototype.isUsernameAvailable=function(a,b){return queueGateway(rpcNames.USER_NAME_AVAILABLE,[a],b)};
@@ -171,14 +77,7 @@ PlugAPI.prototype.changeDJCycle=function(a,b){if(!this.roomId||!this.havePermiss
 PlugAPI.prototype.getTimeRemaining=function(){return this.roomId&&null!=room.getMedia()?room.getMedia().duration-this.getTimeElapsed():-1};PlugAPI.prototype.joinBooth=function(a){if(!this.roomId||room.isDJ()||room.isInWaitList()||room.boothLocked&&!this.havePermission(void 0,this.ROLE.RESIDENTDJ)||50<=this.getDJs().length)return!1;queueGateway(rpcNames.BOOTH_JOIN,[],a);return!0};
 PlugAPI.prototype.leaveBooth=function(a){if(!this.roomId||!room.isDJ()&&!room.isInWaitList())return!1;queueGateway(rpcNames.BOOTH_LEAVE,[],a);return!0};PlugAPI.prototype.moderateAddDJ=function(a,b){if(!this.roomId||!this.havePermission(void 0,this.ROLE.BOUNCER)||room.isDJ(a)||room.isInWaitList(a)||room.boothLocked&&!this.havePermission(void 0,this.ROLE.MANAGER))return!1;queueGateway(rpcNames.MODERATE_ADD_DJ,a,b);return!0};
 PlugAPI.prototype.moderateRemoveDJ=function(a,b){if(!this.roomId||!this.havePermission(void 0,this.ROLE.BOUNCER)||!room.isDJ(a)&&!room.isInWaitList(a)||room.boothLocked&&!this.havePermission(void 0,this.ROLE.MANAGER))return!1;queueGateway(rpcNames.MODERATE_REMOVE_DJ,a,b);return!0};PlugAPI.prototype.moderateMoveDJ=function(a,b,c){if(!this.roomId||!this.havePermission(void 0,this.ROLE.MANAGER)||!room.isInWaitList(a)||isNaN(b))return!1;queueGateway(rpcNames.MODERATE_MOVE_DJ,[a,50<b?50:1>b?1:b],c);return!0};
-PlugAPI.prototype.moderateBanUser = function(a, b, c, d) {
-    if (!this.roomId || !this.havePermission(void 0, this.ROLE.BOUNCER))return!1;
-    b = String(b || 1);
-    c || (c = this.BAN.PERMA);
-    c === this.BAN.PERMA && this.havePermission(void 0, this.ROLE.BOUNCER) && !this.havePermission(void 0, this.ROLE.MANAGER) && (c = this.BAN.DAY);
-    queueGateway(rpcNames.MODERATE_BAN, [a, b, c], d);
-    return!0
-};
+PlugAPI.prototype.moderateBanUser=function(a,b,c,d){if(!this.roomId||!this.havePermission(void 0,this.ROLE.BOUNCER))return!1;b=String(b||1);c||(c=this.BAN.PERMA);c===this.BAN.PERMA&&this.havePermission(void 0,this.ROLE.BOUNCER)&&!this.havePermission(void 0,this.ROLE.MANAGER)&&(c=this.BAN.DAY);queueGateway(rpcNames.MODERATE_BAN,[a,b,c],d);return!0};
 PlugAPI.prototype.moderateUnBanUser=function(a,b){console.error("Using deprecated moderateUnBanUser - change to moderateUnbanUser");return this.moderateUnbanUser(a,b)};PlugAPI.prototype.moderateUnbanUser=function(a,b){if(!this.roomId||!this.havePermission(void 0,this.ROLE.MANAGER))return!1;queueGateway(rpcNames.MODERATE_UNBAN,[a],b);return!0};
 PlugAPI.prototype.moderateForceSkip=function(a){if(!this.roomId||!this.havePermission(void 0,this.ROLE.BOUNCER)||null===room.getDJ())return!1;queueGateway(rpcNames.MODERATE_SKIP,[room.getDJ().id,historyID],a);return!0};PlugAPI.prototype.moderateDeleteChat=function(a,b){if(!this.roomId||!this.havePermission(void 0,this.ROLE.BOUNCER))return!1;queueGateway(rpcNames.MODERATE_CHAT_DELETE,[a],b,void 0,!0);return!0};
 PlugAPI.prototype.moderateLockWaitList=function(a,b,c){return this.moderateLockBooth(a,b,c)};PlugAPI.prototype.moderateSetRole=function(a,b,c){if(!this.roomId||null===this.getUser(a)||isNaN(b))return!1;queueGateway(rpcNames.MODERATE_PERMISSIONS,[a,b],c);return!0};PlugAPI.prototype.moderateLockBooth=function(a,b,c){if(!this.roomId||null===this.getUser()||!this.havePermission(void 0,this.ROLE.MANAGER)||a===room.boothLocked&&!b)return!1;queueGateway(rpcNames.ROOM_LOCK_BOOTH,[this.roomId,a,b],c);return!0};
