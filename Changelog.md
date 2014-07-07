@@ -1,6 +1,10 @@
 plugAPI Changelog
 =================
 
+2.2.6
+-----
+* **FIXED:** Fix dependency for `sockjs-client-node` (Commit [a1650eb](https://github.com/TATDK/plugapi/commit/a1650ebdbc14e102991e93e0fe4f650e39f34d40))
+
 2.2.5
 -----
 * **FIXED:** Be sure the user exists while handling MODERATE_STAFF messages - Fixes #14 (Commit [7883859](https://github.com/TATDK/plugapi/commit/788385993247e01eb9633e65bf524edaf868eecf))
