@@ -346,6 +346,7 @@ function queueGateway(name, args, successCallback, failureCallback, skipQueue) {
         method: 'POST',
         url: 'http://plug.dj/_/gateway/' + name,
         headers: {
+            'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
             Accept: 'application/json, text/javascript, */*; q=0.01',
             Cookie: 'usr=' + _key,
             'Content-Type': 'application/json'
@@ -553,6 +554,7 @@ function connectChat(roomId) {
     var opts = {
         url: 'https://sio2.plug.dj/socket.io/1/?t=' + Date.now(),
         headers: {
+            'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
             Cookie: 'usr=' + _key
         }
     };
