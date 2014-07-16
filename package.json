@@ -1,6 +1,6 @@
 {
     "name": "plugapi",
-    "version": "2.2.6",
+    "version": "2.2.7",
     "author": "Thomas Andresen <TAT@plugCubed.net>",
     "description": "Generic API for building plug.dj bots",
     "contributors": [{

@@ -1,6 +1,10 @@
 plugAPI Changelog
 =================
 
+2.2.7
+-----
+* **FIXED:** Gateway error requesting captcha (Commit [f5e4590](https://github.com/TATDK/plugapi/commit/f5e4590dd7189dc6b9125f30034fd93eca09d51d))
+
 2.2.6
 -----
 * **FIXED:** Fix dependency for `sockjs-client-node` (Commit [a1650eb](https://github.com/TATDK/plugapi/commit/a1650ebdbc14e102991e93e0fe4f650e39f34d40))
