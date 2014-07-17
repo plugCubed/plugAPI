@@ -1,6 +1,10 @@
 plugAPI Changelog
 =================
 
+2.2.8
+-----
+* **IMPROVE:** Include all user data on `USER_LEAVE` (Commit [b198ddc](https://github.com/TATDK/plugapi/commit/b198ddc33143e68943d794f66d1ac2b5acbf62cb))
+
 2.2.7
 -----
 * **FIXED:** Gateway error requesting captcha (Commit [f5e4590](https://github.com/TATDK/plugapi/commit/f5e4590dd7189dc6b9125f30034fd93eca09d51d))
