@@ -790,9 +790,14 @@ function messageHandler(msg) {
             lastRpcMessage = Date.now();
             break;
         case messageTypes.USER_LEAVE:
+            var userData = room.getUser(msg.data.id);
+            if (userData == null) {
+                userData = { id: msg.data.id };
+            }
             room.remUser(msg.data.id);
             lastRpcMessage = Date.now();
-            break;
+            _this.emit(msg.type, userData);
+            return;
         case messageTypes.VOTE_UPDATE:
             room.logVote(msg.data.id, msg.data.vote === 1 ? 'woot' : 'meh');
             lastRpcMessage = Date.now();
@@ -813,7 +818,6 @@ function messageHandler(msg) {
                 mediaStartTime: msg.data.mediaStartTime,
                 earn: msg.data.earn
             };
-            var lastPlay = room.getMedia();
             room.setDjs(msg.data.djs);
             room.djAdvance(msg.data);
             historyID = msg.data.historyID;
