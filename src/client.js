@@ -1245,6 +1245,13 @@ PlugAPI.prototype.getRoomScore = function() {
     return room.getRoomScore();
 };
 
+PlugAPI.prototype.setStatus = function(status, callback) {
+    if (!this.roomId || !status || status < 0 || status > 3)
+        return false;
+    queueGateway(rpcNames.USER_SET_STATUS, status, callback);
+    return true;
+};
+
 PlugAPI.prototype.createPlaylist = function(name, callback) {
     if (!this.roomId || !name)
         return false;
