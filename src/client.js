@@ -525,6 +525,11 @@ function receivedChatMessage(m) {
             lastIndex = obj.args.indexOf('@', lastIndex + 1);
         }
         obj.args = obj.args.split(' ');
+        for (i in obj.args) {
+            if (!obj.args.hasOwnProperty(i)) continue;
+            if (!isNaN(~~obj.args[i]))
+                obj.args[i] = ~~obj.args[i];
+        }
         for (i in obj.mentions) {
             if (obj.mentions.hasOwnProperty(i)) {
                 obj.args[obj.args.indexOf('%MENTION-' + random + '-' + i + '%')] = obj.mentions[i];
