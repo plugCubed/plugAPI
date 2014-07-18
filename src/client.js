@@ -447,17 +447,23 @@ function send(data) {
 }
 
 function receivedChatMessage(m) {
+    var i, isPM, cmd, obj, lastIndex, allUsers, random;
     if (!initialized) return;
+
     m.message = encoder.htmlDecode(m.message);
 
     if ((m.type == 'message' || m.type == 'pm') && m.message.indexOf(commandPrefix) === 0 && (_this.processOwnMessages || m.from.id != room.self.id)) {
-        if (typeof _this.preCommandHandler === 'function' && _this.preCommandHandler(m) === false) return;
-        var i, isPM = m.type == 'pm', cmd = m.message.substr(1).split(' ')[0], obj = {
+        if (typeof _this.preCommandHandler === 'function' && _this.preCommandHandler(m) === false) {
+            return;
+        }
+        isPM = m.type == 'pm';
+        cmd = m.message.substr(commandPrefix.length).split(' ')[0];
+        obj = {
             message: m,
             chatID: m.chatID,
             from: room.getUser(m.fromID),
             command: cmd,
-            args: m.message.substr(2 + cmd.length),
+            args: m.message.substr(commandPrefix.length + cmd.length + 1),
             mentions: [],
             respond: function() {
                 var message = Array.prototype.slice.call(arguments).join(' ');
@@ -499,7 +505,10 @@ function receivedChatMessage(m) {
                 }
                 return isFrom;
             }
-        }, lastIndex = obj.args.indexOf('@'), allUsers = room.getUsers(), random = Math.ceil(Math.random() * 1E10);
+        };
+        lastIndex = obj.args.indexOf('@');
+        allUsers = room.getUsers();
+        random = Math.ceil(Math.random() * 1E10);
         while (lastIndex > -1) {
             var test = obj.args.substr(lastIndex), found = null;
             for (i in allUsers) {
