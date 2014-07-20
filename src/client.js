@@ -188,7 +188,7 @@ function intChat(msg, timeout) {
             }
         ]
     }));
-    if (timeout !== undefined && !isNaN(~~timeout) && ~~timeout > 0) {
+    if (timeout !== undefined && !isNaN(timeout) && ~~timeout > 0) {
         setTimeout(function() {
             _this.moderateDeleteChat(cID);
         }, ~~timeout * 1E3);
@@ -527,7 +527,7 @@ function receivedChatMessage(m) {
         obj.args = obj.args.split(' ');
         for (i in obj.args) {
             if (!obj.args.hasOwnProperty(i)) continue;
-            if (!isNaN(~~obj.args[i]))
+            if (!isNaN(obj.args[i]))
                 obj.args[i] = ~~obj.args[i];
         }
         for (i in obj.mentions) {
