@@ -1,6 +1,10 @@
 plugAPI Changelog
 =================
 
+2.3.1
+-----
+* **FIXED:** Fix detecting numbers (Commit [0319ad7](https://github.com/TATDK/plugapi/commit/0319ad7f173a2bae92212744053109801203ce1c))
+
 2.3.0
 -----
 * **ADDED:** Set status via `setStatus` (Commit [7bd4390](https://github.com/TATDK/plugapi/commit/7bd4390d15d8946e66ce2680b88336a32ab10dfc))
