@@ -1,6 +1,10 @@
 plugAPI Changelog
 =================
 
+2.3.2
+-----
+* **FIXED:** Temporary fix for plug.dj v0.9.833 (Commit [69e2f51](https://github.com/TATDK/plugapi/commit/69e2f51310dabbeda9dc6017eb522d05089ce5de))
+
 2.3.1
 -----
 * **FIXED:** Fix detecting numbers (Commit [0319ad7](https://github.com/TATDK/plugapi/commit/0319ad7f173a2bae92212744053109801203ce1c))
