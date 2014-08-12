@@ -11,7 +11,7 @@ zlib = require('zlib');
 SockJS = require('sockjs-client-node');
 request = require('request');
 WebSocket = require('ws');
-encoder = new require('node-html-encoder').Encoder('entity');
+encoder = require('node-html-encoder').Encoder('entity');
 
 // plugAPI
 Room = require('./room');
@@ -180,7 +180,7 @@ function intPM(receiver, msg) {
 function intChat(msg, timeout) {
     var cID = room.self.id.substr(0, 6) + Math.floor(Math.random() * 4294967295).toString(16);
     ws.send('5::/room:' + JSON.stringify({
-        name: 'chat',
+        name: 'diaf',
         args: [
             {
                 msg: msg,
@@ -587,7 +587,7 @@ function connectChat(roomId) {
             logger.log('[Chat Server] Connected');
             this.send('1::/room');
             var roomOpts = {
-                name: 'join',
+                name: 'rkl',
                 args: [roomId]
             };
             this.send('5::/room:' + JSON.stringify(roomOpts));
