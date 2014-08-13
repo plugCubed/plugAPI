@@ -1,10 +1,14 @@
 plugAPI Changelog
 =================
 
+2.4.1
+-----
+* **FIX:** Compatibility with pre-2.4.0 command eventlisteners using chatID (Commit [bf8acd8](https://github.com/TATDK/plugapi/commit/bf8acd87927f05caeed737b8162621a13740a0e1))
+
 2.4.0
 -----
 * **ADDED:** Added deleteCommands (Commit [bf8acd8](https://github.com/TATDK/plugapi/commit/bf8acd87927f05caeed737b8162621a13740a0e1))
-* **IMPROVEMENTS:** Improvements for plug.dj v0.9.833 (Commit [5fa24ad](https://github.com/TATDK/plugapi/commit/5fa24adfafca678dbb60f86b1a072c38e3c63714))
+* **IMPROVE:** Improvements for plug.dj v0.9.833 (Commit [5fa24ad](https://github.com/TATDK/plugapi/commit/5fa24adfafca678dbb60f86b1a072c38e3c63714))
 
 2.3.2
 -----
