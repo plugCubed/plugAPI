@@ -537,7 +537,9 @@ function receivedChatMessage(m) {
         }
         _this.emit(messageTypes.CHAT_COMMAND, obj);
         _this.emit(messageTypes.CHAT_COMMAND + ':' + cmd, obj);
-        _this.moderateDeleteChat(m.cid);
+        if (_this.deleteCommands) {
+            _this.moderateDeleteChat(m.cid);
+        }
     } else if (m.type == 'emote') {
         _this.emit(messageTypes.CHAT_EMOTE, m);
     }
@@ -865,6 +867,7 @@ var PlugAPI = function(key) {
     this.roomId = null;
     this.enablePlugCubedSocket = false;
     this.processOwnMessages = false;
+    this.deleteCommands = true;
 
     room.User.prototype.addToWaitlist = function() {
         console.error('Using deprecated addToWaitlist - change to addToWaitList');
