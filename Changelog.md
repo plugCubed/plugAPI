@@ -3,7 +3,7 @@ plugAPI Changelog
 
 2.4.1
 -----
-* **FIX:** Compatibility with pre-2.4.0 command eventlisteners using chatID (Commit [bf8acd8](https://github.com/TATDK/plugapi/commit/bf8acd87927f05caeed737b8162621a13740a0e1))
+* **FIX:** Compatibility with pre-2.4.0 command eventlisteners using chatID (Commit [b9afcba](https://github.com/TATDK/plugapi/commit/b9afcba861d7eb85e05df3e47506db2de4f950e2))
 
 2.4.0
 -----
