@@ -460,6 +460,7 @@ function receivedChatMessage(m) {
         cmd = m.message.substr(commandPrefix.length).split(' ')[0];
         obj = {
             message: m,
+            chatID: m.cid,
             cid: m.cid,
             from: room.getUser(m.fid),
             command: cmd,
