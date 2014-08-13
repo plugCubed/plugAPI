@@ -1,6 +1,11 @@
 plugAPI Changelog
 =================
 
+2.4.0
+-----
+* **ADDED:** Added deleteCommands (Commit [bf8acd8](https://github.com/TATDK/plugapi/commit/bf8acd87927f05caeed737b8162621a13740a0e1))
+* **IMPROVEMENTS:** Improvements for plug.dj v0.9.833 (Commit [5fa24ad](https://github.com/TATDK/plugapi/commit/5fa24adfafca678dbb60f86b1a072c38e3c63714))
+
 2.3.2
 -----
 * **FIXED:** Temporary fix for plug.dj v0.9.833 (Commit [69e2f51](https://github.com/TATDK/plugapi/commit/69e2f51310dabbeda9dc6017eb522d05089ce5de))
