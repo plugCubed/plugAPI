@@ -184,7 +184,7 @@ function intChat(msg, timeout) {
         args: [
             {
                 msg: msg,
-                chatID: cID
+                cid: cID
             }
         ]
     }));
@@ -460,8 +460,8 @@ function receivedChatMessage(m) {
         cmd = m.message.substr(commandPrefix.length).split(' ')[0];
         obj = {
             message: m,
-            chatID: m.chatID,
-            from: room.getUser(m.fromID),
+            cid: m.cid,
+            from: room.getUser(m.fid),
             command: cmd,
             args: m.message.substr(commandPrefix.length + cmd.length + 1),
             mentions: [],
@@ -481,7 +481,7 @@ function receivedChatMessage(m) {
             },
             havePermission: function(permission, success, failure) {
                 if (permission === undefined) permission = 0;
-                var havePermission = room.getUser(m.fromID) !== undefined && room.getUser(m.fromID).permission >= permission;
+                var havePermission = room.getUser(m.fid) !== undefined && room.getUser(m.fid).permission >= permission;
                 if (havePermission && typeof success === 'function') {
                     success();
                 } else if (!havePermission && typeof failure === 'function') {
@@ -497,7 +497,7 @@ function receivedChatMessage(m) {
                     }
                     return false;
                 }
-                var isFrom = ids.indexOf(m.fromID) > -1;
+                var isFrom = ids.indexOf(m.fid) > -1;
                 if (isFrom && typeof success === 'function') {
                     success();
                 } else if (!isFrom && typeof failure === 'function') {
@@ -537,7 +537,7 @@ function receivedChatMessage(m) {
         }
         _this.emit(messageTypes.CHAT_COMMAND, obj);
         _this.emit(messageTypes.CHAT_COMMAND + ':' + cmd, obj);
-        _this.moderateDeleteChat(m.chatID);
+        _this.moderateDeleteChat(m.cid);
     } else if (m.type == 'emote') {
         _this.emit(messageTypes.CHAT_EMOTE, m);
     }
@@ -690,7 +690,7 @@ function connectPlugCubedSocket() {
             return;
         }
         if (type === 'pm') {
-            if (!data.chatID) return;
+            if (!data.cid) return;
             receivedChatMessage(data);
         }
     });
@@ -1164,10 +1164,10 @@ PlugAPI.prototype.moderateForceSkip = function(callback) {
     return true;
 };
 
-PlugAPI.prototype.moderateDeleteChat = function(chatID, callback) {
+PlugAPI.prototype.moderateDeleteChat = function(cid, callback) {
     if (!this.roomId || !this.havePermission(undefined, this.ROLE.BOUNCER))
         return false;
-    queueGateway(rpcNames.MODERATE_CHAT_DELETE, [chatID], callback, undefined, true);
+    queueGateway(rpcNames.MODERATE_CHAT_DELETE, [cid], callback, undefined, true);
     return true;
 };
 
