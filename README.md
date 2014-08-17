@@ -1,6 +1,8 @@
 plugapi
 =======
 
+[![NPM](https://nodei.co/npm/plugapi.png?downloads=true)](https://nodei.co/npm/plugapi/)
+
 A generic API for creating plug.dj bots.
 
 Originally by [Chris Vickery](https://github.com/chrisinajar), now maintained by [TAT](https://github.com/TATDK).
@@ -12,7 +14,7 @@ Run the following:
 
 To connect, do this!
 
-```
+```javascript
 var PlugAPI = require('plugapi'),
     AUTH = 'xxxxxxxxxxxxxxxxxxxxxxxxxxx=?_expires=xxxxxxxxxxxxxxxxxx==&user_id=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx=', // Put your auth token here, it's the cookie value for usr
     ROOM = '';
@@ -25,7 +27,7 @@ bot.on('roomJoin', function(room) {
 });
 ```
 
-##Examples
+## Examples
 Here are some bots using this API.
 
 * FoxBot in Approaching Nirvana
@@ -34,7 +36,7 @@ Have a bot that uses the API? Let me know!
 
 ## EventListener
 You can listen on essentially any event that plug emits.
-```
+```javascript
 // basic chat handler to show incoming chats formatted nicely
 bot.on('chat', function(data) {
     if (data.type == 'emote')
@@ -45,7 +47,7 @@ bot.on('chat', function(data) {
 ```
 
 Here's an example for automatic reconnecting on errors / close events!
-```
+```javascript
 var reconnect = function() { bot.connect(ROOM); };
 
 bot.on('close', reconnect);
@@ -73,7 +75,7 @@ Read about the actions on the [wiki](https://github.com/TATDK/plugapi/wiki/actio
 #### Multi line chat
 Since Plug.dj cuts off chat messages at 250 characters, you can choose to have your bot split up chat messages into multiple lines:
 
-```
+```javascript
 var bot = new PlugAPI(auth);
 bot.multiLine = true; // Set to true to enable multi line chat. Default is false
 bot.multiLineLimit = 5; // Set to the maximum number of lines the bot should split messages up into. Any text beyond this number will just be omitted. Default is 5.
@@ -83,7 +85,7 @@ bot.multiLineLimit = 5; // Set to the maximum number of lines the bot should spl
 You can start up a TCP server the bot will listen to, for remote administration
 
 Example:
-```
+```javascript
     bot.tcpListen(6666, 'localhost');
     bot.on('tcpConnect', function(socket) {
         // executed when someone telnets into localhost port 6666
