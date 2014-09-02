@@ -30,7 +30,10 @@ bot.on('roomJoin', function(room) {
 ## Examples
 Here are some bots using this API.
 
-* FoxBot in Approaching Nirvana
+| Botname                                              | Room                                                            |
+| ---------------------------------------------------- | --------------------------------------------------------------- |
+| FoxBot                                               | [Approaching Nirvana](https://plug.dj/approachingnirvana)       |
+| [BeavisBot](https://github.com/AvatarKava/BeavisBot) | [I <3 the 80's and 90's](https://plug.dj/i-the-80-s-and-90-s-1) |
 
 Have a bot that uses the API? Let me know!
 
