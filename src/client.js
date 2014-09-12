@@ -1,75 +1,38 @@
-var SockJS, net, http, EventEmitter, Room, PlugAPIInfo, request, WebSocket, encoder, util, zlib, rpcNames, messageTypes, client, ws, p3Socket, initialized, commandPrefix, apiId, _this, _key, _updateCode, lastRpcMessage, historyID, lastHistoryID, serverRequests, room, rpcHandlers, logger;
-
 // Node.JS Core Modules
+var net, http, util, zlib;
 net = require('net');
 http = require('http');
-EventEmitter = require('events').EventEmitter;
 util = require('util');
 zlib = require('zlib');
 
 // Third-party modules
+var EventEmitter, SockJS, request, WebSocket, encoder;
+EventEmitter = require('eventemitter2').EventEmitter2;
 SockJS = require('sockjs-client-node');
 request = require('request');
 WebSocket = require('ws');
+WebSocket.prototype._send = WebSocket.prototype.send;
+WebSocket.prototype.send = function(data, options, cb) {
+    data = '"' + (typeof data === 'string' ? data : JSON.stringify(data)).split('"').join('\\"') + '"';
+    this._send(data, options, cb);
+};
+WebSocket.prototype.sendEvent = function(type, data) {
+    this.send({
+        a: type,
+        p: data,
+        t: DateUtilities.getServerEpoch()
+    });
+};
 encoder = require('node-html-encoder').Encoder('entity');
+require('../colors.js');
 
 // plugAPI
+var Room, PlugAPIInfo;
 Room = require('./room');
 PlugAPIInfo = require('../package.json');
 
-rpcNames = {
-    BOOTH_JOIN: 'booth.join_1',
-    BOOTH_LEAVE: 'booth.leave_1',
-    BOOTH_SKIP: 'booth.skip_1',
-    DURATION_MISMATCH: 'duration.mismatch',
-    DURATION_UPDATE: 'duration.update',
-    HISTORY_SELECT: 'history.select_1',
-    MEDIA_RECOVER: 'media.recover_1',
-    MEDIA_SELECT: 'media.select_1',
-    MEDIA_UPDATE: 'media.update_1',
-    MODERATE_ADD_DJ: 'moderate.add_dj_1',
-    MODERATE_BAN: 'moderate.ban_1',
-    MODERATE_BANS: 'moderate.bans_1',
-    MODERATE_CHAT_DELETE: 'moderate.chat_delete_1',
-    MODERATE_MOVE_DJ: 'moderate.move_dj_1',
-    MODERATE_PERMISSIONS: 'moderate.permissions_1',
-    MODERATE_REMOVE_DJ: 'moderate.remove_dj_1',
-    MODERATE_SKIP: 'moderate.skip_1',
-    MODERATE_UNBAN: 'moderate.unban_1',
-    MODERATE_UPDATE_DESCRIPTION: 'moderate.update_description_1',
-    MODERATE_UPDATE_NAME: 'moderate.update_name_1',
-    MODERATE_UPDATE_WELCOME: 'moderate.update_welcome_1',
-    PLAYLIST_ACTIVATE: 'playlist.activate_1',
-    PLAYLIST_CREATE: 'playlist.create_1',
-    PLAYLIST_DELETE: 'playlist.delete_1',
-    PLAYLIST_MEDIA_DELETE: 'playlist.media.delete_1',
-    PLAYLIST_MEDIA_INSERT: 'playlist.media.insert_1',
-    PLAYLIST_MEDIA_MOVE: 'playlist.media.move_1',
-    PLAYLIST_MEDIA_SHUFFLE: 'playlist.media.shuffle_1',
-    PLAYLIST_RENAME: 'playlist.rename_1',
-    PLAYLIST_SELECT: 'playlist.select_1',
-    REPORT_DISCONNECT: 'report.disconnect_1',
-    REPORT_RECONNECT: 'report.reconnect_1',
-    ROOM_CAST: 'room.cast_1',
-    ROOM_CREATE: 'room.create_1',
-    ROOM_CURATE: 'room.curate_1',
-    ROOM_CYCLE_BOOTH: 'room.cycle_booth_1',
-    ROOM_DETAILS: 'room.details_1',
-    ROOM_JOIN: 'room.join_1',
-    ROOM_LOCK_BOOTH: 'room.lock_booth_1',
-    ROOM_SEARCH: 'room.search_1',
-    ROOM_STAFF: 'room.staff_1',
-    ROOM_STATE: 'room.state_1',
-    USER_CHANGE_NAME: 'user.change_name_1',
-    USER_GET_BY_IDS: 'user.get_by_ids_1',
-    USER_IGNORING: 'user.ignoring_1',
-    USER_NAME_AVAILABLE: 'user.name_available_1',
-    USER_PONG: 'user.pong_1',
-    USER_SET_AVATAR: 'user.set_avatar_1',
-    USER_SET_LANGUAGE: 'user.set_language_1',
-    USER_SET_STATUS: 'user.set_status_1'
-};
-messageTypes = {
+var eventTypes = {
+    ADVANCE: 'advance',
     BAN: 'ban',
     BOOTH_CYCLE: 'boothCycle',
     BOOTH_LOCKED: 'boothLocked',
@@ -78,11 +41,10 @@ messageTypes = {
     CHAT_DELETE: 'chatDelete',
     CHAT_EMOTE: 'emote',
     COMMAND: 'command',
-    CURATE_UPDATE: 'curateUpdate',
-    DJ_ADVANCE: 'djAdvance',
-    DJ_UPDATE: 'djUpdate',
+    DJ_LIST_UPDATE: 'djListUpdate',
     EMOTE: 'emote',
     FOLLOW_JOIN: 'followJoin',
+    GRAB: 'grab',
     MODERATE_ADD_DJ: 'modAddDJ',
     MODERATE_ADD_WAITLIST: 'modAddWaitList',
     MODERATE_AMBASSADOR: 'modAmbassador',
@@ -112,20 +74,30 @@ messageTypes = {
     USER_JOIN: 'userJoin',
     USER_LEAVE: 'userLeave',
     USER_UPDATE: 'userUpdate',
-    VOTE_UPDATE: 'voteUpdate',
-    VOTE_UPDATE_MULTI: 'voteUpdateMulti'
+    VOTE: 'vote'
 };
-client = null;
+
+var ws, p3Socket, initialized, commandPrefix, apiId, that, _authCode, _cookies, chatHistory, historyID, serverRequests, room, rpcHandlers, logger;
 ws = null;
 p3Socket = null;
 initialized = false;
 commandPrefix = '!';
 apiId = 0;
-_this = null;
-_key = null;
-_updateCode = null;
-lastRpcMessage = Date.now();
-lastHistoryID = '';
+chatHistory = [];
+that = null;
+_authCode = '';
+_cookies = {
+    session: '',
+    rememberToken: '',
+    toString: function() {
+        var cookies = [];
+        if (this.session.length > 0)
+            cookies.push('session=' + this.session);
+        if (this.rememberToken.length > 0)
+            cookies.push('remember_token=' + this.rememberToken);
+        return cookies.join('; ');
+    }
+};
 serverRequests = {
     queue: [],
     sent: 0,
@@ -141,8 +113,7 @@ logger = {
     months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
     timestamp: function() {
         var d = new Date();
-        var time = [this.pad(d.getHours()), this.pad(d.getMinutes()), this.pad(d.getSeconds())
-        ].join(':');
+        var time = [this.pad(d.getHours()), this.pad(d.getMinutes()), this.pad(d.getSeconds())].join(':');
         return [d.getDate(), this.months[d.getMonth()], time].join(' ');
     },
     log: function() {
@@ -157,7 +128,7 @@ http.OutgoingMessage.prototype._renderHeaders = function() {
     if (this._header) {
         throw new Error('Can\'t render headers after they are sent to the client.');
     }
-    this.setHeader('Cookie', 'usr=\"' + _key + '\"');
+    this.setHeader('Cookie', _cookies.toString());
     return this.__renderHeaders();
 };
 
@@ -178,20 +149,17 @@ function intPM(receiver, msg) {
 }
 
 function intChat(msg, timeout) {
-    var cID = room.self.id.substr(0, 6) + Math.floor(Math.random() * 4294967295).toString(16);
-    ws.send('5::/room:' + JSON.stringify({
-        name: 'diaf',
-        args: [
-            {
-                msg: msg,
-                cid: cID
-            }
-        ]
-    }));
+    ws.sendEvent('chat', msg);
     if (timeout !== undefined && !isNaN(timeout) && ~~timeout > 0) {
-        setTimeout(function() {
-            _this.moderateDeleteChat(cID);
-        }, ~~timeout * 1E3);
+        var specificChatDeleter = function(data) {
+            if (data.uid == room.getSelf().id && data.message.trim() == msg.trim()) {
+                setTimeout(function() {
+                    that.moderateDeleteChat(data.cid);
+                }, ~~timeout * 1E3);
+                that.off('chat', specificChatDeleter);
+            }
+        };
+        that.on('chat', specificChatDeleter);
     }
 }
 
@@ -255,6 +223,9 @@ var DateUtilities = {
     ServerDate: function() {
         return new Date((new Date).getTime() + this.OFFSET);
     },
+    getServerEpoch: function() {
+        return Date.now() + this.OFFSET;
+    },
     getSecondsElapsed: function(e) {
         return !e || e == '0' ? 0 : this.secondsSince(new Date(e.substr(0, e.indexOf('.'))));
     },
@@ -268,15 +239,11 @@ function queueTicker() {
     var canSend = serverRequests.sent < serverRequests.limit, obj = serverRequests.queue.pop();
     if (canSend && obj) {
         serverRequests.sent++;
-        if (obj.type == 'rpc') {
-            sendRPC(obj);
-        } else if (obj.type == 'gateway') {
-            sendGateway(obj.opts, obj.callbacks.success, obj.callbacks.failure);
+        if (obj.type == 'rest') {
+            sendREST(obj.opts, obj.callbacks.success, obj.callbacks.failure);
         } else if (obj.type == 'connect') {
             if (obj.server == 'socket') {
                 connectSocket(obj.room);
-            } else if (obj.server == 'chat') {
-                connectChat(obj.room);
             }
         }
 
@@ -291,74 +258,41 @@ function queueTicker() {
     }
 }
 
-function queueRPC(name, args, callback, skipQueue) {
-    args = args === undefined ? [] : args;
-    if (!util.isArray(args)) {
-        args = [args];
-    }
-    var rpcId = ++apiId, sendArgs = {
-        type: 'rpc',
-        id: rpcId,
-        name: name,
-        args: args
-    };
-    rpcHandlers[rpcId] = {
-        callback: callback,
-        type: name,
-        args: args
-    };
-    if (skipQueue && skipQueue === true) {
-        sendRPC(sendArgs);
-    } else {
-        serverRequests.queue.push(sendArgs);
-        if (!serverRequests.running) {
-            queueTicker();
-        }
-    }
-}
-
-function sendRPC(args) {
-    client.send(args);
-}
-
-function queueGateway(name, args, successCallback, failureCallback, skipQueue) {
-    args = args === undefined ? [] : args;
-
-    if (!util.isArray(args)) {
-        args = [args];
+function queueREST(method, endpoint, data, successCallback, failureCallback, skipQueue) {
+    if (['POST', 'PUT', 'GET', 'DELETE'].indexOf(method) < 0) {
+        console.error(method, 'needs update'.red);
+        return;
     }
 
-    successCallback = typeof successCallback === 'function' ? __bind(successCallback, _this) : function() {
+    var bodyString = '', opts;
+
+    if (data !== undefined)
+        bodyString = JSON.stringify(data);
+
+    successCallback = typeof successCallback === 'function' ? __bind(successCallback, that) : function() {
     };
-    failureCallback = typeof failureCallback === 'function' ? __bind(failureCallback, _this) : function() {
+    failureCallback = typeof failureCallback === 'function' ? __bind(failureCallback, that) : function() {
         // Retry
-        queueGateway(name, args, successCallback);
+        queueREST(method, endpoint, data, successCallback, failureCallback, skipQueue);
     };
-
-    var bodyString, opts;
-
-    bodyString = JSON.stringify({
-        service: name,
-        body: args
-    });
 
     opts = {
-        method: 'POST',
-        url: 'http://plug.dj/_/gateway/' + name,
+        method: method,
+        url: 'https://plug.dj/_/' + endpoint,
         headers: {
             'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
             Accept: 'application/json, text/javascript, */*; q=0.01',
-            Cookie: 'usr=' + _key,
+            Cookie: _cookies.toString(),
             'Content-Type': 'application/json'
         },
         body: bodyString
     };
 
     if (skipQueue && skipQueue === true) {
-        sendGateway(opts, successCallback, failureCallback);
+        sendREST(opts, successCallback, failureCallback);
     } else {
         serverRequests.queue.push({
-            type: 'gateway',
+            type: 'rest',
             opts: opts,
             callbacks: {
                 success: successCallback,
@@ -371,75 +305,45 @@ function queueGateway(name, args, successCallback, failureCallback, skipQueue) {
     }
 }
 
-function sendGateway(opts, successCallback, failureCallback) {
+function sendREST(opts, successCallback, failureCallback) {
     request(opts, function(err, res, body) {
         if (err) {
             if (typeof failureCallback === 'function') {
                 failureCallback(err);
             }
-            logger.log('[Gateway Error]', err);
+            logger.log('[REST Error]'.red, err);
             return;
         }
         try {
             body = JSON.parse(body);
-            if (body.status === 0) {
-                successCallback(body.body);
+            if (body.status === 'ok') {
+                successCallback(body.data);
             } else {
-                failureCallback(body.body);
+                failureCallback(body.status, body.data);
             }
         } catch (e) {
             failureCallback(e);
-            logger.log('[Gateway Error]', e);
+            logger.log('[REST Error]'.red, e);
         }
     });
 }
 
-function getUpdateCode(callback) {
-    request({
-        url: 'https://d1rfegul30378.cloudfront.net/updatecode.txt',
-        headers: {
-            'Accept-Encoding': 'gzip'
-        },
-        encoding: null
-    }, function(err, res, body) {
-        zlib.unzip(body, function(err, data) {
-            _updateCode = data.toString();
-            if (typeof callback === 'function') {
-                callback();
-            }
-        });
-    });
-}
-
-function joinRoom(name, callback) {
-    var execute = function() {
-        queueRPC(rpcNames.ROOM_JOIN, [name, _updateCode], function(data) {
-            if (data.status) {
-                if (data.status === 999) {
-                    logger.log('Error while joining:', data.result ? data.result : 'Unknown error');
-                    setTimeout(function() {
-                        joinRoom(name, callback);
-                    }, 1e3);
-                    return;
-                } else {
-                    throw new Error('Wrong updateCode');
+function joinRoom(roomSlug, callback) {
+    queueREST('POST', 'rooms/join', {slug: roomSlug}, function() {
+        queueREST('GET', 'rooms/state', undefined, function(data) {
+            require('fs').writeFileSync('roomState.json', JSON.stringify(data[0], null, 4));
+            initRoom(data[0], function() {
+                if (typeof callback !== 'undefined') {
+                    callback(data);
                 }
-            }
-            DateUtilities.setServerTime(data.serverTime);
-            queueGateway(rpcNames.ROOM_DETAILS, [name], function(data) {
-                initRoom(data, function() {
-                    if (typeof callback !== 'undefined') {
-                        callback(data);
-                    }
-                });
             });
         });
-    };
-    if (_updateCode === null) {
-        getUpdateCode(execute);
-    } else {
-        execute();
-    }
+    }, function(status) {
+        logger.log('Error while joining:'.red, status ? status : 'Unknown error');
+        setTimeout(function() {
+            joinRoom(roomSlug, callback);
+        }, 1e3);
+    });
 }
 
 function send(data) {
@@ -452,17 +356,15 @@ function receivedChatMessage(m) {
 
     m.message = encoder.htmlDecode(m.message);
 
-    if ((m.type == 'message' || m.type == 'pm') && m.message.indexOf(commandPrefix) === 0 && (_this.processOwnMessages || m.from.id != room.self.id)) {
-        if (typeof _this.preCommandHandler === 'function' && _this.preCommandHandler(m) === false) {
-            return;
-        }
+    if ((m.type == 'message' || m.type == 'pm') && m.message.indexOf(commandPrefix) === 0 && (that.processOwnMessages || m.uid != room.getSelf().id)) {
+        if (typeof that.preCommandHandler === 'function' && that.preCommandHandler(m) === false) return;
+
         isPM = m.type == 'pm';
         cmd = m.message.substr(commandPrefix.length).split(' ')[0];
         obj = {
-            message: m,
-            chatID: m.cid,
+            raw: m,
             cid: m.cid,
-            from: room.getUser(m.fid),
+            from: room.getUser(m.uid),
             command: cmd,
             args: m.message.substr(commandPrefix.length + cmd.length + 1),
             mentions: [],
@@ -471,18 +373,18 @@ function receivedChatMessage(m) {
                 if (isPM) {
                     return intPM(this.from, message);
                 }
-                return _this.sendChat('@' + m.from + ' ' + message);
+                return that.sendChat('@' + m.un + ' ' + message);
             },
             respondTimeout: function() {
                 var args = Array.prototype.slice.call(arguments), timeout = args.splice(args.length - 1, 1), message = args.join(' ');
                 if (isPM) {
                     return intPM(this.from, message);
                 }
-                return _this.sendChat('@' + m.from + ' ' + message, timeout);
+                return that.sendChat('@' + m.un + ' ' + message, timeout);
             },
             havePermission: function(permission, success, failure) {
                 if (permission === undefined) permission = 0;
-                var havePermission = room.getUser(m.fid) !== undefined && room.getUser(m.fid).permission >= permission;
+                var havePermission = room.getUser(m.uid) !== undefined && room.getUser(m.uid).permission >= permission;
                 if (havePermission && typeof success === 'function') {
                     success();
                 } else if (!havePermission && typeof failure === 'function') {
@@ -498,7 +400,7 @@ function receivedChatMessage(m) {
                     }
                     return false;
                 }
-                var isFrom = ids.indexOf(m.fid) > -1;
+                var isFrom = ids.indexOf(m.uid) > -1;
                 if (isFrom && typeof success === 'function') {
                     success();
                 } else if (!isFrom && typeof failure === 'function') {
@@ -536,356 +438,266 @@ function receivedChatMessage(m) {
                 obj.args[obj.args.indexOf('%MENTION-' + random + '-' + i + '%')] = obj.mentions[i];
             }
         }
-        _this.emit(messageTypes.CHAT_COMMAND, obj);
-        _this.emit(messageTypes.CHAT_COMMAND + ':' + cmd, obj);
-        if (_this.deleteCommands) {
-            _this.moderateDeleteChat(m.cid);
+        that.emit(eventTypes.CHAT_COMMAND, obj);
+        that.emit(eventTypes.CHAT_COMMAND + ':' + cmd, obj);
+        if (that.deleteCommands) {
+            that.moderateDeleteChat(m.cid);
         }
     } else if (m.type == 'emote') {
-        _this.emit(messageTypes.CHAT_EMOTE, m);
+        that.emit(eventTypes.CHAT_EMOTE, m);
     }
     if (m.type == 'pm') {
-        _this.emit('pm', m);
+        that.emit('pm', m);
     } else {
-        _this.emit(messageTypes.CHAT, m);
-        _this.emit(messageTypes.CHAT + ':' + m.type, m);
+        that.emit(eventTypes.CHAT, m);
+        that.emit(eventTypes.CHAT + ':' + m.type, m);
         if (room.getUser() !== null && m.message.indexOf('@' + room.getUser().username) > -1) {
-            _this.emit(messageTypes.CHAT + ':mention', m);
-            _this.emit('mention', m);
+            that.emit(eventTypes.CHAT + ':mention', m);
+            that.emit('mention', m);
         }
     }
 }
 
-function queueConnectChat(roomId) {
-    serverRequests.queue.push({
-        type: 'connect',
-        server: 'chat',
-        room: roomId
-    });
-    if (!serverRequests.running) {
-        queueTicker();
-    }
-}
-
-function connectChat(roomId) {
-    var opts = {
-        url: 'https://sio2.plug.dj/socket.io/1/?t=' + Date.now(),
-        headers: {
-            'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
-            Cookie: 'usr=' + _key
-        }
-    };
-    request(opts, function(err, res, body) {
-        if (err) {
-            logger.log('[Chat Server] Error while connecting:', err);
-            process.nextTick(function() {
-                logger.log('[Chat Server] Reconnecting');
-                queueConnectChat(roomId);
-            });
-            return;
-        }
-        var sockId = body.split(':')[0], sockUrl = 'wss://sio2.plug.dj/socket.io/1/websocket/' + sockId;
-        ws = new WebSocket(sockUrl);
-        ws.on('open', function() {
-            logger.log('[Chat Server] Connected');
-            this.send('1::/room');
-            var roomOpts = {
-                name: 'rkl',
-                args: [roomId]
-            };
-            this.send('5::/room:' + JSON.stringify(roomOpts));
-        });
-        ws.on('message', function(data) {
-            // Heartbeat
-            if (data == '2::') this.send('2::');
-            // Messages (including chat)
-            if (data.match(/^5::\/room:/)) {
-                var mStr = data.split('5::/room:')[1];
-                var m = JSON.parse(mStr).args[0];
-
-                receivedChatMessage(m);
-            }
-        });
-        ws.on('error', function(a) {
-            logger.log('[Chat Server] Error:', a);
-            process.nextTick(function() {
-                logger.log('[Chat Server] Reconnecting');
-                queueConnectChat(_this.roomId ? _this.roomId : roomId);
-            });
-        });
-        ws.on('close', function(a) {
-            logger.log('[Chat Server] Closed with code', a);
-            process.nextTick(function() {
-                logger.log('[Chat Server] Reconnecting');
-                queueConnectChat(_this.roomId ? _this.roomId : roomId);
-            });
-        });
-    });
-}
-
-function queueConnectSocket(roomId) {
+function queueConnectSocket(roomSlug) {
     serverRequests.queue.push({
         type: 'connect',
         server: 'socket',
-        room: roomId
+        room: roomSlug
     });
     if (!serverRequests.running) {
         queueTicker();
     }
 }
 
-function connectSocket(roomId) {
-    apiId = 0;
-    rpcHandlers = {};
-    client = SockJS.create('https://sjs.plug.dj/plug');
-    client.send = function(data) {
-        return this.write(JSON.stringify(data));
-    };
-    client.on('error', function(e) {
-        logger.log('[Socket Server] Error:', e);
-        process.nextTick(function() {
-            logger.log('[Socket Server] Reconnecting');
-            queueConnectSocket(_this.roomId ? _this.roomId : roomId);
-        });
-    });
-    client.on('data', dataHandler);
-    client.on('data', function(data) {
-        return _this.emit('tcpMessage', data);
-    });
-    client.on('close', function() {
-        logger.log('[Socket Server] Closed');
-        process.nextTick(function() {
-            logger.log('[Socket Server] Reconnecting');
-            queueConnectSocket(_this.roomId ? _this.roomId : roomId);
-        });
-    });
-    return client.on('connection', function() {
-        logger.log('[Socket Server] Connected');
-        if (roomId) {
-            joinRoom(roomId);
+function getAuthCode(roomSlug, callback) {
+    request({
+        url: 'https://plug.dj/' + roomSlug,
+        headers: {
+            'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
+            Cookie: _cookies.toString()
         }
-        _this.emit('connected');
-        _this.emit('server:socket:connected');
-        return _this.emit('tcpConnect', client);
+    }, function(err, res, body) {
+        if (err) {
+            console.log('[ERROR] Error getting auth code:'.red, err);
+        } else {
+            _authCode = body.split(/_jm([ ="']+)/)[2].split(/("|')/)[0];
+            var _st = body.split(/_st([ ="']+)/)[2].split(/("|')/)[0];
+            DateUtilities.setServerTime(_st);
+            callback();
+        }
     });
 }
 
-function connectPlugCubedSocket() {
-    var validated = false;
-    p3Socket = SockJS.create('https://socket.plugcubed.net/gateway');
-    p3Socket.send = function(data) {
-        var msg = JSON.stringify(data);
-        return this.write(msg);
-    };
-    p3Socket.on('error', function(e) {
-        logger.log('[p3Socket Server] Error:', e);
-        process.nextTick(function() {
-            logger.log('[p3Socket Server] Reconnecting');
-            connectPlugCubedSocket();
+function connectSocket(roomSlug) {
+    if (_authCode === null) {
+        getAuthCode(roomSlug, function() {
+            connectSocket(roomSlug);
         });
-    });
-    p3Socket.on('data', function(msg) {
-        var obj = JSON.parse(msg), type = obj.type, data = obj.data;
-        if (!validated) {
-            if (type === 'validate' && data.status === 1) {
-                validated = true;
-            }
-            return;
+        return;
+    }
+    apiId = 0;
+    rpcHandlers = {};
+
+    var server_id = Math.floor(Math.random() * 1000);
+    var conn_id = (function() {
+        var chars = 'abcdefghijklmnopqrstuvwxyz0123456789_';
+        var i, ret = [];
+        for (i = 0; i < 8; i++) {
+            ret.push(chars.substr(Math.floor(Math.random() * chars.length), 1));
         }
-        if (type === 'pm') {
-            if (!data.cid) return;
-            receivedChatMessage(data);
+        return ret.join('');
+    })();
+
+    ws = new WebSocket('wss://shalamar.plug.dj/socket/' + server_id + '/' + conn_id + '/websocket');
+    ws.on('open', function() {
+        logger.log('[Socket Server] Connected'.green);
+        that.roomSlug = roomSlug;
+        ws.sendEvent('auth', _authCode);
+
+        that.emit('connected');
+        that.emit('server:socket:connected');
+    });
+    ws.on('message', function(data) {
+        var type = data.slice(0, 1), payload;
+        switch (type) {
+            case 'a':
+                payload = JSON.parse(data.slice(1) || '[]');
+                for (var i = 0; i < payload.length; i++) {
+                    ws.emit('data', payload[i][0]);
+                }
+                break;
+            case 'm':
+                payload = JSON.parse(data.slice(1) || 'null');
+                ws.emit('data', payload);
+                break;
+            default:
+                break;
         }
     });
-    p3Socket.on('close', function() {
-        logger.log('[p3Socket Server] Closed');
+    ws.on('data', messageHandler);
+    ws.on('data', function(data) {
+        return that.emit('tcpMessage', data);
+    });
+    ws.on('error', function(a) {
+        logger.log('[Socket Server] Error:'.red, a);
         process.nextTick(function() {
-            logger.log('[p3Socket Server] Reconnecting');
-            connectPlugCubedSocket();
+            logger.log('[Socket Server] Reconnecting');
+            queueConnectSocket(that.roomSlug ? that.roomSlug : roomSlug);
         });
     });
-    return p3Socket.on('connection', function() {
-        logger.log('[p3Socket Server] Connected');
-        _this.emit('server:p3socket:connected');
-        var userData = _this.getUser();
-        p3Socket.send({
-            type: 'userdata',
-            id: userData.id,
-            username: userData.username,
-            room: _this.roomId,
-            version: 'plugAPIv' + PlugAPIInfo.version
+    ws.on('close', function(a) {
+        logger.log('[Socket Server] Closed with code'.red, a);
+        process.nextTick(function() {
+            logger.log('[Socket Server] Reconnecting');
+            queueConnectSocket(that.roomSlug ? that.roomSlug : roomSlug);
         });
-        return _this.emit('tcpConnect', p3Socket);
     });
 }
 
 function initRoom(data, callback) {
     room.reset();
-    lastRpcMessage = Date.now();
-    if (data.room === undefined || data.user === undefined) {
-        return client.close();
-    }
-    room.setUsers(data.room.users);
-    room.setStaff(data.room.staff);
-    room.setAmbassadors(data.room.ambassadors);
-    room.setAdmins(data.room.admins);
-    room.setOwner(data.room.owner);
-    room.setSelf(data.user.profile);
-    room.setDjs(data.room.djs);
-    room.setMedia(data.room.media, data.room.mediaStartTime, data.room.votes, data.room.curates);
-    room.boothLocked = data.boothLocked;
-    if (historyID !== data.room.historyID) {
-        _this.roomId = data.room.id;
-        historyID = data.room.historyID;
-        _this.emit(messageTypes.DJ_ADVANCE, {
-            currentDJ: data.room.currentDJ,
-            djs: data.room.djs.splice(1),
-            media: room.media.info,
-            mediaStartTime: data.room.mediaStartTime,
-            historyID: historyID
-        });
-        queueGateway(rpcNames.HISTORY_SELECT, [data.room.id], __bind(room.setHistory, room));
-        if (_this.enablePlugCubedSocket) {
-            connectPlugCubedSocket();
-        }
-        _this.emit(messageTypes.ROOM_JOIN, data.room.name, data);
-    }
+    room.setRoomData(data);
+    that.emit(eventTypes.ADVANCE, {
+        currentDJ: room.getDJ(),
+        djs: room.getDJs(),
+        lastPlay: {
+            dj: null,
+            media: null,
+            score: null
+        },
+        media: data.playback.media,
+        startTime: data.playback.startTime,
+        historyID: data.playback.historyID
+    });
+    queueREST('GET', 'rooms/history', undefined, __bind(room.setHistory, room));
+    that.emit(eventTypes.ROOM_JOIN, data.meta.name);
     initialized = true;
     return callback();
 }
 
-function parseRPCReply(name, data) {
-    if (name === rpcNames.ROOM_JOIN) {
-        _this.emit(messageTypes.ROOM_CHANGE, data);
-        if (typeof data.room !== 'undefined' && typeof data.room.historyID !== 'undefined') {
-            historyID = data.room.historyID;
-            _this.roomId = data.room.id;
-            _this.userId = data.user.profile.id;
-        }
-    }
-}
-
-function dataHandler(data) {
-    if (typeof data === 'string') {
-        data = JSON.parse(data);
-    }
-    if (data.messages) {
-        for (var i = 0; i < data.messages.length; i++)
-            messageHandler(data.messages[i]);
-        return;
-    }
-    if (data.type === 'rpc') {
-        reply = data.result;
-        if (reply) {
-            if (data.status !== 0) {
-                reply = data;
-            }
-            if (rpcHandlers[data.id] != null && typeof rpcHandlers[data.id].callback === 'function') {
-                rpcHandlers[data.id].callback(reply);
-            }
-            parseRPCReply(rpcHandlers[data.id] != null ? rpcHandlers[data.id].type : undefined, reply);
-            delete rpcHandlers[data.id];
-        }
-    }
-}
-
 function messageHandler(msg) {
-    switch (msg.type) {
-        case messageTypes.PING:
-            queueRPC(rpcNames.USER_PONG);
+    switch (msg.a) {
+        case 'ack':
+            queueREST('GET', 'users/me', null, function(a) {
+                room.setSelf(a[0]);
+                joinRoom(that.roomSlug);
+            });
             break;
-        case messageTypes.MODERATE_STAFF:
-            for (var i in msg.data.users) {
-                // Be sure the user exists
-                if (msg.data.users[i].user && msg.data.users[i].user.id)
-                    room.staff[msg.data.users[i].user.id] = msg.data.users[i].permission;
+        case eventTypes.CHAT:
+            chatHistory.push(msg.p);
+
+            // If over limit, remove the first item
+            if (chatHistory.length > 512)
+                chatHistory.shift();
+
+            receivedChatMessage(msg.p);
+            return;
+        case eventTypes.CHAT_DELETE:
+            for (var i in chatHistory) {
+                if (!chatHistory.hasOwnProperty(i)) continue;
+                if (chatHistory[i].cid == msg.p.c)
+                    chatHistory.splice(i, 1);
             }
-            room.setPermissions();
             break;
-        case messageTypes.USER_JOIN:
-            room.addUser(msg.data);
-            lastRpcMessage = Date.now();
+        case eventTypes.USER_JOIN:
+            room.addUser(msg.p);
             break;
-        case messageTypes.USER_LEAVE:
-            var userData = room.getUser(msg.data.id);
+        case eventTypes.USER_LEAVE:
+            var userData = room.getUser(msg.p);
             if (userData == null) {
-                userData = { id: msg.data.id };
+                userData = {id: msg.p};
             }
-            room.remUser(msg.data.id);
-            lastRpcMessage = Date.now();
-            _this.emit(msg.type, userData);
+            room.removeUser(msg.p);
+            that.emit(msg.a, userData);
             return;
-        case messageTypes.VOTE_UPDATE:
-            room.logVote(msg.data.id, msg.data.vote === 1 ? 'woot' : 'meh');
-            lastRpcMessage = Date.now();
+        case eventTypes.USER_UPDATE:
+            room.updateUser(msg.p);
+            that.emit(msg.a, that.getUser(msg.p.i));
+            return;
+        case eventTypes.VOTE:
+            room.setVote(msg.p.i, msg.p.v);
             break;
-        case messageTypes.DJ_UPDATE:
-            room.setDjs(msg.data.djs);
-            lastRpcMessage = Date.now();
+        case eventTypes.GRAB:
+            room.setGrab(msg.p);
             break;
-        case messageTypes.DJ_ADVANCE:
-            var djAdvanceEvent = {
-                dj: msg.data.djs[0],
+        case eventTypes.ADVANCE:
+            var advanceEvent = {
+                currentDJ: msg.p.c,
+                djs: msg.p.d,
                 lastPlay: {
-                    dj: _this.getDJ(),
-                    media: _this.getMedia(),
-                    score: _this.getRoomScore()
+                    dj: that.getDJ(),
+                    media: that.getMedia(),
+                    score: that.getRoomScore()
                 },
-                media: msg.data.media,
-                mediaStartTime: msg.data.mediaStartTime,
-                earn: msg.data.earn
+                media: msg.p.m,
+                startTime: msg.p.t,
+                historyID: msg.p.h
             };
-            room.setDjs(msg.data.djs);
-            room.djAdvance(msg.data);
-            historyID = msg.data.historyID;
-            lastRpcMessage = Date.now();
-            _this.emit(msg.type, djAdvanceEvent);
+            room.setDjs(msg.p.d);
+            room.advance(msg.p);
+            historyID = msg.p.h;
+            that.emit(msg.type, advanceEvent);
             return;
-        case messageTypes.CURATE_UPDATE:
-            room.logVote(msg.data.id, 'curate');
-            lastRpcMessage = Date.now();
+        case eventTypes.DJ_LIST_UPDATE:
+            room.setDjs(msg.p);
             break;
-        case messageTypes.USER_UPDATE:
-            room.updateUser(msg.data);
+        case 'earn':
+            room.setEarn(msg.p);
             break;
+        default:
         case void 0:
-            logger.log('UNKNOWN MESSAGE FORMAT', msg);
+            logger.log('UNKNOWN MESSAGE FORMAT'.blue, msg);
     }
-    if (msg.type) {
-        _this.emit(msg.type, msg.data);
+    if (msg.a) {
+        that.emit(msg.a, msg.p);
     }
 }
 
-var PlugAPI = function(key) {
-    if (!key) {
-        throw new Error('You must pass the authentication cookie into the PlugAPI object to connect correctly');
+var PlugAPI = function(authenticationData) {
+    if (!authenticationData || !authenticationData.type) {
+        throw new Error('You must pass the authentication data into the PlugAPI object to connect correctly'.red);
+    } else {
+        switch (authenticationData.type) {
+            case 'email':
+                throw new Error('Sorry, e-mail / password login is not currently supported'.red);
+            case 'cookie':
+                if (authenticationData.cookies.session)
+                    _cookies.session = authenticationData.cookies.session; else
+                    throw new Error('Missing session cookie value'.red);
+                if (authenticationData.cookies.remember_token)
+                    _cookies.rememberToken = authenticationData.cookies.remember_token; else
+                    throw new Error('Missing remember_token cookie value'.red);
+                break;
+            default:
+                throw new Error('Unknown authentication type'.red);
+        }
     }
-    _this = this;
-    _key = key;
+
+    that = this;
 
     this.multiLine = false;
     this.multiLineLimit = 5;
-    this.roomId = null;
+    this.roomSlug = null;
     this.enablePlugCubedSocket = false;
     this.processOwnMessages = false;
     this.deleteCommands = true;
 
     room.User.prototype.addToWaitlist = function() {
-        console.error('Using deprecated addToWaitlist - change to addToWaitList');
-        _this.moderateAddDJ(this.id);
+        console.error('Using deprecated addToWaitlist - change to addToWaitList'.yellow);
+        that.moderateAddDJ(this.id);
     };
     room.User.prototype.addToWaitList = function() {
-        _this.moderateAddDJ(this.id);
+        that.moderateAddDJ(this.id);
     };
     room.User.prototype.removeFromWaitlist = function() {
-        console.error('Using deprecated removeFromWaitlist - change to removeFromWaitList');
-        _this.moderateAddDJ(this.id);
+        console.error('Using deprecated removeFromWaitlist - change to removeFromWaitList'.yellow);
+        that.moderateAddDJ(this.id);
     };
     room.User.prototype.removeFromWaitList = function() {
-        _this.moderateRemoveDJ(this.id);
+        that.moderateRemoveDJ(this.id);
     };
     room.User.prototype.moveInWaitList = function(pos) {
-        _this.moderateMoveDJ(this.id, pos);
+        that.moderateMoveDJ(this.id, pos);
     };
 
     this.ROLE = {
@@ -912,7 +724,7 @@ var PlugAPI = function(key) {
         PERMA: -1
     };
 
-    this.messageTypes = messageTypes;
+    this.events = eventTypes;
 
     this.preCommandHandler = function() {
         return true;
@@ -921,53 +733,13 @@ var PlugAPI = function(key) {
     // Logger
     this.log = __bind(logger.log, logger);
 
-    logger.log('Running plugAPI v.' + PlugAPIInfo.version);
+    logger.log('Running plugAPI v.' + PlugAPIInfo.version + '-dev');
+    logger.log('THIS IS A UNSTABLE VERSION! DO NOT USE FOR PRODUCTION!'.red);
 };
 
 util.inherits(PlugAPI, EventEmitter);
 
-PlugAPI.prototype.getTwitterAuth = function(username, password, callback) {
-    if (!username || !password) throw new Error('Missing arguments');
-    var creds, module;
-    if (typeof password === 'string') {
-        // 2.1.0 and later
-        creds = {
-            username: username,
-            password: password
-        };
-        if (!callback || typeof callback !== 'function') {
-            throw new Error('Missing callback');
-        }
-    } else {
-        console.error('Using deprecated parameters for getTwitterAuth - please update.');
-        // Pre-2.1.0
-        creds = username;
-        callback = password;
-
-        if (!callback || typeof callback !== 'function') {
-            throw new Error('Missing callback');
-        }
-    }
-    try {
-        module = require('plug-dj-login');
-    } catch (e) {
-        throw new Error('Error loading module plug-dj-login. Try running `npm install plug-dj-login`.');
-    }
-    module(creds, function(err, cookie) {
-        if (err) {
-            callback(err, null);
-            return;
-        }
-
-        var cookieVal = cookie.value;
-        cookieVal = cookieVal.replace(/^"/, '').replace(/"$/, '');
-        callback(null, cookieVal);
-    });
-};
-
 PlugAPI.prototype.close = function() {
-    client.removeAllListeners('close');
-    client.close();
     ws.removeAllListeners('close');
     ws.close();
     if (this.enablePlugCubedSocket) {
@@ -985,7 +757,7 @@ PlugAPI.prototype.setCommandPrefix = function(a) {
 };
 
 PlugAPI.prototype.setLogObject = function(a) {
-    console.error('Using deprecated setLogObject - change to setLogger');
+    console.error('Using deprecated setLogObject - change to setLogger'.yellow);
     return this.setLogger(a);
 };
 
@@ -999,10 +771,11 @@ PlugAPI.prototype.setLogger = function(a) {
 
 PlugAPI.prototype.connect = function(a) {
     if (!a || typeof a !== 'string' || a.length === 0 || a.indexOf('/') > -1) {
-        throw new Error('Invalid room name');
+        throw new Error('Invalid room name'.red);
     }
-    queueConnectChat(a);
-    queueConnectSocket(a);
+    getAuthCode(a, function(auth) {
+        queueConnectSocket(a, auth);
+    });
 };
 
 PlugAPI.prototype.sendChat = function(msg, timeout) {
@@ -1028,17 +801,25 @@ PlugAPI.prototype.sendPM = function(receiver, msg) {
 };
 
 PlugAPI.prototype.woot = function(callback) {
-    queueGateway(rpcNames.ROOM_CAST, [true, historyID, lastHistoryID === historyID], callback);
-    return lastHistoryID = historyID;
+    queueREST('POST', 'votes', {
+        direction: 1,
+        historyID: historyID
+    }, callback);
 };
 
 PlugAPI.prototype.meh = function(callback) {
-    queueGateway(rpcNames.ROOM_CAST, [false, historyID, lastHistoryID === historyID], callback);
-    return lastHistoryID = historyID;
+    queueREST('POST', 'votes', {
+        direction: -1,
+        historyID: historyID
+    }, callback);
+};
+
+PlugAPI.prototype.getChatHistory = function() {
+    return chatHistory;
 };
 
 PlugAPI.prototype.getHistory = function(callback) {
-    if (typeof callback !== 'function') throw new Error('You must specify callback!');
+    if (typeof callback !== 'function') throw new Error('You must specify callback!'.red);
     if (initialized) {
         var history = room.getHistory();
         if (history.length > 1) {
@@ -1047,131 +828,131 @@ PlugAPI.prototype.getHistory = function(callback) {
         }
     }
     setImmediate(function() {
-        _this.getHistory(callback);
+        that.getHistory(callback);
     });
 };
 
 PlugAPI.prototype.isUsernameAvailable = function(name, callback) {
-    return queueGateway(rpcNames.USER_NAME_AVAILABLE, [name], callback);
+    return queueREST(rpcNames.USER_NAME_AVAILABLE, [name], callback);
 };
 
 PlugAPI.prototype.changeUsername = function(name, callback) {
-    return queueGateway(rpcNames.USER_CHANGE_NAME, [name], callback);
+    return queueREST(rpcNames.USER_CHANGE_NAME, [name], callback);
 };
 
 PlugAPI.prototype.changeRoomName = function(name, callback) {
-    if (!this.roomId || !this.havePermission(undefined, this.ROLE.COHOST)) {
+    if (!this.roomSlug || !this.havePermission(undefined, this.ROLE.COHOST)) {
         return false;
     }
-    queueGateway(rpcNames.MODERATE_UPDATE_NAME, [name], callback);
+    queueREST(rpcNames.MODERATE_UPDATE_NAME, [name], callback);
     return true;
 };
 
 PlugAPI.prototype.changeRoomDescription = function(description, callback) {
-    if (!this.roomId || !this.havePermission(undefined, this.ROLE.COHOST)) {
+    if (!this.roomSlug || !this.havePermission(undefined, this.ROLE.COHOST)) {
         return false;
     }
-    queueGateway(rpcNames.MODERATE_UPDATE_DESCRIPTION, [description], callback);
+    queueREST(rpcNames.MODERATE_UPDATE_DESCRIPTION, [description], callback);
     return true;
 };
 
 PlugAPI.prototype.changeDJCycle = function(enabled, callback) {
-    if (!this.roomId || !this.havePermission(undefined, this.ROLE.MANAGER)) {
+    if (!this.roomSlug || !this.havePermission(undefined, this.ROLE.MANAGER)) {
         return false;
     }
-    queueGateway(rpcNames.ROOM_CYCLE_BOOTH, [this.roomId, enabled], callback);
+    queueREST(rpcNames.ROOM_CYCLE_BOOTH, [this.roomSlug, enabled], callback);
     return true;
 };
 
 PlugAPI.prototype.getTimeElapsed = function() {
-    if (!this.roomId || room.getMedia() == null) {
+    if (!this.roomSlug || room.getMedia() == null) {
         return -1;
     }
-    return Math.min(room.getMedia().duration, DateUtilities.getSecondsElapsed(room.getMediaStartTime()));
+    return Math.min(room.getMedia().duration, DateUtilities.getSecondsElapsed(room.getStartTime()));
 };
 
 PlugAPI.prototype.getTimeRemaining = function() {
-    if (!this.roomId || room.getMedia() == null) {
+    if (!this.roomSlug || room.getMedia() == null) {
         return -1;
     }
     return room.getMedia().duration - this.getTimeElapsed();
 };
 
 PlugAPI.prototype.joinBooth = function(callback) {
-    if (!this.roomId || room.isDJ() || room.isInWaitList() || (room.boothLocked && !this.havePermission(undefined, this.ROLE.RESIDENTDJ)) || this.getDJs().length >= 50) {
+    if (!this.roomSlug || room.isDJ() || room.isInWaitList() || (room.boothLocked && !this.havePermission(undefined, this.ROLE.RESIDENTDJ)) || this.getDJs().length >= 50) {
         return false;
     }
-    queueGateway(rpcNames.BOOTH_JOIN, [], callback);
+    queueREST(rpcNames.BOOTH_JOIN, [], callback);
     return true;
 };
 
 PlugAPI.prototype.leaveBooth = function(callback) {
-    if (!this.roomId || (!room.isDJ() && !room.isInWaitList())) {
+    if (!this.roomSlug || (!room.isDJ() && !room.isInWaitList())) {
         return false;
     }
-    queueGateway(rpcNames.BOOTH_LEAVE, [], callback);
+    queueREST(rpcNames.BOOTH_LEAVE, [], callback);
     return true;
 };
 
-PlugAPI.prototype.moderateAddDJ = function(userId, callback) {
-    if (!this.roomId || !this.havePermission(undefined, this.ROLE.BOUNCER) || room.isDJ(userId) || room.isInWaitList(userId) || (room.boothLocked && !this.havePermission(undefined, this.ROLE.MANAGER))) {
+PlugAPI.prototype.moderateAddDJ = function(uid, callback) {
+    if (!this.roomSlug || !this.havePermission(undefined, this.ROLE.BOUNCER) || room.isDJ(uid) || room.isInWaitList(uid) || (room.boothLocked && !this.havePermission(undefined, this.ROLE.MANAGER))) {
         return false;
     }
-    queueGateway(rpcNames.MODERATE_ADD_DJ, userId, callback);
+    queueREST(rpcNames.MODERATE_ADD_DJ, uid, callback);
     return true;
 };
 
-PlugAPI.prototype.moderateRemoveDJ = function(userId, callback) {
-    if (!this.roomId || !this.havePermission(undefined, this.ROLE.BOUNCER) || (!room.isDJ(userId) && !room.isInWaitList(userId)) || (room.boothLocked && !this.havePermission(undefined, this.ROLE.MANAGER))) {
+PlugAPI.prototype.moderateRemoveDJ = function(uid, callback) {
+    if (!this.roomSlug || !this.havePermission(undefined, this.ROLE.BOUNCER) || (!room.isDJ(uid) && !room.isInWaitList(uid)) || (room.boothLocked && !this.havePermission(undefined, this.ROLE.MANAGER))) {
         return false;
     }
-    queueGateway(rpcNames.MODERATE_REMOVE_DJ, userId, callback);
+    queueREST(rpcNames.MODERATE_REMOVE_DJ, uid, callback);
     return true;
 };
 
-PlugAPI.prototype.moderateMoveDJ = function(userId, index, callback) {
-    if (!this.roomId || !this.havePermission(undefined, this.ROLE.MANAGER) || !room.isInWaitList(userId) || isNaN(index)) {
+PlugAPI.prototype.moderateMoveDJ = function(uid, index, callback) {
+    if (!this.roomSlug || !this.havePermission(undefined, this.ROLE.MANAGER) || !room.isInWaitList(uid) || isNaN(index)) {
         return false;
     }
-    queueGateway(rpcNames.MODERATE_MOVE_DJ, [userId, index > 50 ? 50 : index < 1 ? 1 : index], callback);
+    queueREST(rpcNames.MODERATE_MOVE_DJ, [uid, index > 50 ? 50 : index < 1 ? 1 : index], callback);
     return true;
 };
 
-PlugAPI.prototype.moderateBanUser = function(userId, reason, duration, callback) {
-    if (!this.roomId || !this.havePermission(undefined, this.ROLE.BOUNCER))
+PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
+    if (!this.roomSlug || !this.havePermission(undefined, this.ROLE.BOUNCER))
         return false;
     reason = String(reason || 1);
     if (!duration)
         duration = this.BAN.PERMA;
     if (duration === this.BAN.PERMA && this.havePermission(undefined, this.ROLE.BOUNCER) && !this.havePermission(undefined, this.ROLE.MANAGER))
         duration = this.BAN.DAY;
-    queueGateway(rpcNames.MODERATE_BAN, [userId, reason, duration], callback);
+    queueREST(rpcNames.MODERATE_BAN, [uid, reason, duration], callback);
     return true;
 };
 
-PlugAPI.prototype.moderateUnBanUser = function(userId, callback) {
-    console.error('Using deprecated moderateUnBanUser - change to moderateUnbanUser');
-    return this.moderateUnbanUser(userId, callback);
+PlugAPI.prototype.moderateUnBanUser = function(uid, callback) {
+    console.error('Using deprecated moderateUnBanUser - change to moderateUnbanUser'.yellow);
+    return this.moderateUnbanUser(uid, callback);
 };
 
-PlugAPI.prototype.moderateUnbanUser = function(userId, callback) {
-    if (!this.roomId || !this.havePermission(undefined, this.ROLE.MANAGER))
+PlugAPI.prototype.moderateUnbanUser = function(uid, callback) {
+    if (!this.roomSlug || !this.havePermission(undefined, this.ROLE.MANAGER))
         return false;
-    queueGateway(rpcNames.MODERATE_UNBAN, [userId], callback);
+    queueREST(rpcNames.MODERATE_UNBAN, [uid], callback);
     return true;
 };
 
 PlugAPI.prototype.moderateForceSkip = function(callback) {
-    if (!this.roomId || !this.havePermission(undefined, this.ROLE.BOUNCER) || room.getDJ() === null)
+    if (!this.roomSlug || !this.havePermission(undefined, this.ROLE.BOUNCER) || room.getDJ() === null)
         return false;
-    queueGateway(rpcNames.MODERATE_SKIP, [room.getDJ().id, historyID], callback);
+    queueREST(rpcNames.MODERATE_SKIP, [room.getDJ().id, historyID], callback);
     return true;
 };
 
 PlugAPI.prototype.moderateDeleteChat = function(cid, callback) {
-    if (!this.roomId || !this.havePermission(undefined, this.ROLE.BOUNCER))
+    if (!this.roomSlug || !this.havePermission(undefined, this.ROLE.BOUNCER))
         return false;
-    queueGateway(rpcNames.MODERATE_CHAT_DELETE, [cid], callback, undefined, true);
+    queueREST('DELETE', 'chat/' + cid, undefined, callback, undefined, true);
     return true;
 };
 
@@ -1179,17 +960,17 @@ PlugAPI.prototype.moderateLockWaitList = function(locked, clear, callback) {
     return this.moderateLockBooth(locked, clear, callback);
 };
 
-PlugAPI.prototype.moderateSetRole = function(userId, role, callback) {
-    if (!this.roomId || this.getUser(userId) === null || isNaN(role))
+PlugAPI.prototype.moderateSetRole = function(uid, role, callback) {
+    if (!this.roomSlug || this.getUser(uid) === null || isNaN(role))
         return false;
-    queueGateway(rpcNames.MODERATE_PERMISSIONS, [userId, role], callback);
+    queueREST(rpcNames.MODERATE_PERMISSIONS, [uid, role], callback);
     return true;
 };
 
 PlugAPI.prototype.moderateLockBooth = function(locked, clear, callback) {
-    if (!this.roomId || this.getUser() === null || !this.havePermission(undefined, this.ROLE.MANAGER) || (locked === room.boothLocked && !clear))
+    if (!this.roomSlug || this.getUser() === null || !this.havePermission(undefined, this.ROLE.MANAGER) || (locked === room.boothLocked && !clear))
         return false;
-    queueGateway(rpcNames.ROOM_LOCK_BOOTH, [this.roomId, locked, clear], callback);
+    queueREST(rpcNames.ROOM_LOCK_BOOTH, [this.roomSlug, locked, clear], callback);
     return true;
 };
 
@@ -1197,8 +978,8 @@ PlugAPI.prototype.getUsers = function() {
     return room.getUsers();
 };
 
-PlugAPI.prototype.getUser = function(userId) {
-    return room.getUser(userId);
+PlugAPI.prototype.getUser = function(uid) {
+    return room.getUser(uid);
 };
 
 PlugAPI.prototype.getAudience = function(name) {
@@ -1233,8 +1014,8 @@ PlugAPI.prototype.getWaitList = function() {
     return room.getWaitList();
 };
 
-PlugAPI.prototype.getWaitListPosition = function(userId) {
-    return room.getWaitListPosition(userId);
+PlugAPI.prototype.getWaitListPosition = function(uid) {
+    return room.getWaitListPosition(uid);
 };
 
 PlugAPI.prototype.getAmbassadors = function() {
@@ -1250,56 +1031,54 @@ PlugAPI.prototype.getRoomScore = function() {
 };
 
 PlugAPI.prototype.setStatus = function(status, callback) {
-    if (!this.roomId || !status || status < 0 || status > 3)
+    if (!this.roomSlug || !status || status < 0 || status > 3)
         return false;
-    queueGateway(rpcNames.USER_SET_STATUS, status, callback);
+    queueREST(rpcNames.USER_SET_STATUS, status, callback);
     return true;
 };
 
 PlugAPI.prototype.createPlaylist = function(name, callback) {
-    if (!this.roomId || !name)
+    if (!this.roomSlug || !name)
         return false;
-    queueGateway(rpcNames.PLAYLIST_CREATE, name, callback);
+    queueREST(rpcNames.PLAYLIST_CREATE, name, callback);
     return true;
 };
 
 PlugAPI.prototype.addSongToPlaylist = function(playlistId, songId, callback) {
-    if (!this.roomId || !playlistId || !songId)
+    if (!this.roomSlug || !playlistId || !songId)
         return false;
-    queueGateway(rpcNames.PLAYLIST_MEDIA_INSERT, [playlistId, null, -1, [songId]], callback);
+    queueREST(rpcNames.PLAYLIST_MEDIA_INSERT, [playlistId, null, -1, [songId]], callback);
     return true;
 };
 
 PlugAPI.prototype.getPlaylists = function(callback) {
-    if (!this.roomId)
+    if (!this.roomSlug)
         return false;
-    queueGateway(rpcNames.PLAYLIST_SELECT, [new Date(0).toISOString().replace('T', ' '), null, 100, null], callback);
+    queueREST(rpcNames.PLAYLIST_SELECT, [new Date(0).toISOString().replace('T', ' '), null, 100, null], callback);
     return true;
 };
 
 PlugAPI.prototype.activatePlaylist = function(playlist_id, callback) {
-    if (!this.roomId || !playlist_id)
+    if (!this.roomSlug || !playlist_id)
         return false;
-    queueGateway(rpcNames.PLAYLIST_ACTIVATE, [playlist_id], callback);
+    queueREST(rpcNames.PLAYLIST_ACTIVATE, [playlist_id], callback);
     return true;
 };
 
 PlugAPI.prototype.playlistMoveSong = function(playlist, song_id, position, callback) {
-    if (!this.roomId)
+    if (!this.roomSlug)
         return false;
-    queueGateway(rpcNames.PLAYLIST_MEDIA_MOVE, [
-        playlist.id, playlist.items[position], [song_id]
-    ], callback);
+    queueREST(rpcNames.PLAYLIST_MEDIA_MOVE, [playlist.id, playlist.items[position], [song_id]], callback);
     return true;
 };
 
 PlugAPI.prototype.setAvatar = function(avatar, callback) {
-    queueGateway(rpcNames.USER_SET_AVATAR, [avatar], callback);
+    queueREST(rpcNames.USER_SET_AVATAR, [avatar], callback);
     return true;
 };
 
-PlugAPI.prototype.havePermission = function(userid, permission) {
-    var user = this.getUser(userid);
+PlugAPI.prototype.havePermission = function(uid, permission) {
+    var user = this.getUser(uid);
     return !(user == null || user.permission < permission);
 };
 

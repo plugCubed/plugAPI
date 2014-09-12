@@ -15,12 +15,20 @@ Run the following:
 To connect, do this!
 
 ```javascript
-var PlugAPI = require('plugapi'),
-    AUTH = 'xxxxxxxxxxxxxxxxxxxxxxxxxxx=?_expires=xxxxxxxxxxxxxxxxxx==&user_id=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx=', // Put your auth token here, it's the cookie value for usr
-    ROOM = '';
+var PlugAPI = require('plugapi');
 
-var bot = new PlugAPI(AUTH);
-bot.connect(ROOM);
+var bot = new PlugAPI({
+    "type": "cookie",
+    "cookies": {
+        "session": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_xxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "remember_token": "0000000|xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    "login": {
+        "email": "", // Not currently implemented
+        "password": ""
+    }
+});
+bot.connect('roomslug'); // The part after https://plug.dj
 
 bot.on('roomJoin', function(room) {
     console.log("Joined " + room);
@@ -32,8 +40,10 @@ Here are some bots using this API.
 
 | Botname                                              | Room                                                            |
 | ---------------------------------------------------- | --------------------------------------------------------------- |
+| AuntJackie                                           | [I <3 the 80's and 90's](https://plug.dj/i-the-80-s-and-90-s-1) |
+| [BeavisBot](https://github.com/AvatarKava/BeavisBot) | [Mix-N-Mash](https://plug.dj/mix-n-mash-2)                      |
+| FlavorBar                                            | [Flavorz](https://plug.dj/flavorz)                              |
 | FoxBot                                               | [Approaching Nirvana](https://plug.dj/approachingnirvana)       |
-| [BeavisBot](https://github.com/AvatarKava/BeavisBot) | [I <3 the 80's and 90's](https://plug.dj/i-the-80-s-and-90-s-1) |
 
 Have a bot that uses the API? Let me know!
 

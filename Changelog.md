@@ -1,6 +1,13 @@
 plugAPI Changelog
 =================
 
+3.0.0-dev
+---------
+* **FIX:** Working with plug.dj > v1.0.0
+ * New connection method for socket server (Chat server and socket server combined)
+* **ADDED:** Manage a history of chat, limited to 512 messages (Same limit as browser clients)
+* A lot more, can't remember everything I have done...
+
 2.4.1
 -----
 * **FIX:** Compatibility with pre-2.4.0 command eventlisteners using chatID (Commit [b9afcba](https://github.com/TATDK/plugapi/commit/b9afcba861d7eb85e05df3e47506db2de4f950e2))
