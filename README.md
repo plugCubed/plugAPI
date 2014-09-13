@@ -18,13 +18,12 @@ To connect, do this!
 var PlugAPI = require('plugapi');
 
 var bot = new PlugAPI({
-    "type": "cookie",
+    "type": "cookie", // cookie or email
     "cookies": {
-        "session": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx_xxxxxxxx.xxxxxxxxxxxxxxxxxxxxxxxxxxx",
-        "remember_token": "0000000|xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        "session": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx|xxxxxxx|xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
     },
     "login": {
-        "email": "", // Not currently implemented
+        "email": "",
         "password": ""
     }
 });

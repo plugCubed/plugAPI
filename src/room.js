@@ -1,8 +1,8 @@
 var util = require('util');
-var songHistory = [];
+var songHistory = [], that;
 
 var Room = function() {
-    var that = this;
+    that = this;
 
     this.User = function(data) {
         this.avatarID = data.avatarID ? data.avatarID : '';
@@ -224,40 +224,21 @@ Room.prototype.setRoomData = function(data) {
     this.votes = data.votes;
 };
 
-Room.prototype.setDjs = function(djs) {
+Room.prototype.setDJs = function(djs) {
     this.booth.waitingDJs = djs;
 };
 
-Room.prototype.setMedia = function(mediaInfo, mediaStartTime, votes, curates) {
-    var id, val, vote, _results;
-    if (votes == null) {
-        votes = {};
-    }
-    if (curates == null) {
-        curates = {};
-    }
-    this.media = {
-        info: mediaInfo,
-        startTime: mediaStartTime,
-        stats: {
-            votes: {},
-            curates: {}
-        }
-    };
-    for (id in votes) {
-        if (votes.hasOwnProperty(id)) {
-            vote = votes[id];
-            this.media.stats.votes[id] = vote === 1 ? 'woot' : 'meh';
-        }
-    }
-    _results = [];
-    for (id in curates) {
-        if (curates.hasOwnProperty(id)) {
-            val = curates[id];
-            _results.push(this.media.stats.curates[id] = val);
-        }
-    }
-    return _results;
+/**
+ * Set the media object.
+ * @param mediaInfo
+ * @param mediaStartTime
+ */
+Room.prototype.setMedia = function(mediaInfo, mediaStartTime) {
+    this.votes = {};
+    this.grabs = {};
+
+    this.playback.media = mediaInfo;
+    this.playback.startTime = mediaStartTime;
 };
 
 Room.prototype.advance = function(data) {
@@ -265,11 +246,18 @@ Room.prototype.advance = function(data) {
         setImmediate(this.advance, data);
         return;
     }
+
     songHistory[0].room = this.getRoomScore();
-    this.setMedia(data.media, data.mediaStartTime);
+
+    this.setMedia(data.m, data.t);
+    this.setDJs(data.d);
+    this.booth.currentDJ = data.c;
+    this.playback.historyID = data.h;
+    this.playback.playlistID = data.p;
+
     var historyObj = {
-        id: data.historyID,
-        media: data.media,
+        id: data.h,
+        media: data.m,
         room: {
             name: this.meta.name,
             slug: this.meta.slug
@@ -281,12 +269,13 @@ Room.prototype.advance = function(data) {
             negative: 0,
             skipped: 0
         },
-        timestamp: data.mediaStartTime,
+        timestamp: data.t,
         user: {
-            id: data.currentDJ,
-            username: this.getUser(data.currentDJ) === null ? '' : this.getUser(data.currentDJ).username
+            id: data.c,
+            username: this.getUser(data.c) === null ? '' : this.getUser(data.c).username
         }
     };
+
     if (songHistory.unshift(historyObj) > 50) {
         songHistory.splice(50, songHistory.length - 50);
     }
@@ -320,26 +309,33 @@ Room.prototype.setVote = function(uid, vote) {
 };
 
 Room.prototype.setEarn = function(data) {
-    var dj = this.getDJ();
-    if (dj != null) {
-        for (var i in this.users) {
-            if (!this.users.hasOwnProperty(i)) continue;
-            if (this.users[i].id === dj.id) {
-                this.users[i].xp = data.xp;
-                this.users[i].ep = data.ep;
-                this.users[i].level = data.level;
-                return;
-            }
-        }
-    }
+    this.self.xp = data.xp;
+    this.self.ep = data.ep;
+    this.self.level = data.level;
 };
 
+/**
+ * Get all users in the community
+ * @returns {*}
+ */
 Room.prototype.getUsers = function() {
-    return this.usersToArray([this.getSelf()].concat(this.users));
+    return this.usersToArray([this.getSelf().id].concat((function() {
+        var ids = [];
+        for (var i in that.users) {
+            if (!that.users.hasOwnProperty(i)) continue;
+            ids.push(that.users[i].id);
+        }
+        return ids;
+    })()));
 };
 
+/**
+ * Get specific user in the community
+ * @param {Number} userid
+ * @returns {*}
+ */
 Room.prototype.getUser = function(userid) {
-    if (!userid) return this.getSelf();
+    if (!userid || userid === this.getSelf().id) return this.getSelf();
     for (var i in this.users) {
         if (!this.users.hasOwnProperty(i)) continue;
         if (this.users[i].id === userid)
@@ -352,6 +348,10 @@ Room.prototype.getSelf = function() {
     return this.self != null ? new this.User(this.self) : null;
 };
 
+/**
+ * Get the current DJ
+ * @returns {*}
+ */
 Room.prototype.getDJ = function() {
     if (this.booth.currentDJ > 0) {
         return this.getUser(this.booth.currentDJ);
@@ -359,8 +359,40 @@ Room.prototype.getDJ = function() {
     return null;
 };
 
+/**
+ * Get all DJs (including current DJ)
+ * @returns {Array}
+ */
 Room.prototype.getDJs = function() {
     return this.usersToArray([this.booth.currentDJ].concat(this.booth.waitingDJs));
+};
+
+/**
+ * Get all DJs in waitlist
+ * @returns {*}
+ */
+Room.prototype.getWaitList = function() {
+    return this.usersToArray(this.booth.waitingDJs);
+};
+
+/**
+ * Get a user's position in waitlist
+ * @param {number} uid User ID
+ * @returns {number} Position in waitlist.
+ * If current DJ, it returns 0.
+ * If not in waitlist, it returns -1
+ */
+Room.prototype.getWaitListPosition = function(uid) {
+    var djs = this.getDJs(), spot = 0;
+    for (var i in djs) {
+        if (djs.hasOwnProperty(i)) {
+            if (djs[i].id === uid) {
+                return spot;
+            }
+            spot++;
+        }
+    }
+    return -1;
 };
 
 Room.prototype.getAudience = function() {
@@ -419,6 +451,7 @@ Room.prototype.getStaff = function() {
  return admins;
  };
  */
+
 /**
  * Get the host of the community.
  * @returns {*} Host if in community, otherwise null
@@ -426,24 +459,7 @@ Room.prototype.getStaff = function() {
 Room.prototype.getHost = function() {
     return this.getUser(this.meta.hostID);
 };
-/*
- Room.prototype.getWaitList = function() {
- return this.usersToArray(this.djs).splice(1);
- };
 
- Room.prototype.getWaitListPosition = function(userid) {
- var waitlist = this.getWaitList(), spot = 0;
- for (var i in waitlist) {
- if (waitlist.hasOwnProperty(i)) {
- if (waitlist[i].id === userid) {
- return spot;
- }
- spot++;
- }
- }
- return -1;
- };
- */
 Room.prototype.getMedia = function() {
     return this.playback.media;
 };

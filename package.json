@@ -35,7 +35,7 @@
         "grunt-execute": "*"
     },
     "optionalDependencies": {
-        "plug-dj-login": "*"
+        "deasync": "*"
     },
     "repository": {
         "type": "git",

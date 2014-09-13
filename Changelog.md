@@ -3,14 +3,20 @@ plugAPI Changelog
 
 3.0.0-dev
 ---------
-* **FIX:** Working with plug.dj > v1.0.0
+* **FIXED:** Working with plug.dj > v1.0.0
  * New connection method for socket server (Chat server and socket server combined)
 * **ADDED:** Manage a history of chat, limited to 512 messages (Same limit as browser clients)
+* **ADDED:** Documentation in JSDoc format (If you're using an IDE, this should give you in-editor documentation)
+* **ADDED:** Support for logging in with e-mail and password (Requires `deasync` package)
+* **CHANGED:** `bot.havePermissionAdded(uid, permission)` split up into `bot.haveRoomPermission(uid, permission)` and `bot.haveGlobalPermission(uid, permission)`
+* **CHANGED:** `bot.ROLE` split up into `bot.ROOM_ROLE` and `bot.GLOBAL_ROLE`
+* **REMOVED:** All deprecated functions are removed
+* **REMOVED:** `bot.isUsernameAvailable(name, callback)` and `bot.changeUsername(name, callback)` removed
 * A lot more, can't remember everything I have done...
 
 2.4.1
 -----
-* **FIX:** Compatibility with pre-2.4.0 command eventlisteners using chatID (Commit [b9afcba](https://github.com/TATDK/plugapi/commit/b9afcba861d7eb85e05df3e47506db2de4f950e2))
+* **FIXED:** Compatibility with pre-2.4.0 command eventlisteners using chatID (Commit [b9afcba](https://github.com/TATDK/plugapi/commit/b9afcba861d7eb85e05df3e47506db2de4f950e2))
 
 2.4.0
 -----
