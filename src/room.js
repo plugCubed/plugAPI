@@ -22,7 +22,7 @@ var Room = function() {
         this.slug = data.slug ? data.slug : '';
         this.status = data.status ? data.status : 0;
         this.username = data.username ? data.username : '';
-        this.vote = that.votes[data.id] !== undefined ? that.votes[data.id] === 'woot' ? 1 : -1 : 0;
+        this.vote = that.votes[data.id] !== undefined ? that.votes[data.id] === -1 ? -1 : 1 : 0;
         this.xp = data.xp ? data.xp : 0;
     };
 
@@ -93,17 +93,18 @@ Room.prototype.usersToArray = function(ids) {
  };
 
  Room.prototype.isDJ = function(userid) {
- if (!userid) userid = this.self.id;
- if (this.djs.length > 0) {
- return this.djs[0].id === userid;
- }
- return false;
+    if (!userid) userid = this.self.id;
+    if (this.djs.length > 0) {
+        return this.djs[0].id === userid;
+    }
+    return false;
  };
 
  Room.prototype.isInWaitList = function(userid) {
- if (!userid) userid = this.self.id;
- return this.getWaitListPosition(userid) > -1;
- };*/
+     if (!userid) userid = this.self.id;
+     return this.getWaitListPosition(userid) > -1;
+ };
+*/
 
 Room.prototype.reset = function() {
     this.booth = {
