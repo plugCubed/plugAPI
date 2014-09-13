@@ -77,7 +77,13 @@ var eventTypes = {
     VOTE: 'vote'
 };
 
-var ws, p3Socket, initialized, commandPrefix, apiId, that, _authCode, _cookies, chatHistory, historyID, serverRequests, room, connectingRoomSlug, rpcHandlers, logger;
+/**
+ * That is this and this is that
+ * @type {PlugAPI}
+ */
+var that = null;
+
+var ws, p3Socket, initialized, commandPrefix, apiId, _authCode, _cookies, chatHistory, historyID, serverRequests, room, connectingRoomSlug, rpcHandlers, logger;
 ws = null;
 p3Socket = null;
 initialized = false;
@@ -85,7 +91,6 @@ commandPrefix = '!';
 apiId = 0;
 chatHistory = [];
 connectingRoomSlug = null;
-that = null;
 _authCode = '';
 _cookies = {
     cookies: {},
@@ -733,10 +738,6 @@ var PlugAPI = function(authenticationData) {
         }
     }
 
-    /**
-     * That is this and this is that
-     * @type {PlugAPI}
-     */
     that = this;
 
     /**

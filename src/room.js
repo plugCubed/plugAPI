@@ -19,6 +19,7 @@ var Room = function() {
         this.notifications = data.notifications ? data.notifications : undefined;
         this.pVibes = data.pVibes ? data.pVibes : undefined;
         this.pw = data.pw ? data.pw : false;
+        this.role = data.role ? data.role : 0;
         this.slug = data.slug ? data.slug : '';
         this.status = data.status ? data.status : 0;
         this.username = data.username ? data.username : '';
