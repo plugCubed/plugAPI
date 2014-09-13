@@ -15,7 +15,7 @@
         "name": "Chris Bellew",
         "email": "atomjack@gmail.com"
     }],
-    "main": "./bin/client.js",
+    "main": "./src/client.js",
     "keywords": [
         "plug.dj",
         "plug",
