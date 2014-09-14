@@ -93,8 +93,7 @@ Room.prototype.usersToArray = function(ids) {
     for (var i in ids) {
         if (!ids.hasOwnProperty(i)) continue;
         user = this.getUser(ids[i]);
-        if (user != null)
-            users.push(user);
+        if (user != null) users.push(user);
     }
     return users;
 };
@@ -185,20 +184,20 @@ Room.prototype.getPermissionsID = function(uid) {
  if (!userid) userid = this.self.id;
  return this.staff[userid] != null;
  };
+ */
 
- Room.prototype.isDJ = function(userid) {
+Room.prototype.isDJ = function(userid) {
     if (!userid) userid = this.self.id;
-    if (this.djs.length > 0) {
-        return this.djs[0].id === userid;
+    if (this.booth.waitingDJs.length > 0) {
+        return this.booth.waitingDJs[0].id === userid;
     }
     return false;
- };
+};
 
- Room.prototype.isInWaitList = function(userid) {
-     if (!userid) userid = this.self.id;
-     return this.getWaitListPosition(userid) > -1;
- };
-*/
+Room.prototype.isInWaitList = function(userid) {
+    if (!userid) userid = this.self.id;
+    return this.getWaitListPosition(userid) > -1;
+};
 
 /**
  * Reset all room variables
@@ -252,8 +251,7 @@ Room.prototype.addUser = function(user) {
     if (user.id === this.self.id) return;
 
     // Only add if the user doesn't exist
-    if (this.getUser(user.id) === null)
-        this.users.push(user);
+    if (this.getUser(user.id) === null) this.users.push(user);
 };
 
 /**
@@ -458,8 +456,7 @@ Room.prototype.getUser = function(userid) {
     if (!userid || userid === this.getSelf().id) return this.getSelf();
     for (var i in this.users) {
         if (!this.users.hasOwnProperty(i)) continue;
-        if (this.users[i].id === userid)
-            return new this.User(this.users[i]);
+        if (this.users[i].id === userid) return new this.User(this.users[i]);
     }
     return null;
 };
@@ -503,7 +500,8 @@ Room.prototype.getWaitList = function() {
  * If not in waitlist, it returns -1
  */
 Room.prototype.getWaitListPosition = function(uid) {
-    var djs = this.getDJs(), spot = 0;
+    var djs = this.getDJs(),
+        spot = 0;
     for (var i in djs) {
         if (djs.hasOwnProperty(i)) {
             if (djs[i].id === uid) {
@@ -516,7 +514,8 @@ Room.prototype.getWaitListPosition = function(uid) {
 };
 
 Room.prototype.getAudience = function() {
-    var audience = [], _ref;
+    var audience = [],
+        _ref;
     _ref = [this.self].concat(this.users);
     for (var i in _ref) {
         if (!_ref.hasOwnProperty(i)) continue;
@@ -544,7 +543,8 @@ Room.prototype.getAudience = function() {
  };
  */
 Room.prototype.getStaff = function() {
-    var staff = [], _ref;
+    var staff = [],
+        _ref;
     _ref = [this.self].concat(this.users);
     for (var i in _ref) {
         if (!_ref.hasOwnProperty(i)) continue;
@@ -598,12 +598,13 @@ Room.prototype.setHistory = function(data) {
 
 Room.prototype.getRoomScore = function() {
     var result = {
-        positive: 0,
-        listeners: Math.max(this.getUsers().length - 1, 0),
-        grabs: 0,
-        negative: 0,
-        skipped: 0
-    }, i;
+            positive: 0,
+            listeners: Math.max(this.getUsers().length - 1, 0),
+            grabs: 0,
+            negative: 0,
+            skipped: 0
+        },
+        i;
     var _ref = this.votes;
     for (i in _ref) {
         if (!_ref.hasOwnProperty(i)) continue;
