@@ -101,11 +101,49 @@ Room.prototype.usersToArray = function(ids) {
 
 /**
  * Implementation of plug.dj methods
- * Gets the permissions over another user
+ * Gets the permissions over another user by user object
+ * @param {Room.User} other
+ * @return {{canModChat: boolean, canModMute: boolean, canModBan: boolean, canModStaff: boolean}}
+ */
+Room.prototype.getPermissions = function(other) {
+    var me;
+    me = this.getSelf();
+
+    var permissions = {
+        canModChat: false,
+        canModMute: false,
+        canModBan: false,
+        canModStaff: false
+    };
+
+    if (other.gRole === 0) {
+        if (me.gRole === 5) {
+            permissions.canModChat = true;
+            permissions.canModBan = true;
+        } else {
+            permissions.canModChat = me.role > 1 && Math.max(me.role, me.gRole) > other.role;
+            permissions.canModBan = me.role > other.role;
+        }
+    }
+
+    if (me.gRole === 5) {
+        permissions.canModStaff = true;
+    } else if (other.gRole !== 5) {
+        permissions.canModStaff = Math.max(me.role, me.gRole) > Math.max(other.role, other.gRole);
+    }
+
+    permissions.canModMute = !(other.role > 0 || other.gRole > 0);
+
+    return permissions;
+};
+
+/**
+ * Implementation of plug.dj methods
+ * Gets the permissions over another user by userID
  * @param {Number} uid Other userID
  * @return {{canModChat: boolean, canModMute: boolean, canModBan: boolean, canModStaff: boolean}}
  */
-Room.prototype.getPermissions = function(uid) {
+Room.prototype.getPermissionsID = function(uid) {
     var me, other;
     me = this.getSelf();
     other = this.getUser(uid);
