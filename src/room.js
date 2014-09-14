@@ -188,10 +188,7 @@ Room.prototype.getPermissionsID = function(uid) {
 
 Room.prototype.isDJ = function(userid) {
     if (!userid) userid = this.self.id;
-    if (this.booth.waitingDJs.length > 0) {
-        return this.booth.waitingDJs[0].id === userid;
-    }
-    return false;
+    return this.booth.currentDJ === userid;
 };
 
 Room.prototype.isInWaitList = function(userid) {
@@ -520,7 +517,7 @@ Room.prototype.getAudience = function() {
     for (var i in _ref) {
         if (!_ref.hasOwnProperty(i)) continue;
         var userID = _ref[i].id;
-        if (this.booth.currentDJ != userID && this.booth.waitingDJs.indexOf(userID) < 0) {
+        if (this.booth.currentDJ !== userID && this.booth.waitingDJs.indexOf(userID) < 0) {
             audience.push(userID);
         }
     }
