@@ -27,23 +27,21 @@
         "request": "*",
         "source-map-support": "*",
         "sockjs-client-node": "https://github.com/TATDK/sockjs-client-node/tarball/master",
-        "eventemitter2": "*"
+        "eventemitter2": "*",
+        "deasync": "*"
     },
     "devDependencies": {
         "grunt": "*",
         "grunt-closurecompiler": "*",
         "grunt-execute": "*"
     },
-    "optionalDependencies": {
-        "deasync": "*"
-    },
     "repository": {
         "type": "git",
-        "url": "https://github.com/TATDK/plugapi"
+        "url": "https://github.com/plugCubed/plugAPI"
     },
     "license": {
         "type": "MIT",
-        "url": "https://github.com/TATDK/plugapi/blob/master/LICENSE.md"
+        "url": "https://github.com/plugCubed/plugAPI/blob/master/LICENSE.md"
     },
     "engines": {
         "node": ">= 0.10.0"

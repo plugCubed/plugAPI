@@ -1,4 +1,4 @@
-plugapi
+plugAPI
 =======
 
 [![NPM](https://nodei.co/npm/plugapi.png?downloads=true)](https://nodei.co/npm/plugapi/)
@@ -6,6 +6,8 @@ plugapi
 A generic API for creating plug.dj bots.
 
 Originally by [Chris Vickery](https://github.com/chrisinajar), now maintained by [TAT](https://github.com/TATDK).
+
+**NOTE:** Currently not supporting facebook login.
 
 ## How to use
 Run the following:
@@ -18,14 +20,8 @@ To connect, do this!
 var PlugAPI = require('plugapi');
 
 var bot = new PlugAPI({
-    "type": "cookie", // cookie or email
-    "cookies": {
-        "session": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx|xxxxxxx|xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-    },
-    "login": {
-        "email": "",
-        "password": ""
-    }
+    "email": "",
+    "password": ""
 });
 bot.connect('roomslug'); // The part after https://plug.dj
 

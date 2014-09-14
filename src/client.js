@@ -1,9 +1,11 @@
 // Node.JS Core Modules
-var net, http, util, zlib;
+var net, http, util, zlib, path, fs;
 net = require('net');
 http = require('http');
 util = require('util');
 zlib = require('zlib');
+path = require('path');
+fs = require('fs');
 
 // Third-party modules
 var EventEmitter, SockJS, request, WebSocket, encoder;
@@ -27,10 +29,10 @@ encoder = require('node-html-encoder').Encoder('entity');
 require('../colors.js');
 
 // plugAPI
-var Room, PlugAPIInfo;
+var Room, PlugAPIInfo, endpoints;
 Room = require('./room');
 PlugAPIInfo = require('../package.json');
-var endpoints = {
+endpoints = {
     CHAT_DELETE: 'chat/',
     MODERATE_ADD_DJ: 'booth/add',
     MODERATE_BAN: 'bans/add',
@@ -50,53 +52,6 @@ var endpoints = {
     USER_SET_STATUS: 'users/status'
 };
 
-var eventTypes = {
-    ADVANCE: 'advance',
-    BAN: 'ban',
-    BOOTH_CYCLE: 'boothCycle',
-    BOOTH_LOCKED: 'boothLocked',
-    CHAT: 'chat',
-    CHAT_COMMAND: 'command',
-    CHAT_DELETE: 'chatDelete',
-    CHAT_EMOTE: 'emote',
-    COMMAND: 'command',
-    DJ_LIST_UPDATE: 'djListUpdate',
-    EMOTE: 'emote',
-    FOLLOW_JOIN: 'followJoin',
-    GRAB: 'grab',
-    MODERATE_ADD_DJ: 'modAddDJ',
-    MODERATE_ADD_WAITLIST: 'modAddWaitList',
-    MODERATE_AMBASSADOR: 'modAmbassador',
-    MODERATE_BAN: 'modBan',
-    MODERATE_MOVE_DJ: 'modMoveDJ',
-    MODERATE_MUTE: 'modMute',
-    MODERATE_REMOVE_DJ: 'modRemoveDJ',
-    MODERATE_REMOVE_WAITLIST: 'modRemoveWaitList',
-    MODERATE_SKIP: 'modSkip',
-    MODERATE_STAFF: 'modStaff',
-    PDJ_MESSAGE: 'pdjMessage',
-    PDJ_UPDATE: 'pdjUpdate',
-    PING: 'ping',
-    PLAYLIST_CYCLE: 'playlistCycle',
-    REQUEST_DURATION: 'requestDuration',
-    REQUEST_DURATION_RETRY: 'requestDurationRetry',
-    ROOM_CHANGE: 'roomChanged',
-    ROOM_DESCRIPTION_UPDATE: 'roomDescriptionUpdate',
-    ROOM_JOIN: 'roomJoin',
-    ROOM_NAME_UPDATE: 'roomNameUpdate',
-    ROOM_VOTE_SKIP: 'roomVoteSkip',
-    ROOM_WELCOME_UPDATE: 'roomWelcomeUpdate',
-    SESSION_CLOSE: 'sessionClose',
-    SKIP: 'skip',
-    STROBE_TOGGLE: 'strobeToggle',
-    USER_COUNTER_UPDATE: 'userCounterUpdate',
-    USER_FOLLOW: 'userFollow',
-    USER_JOIN: 'userJoin',
-    USER_LEAVE: 'userLeave',
-    USER_UPDATE: 'userUpdate',
-    VOTE: 'vote'
-};
-
 /**
  * That is this and this is that
  * @type {PlugAPI}
@@ -114,6 +69,13 @@ connectingRoomSlug = null;
 _authCode = '';
 _cookies = {
     cookies: {},
+    path: path.resolve(__dirname, '..', 'cookies.tmp'),
+    load: function() {
+        this.cookies = JSON.parse(fs.readFileSync(this.path));
+    },
+    save: function() {
+        fs.writeFileSync(this.path, JSON.stringify(this.cookies));
+    },
     fromHeaders: function(headers) {
         for (var i in headers) {
             if (!headers.hasOwnProperty(i)) continue;
@@ -166,14 +128,16 @@ logger = {
     }
 };
 
-http.OutgoingMessage.prototype.__renderHeaders = http.OutgoingMessage.prototype._renderHeaders;
-http.OutgoingMessage.prototype._renderHeaders = function() {
-    if (this._header) {
-        throw new Error('Can\'t render headers after they are sent to the client.');
-    }
-    this.setHeader('Cookie', _cookies.toString());
-    return this.__renderHeaders();
-};
+/*
+ http.OutgoingMessage.prototype.__renderHeaders = http.OutgoingMessage.prototype._renderHeaders;
+ http.OutgoingMessage.prototype._renderHeaders = function() {
+ if (this._header) {
+ throw new Error('Can\'t render headers after they are sent to the client.');
+ }
+ this.setHeader('Cookie', _cookies.toString());
+ return this.__renderHeaders();
+ };
+ */
 
 function __bind(fn, me) {
     return function() {
@@ -227,12 +191,7 @@ var DateUtilities = {
         return (t.getFullYear() - e.getFullYear()) * 12 + (t.getMonth() - e.getMonth());
     },
     daysSince: function(e) {
-        var t = this.ServerDate(),
-            n = t.getTime(),
-            r = e.getTime(),
-            i = 864e5,
-            s = (n - r) / i,
-            o = (n - r) % i / i;
+        var t = this.ServerDate(), n = t.getTime(), r = e.getTime(), i = 864e5, s = (n - r) / i, o = (n - r) % i / i;
         if (o > 0 && o * i > this.secondsSinceMidnight(t) * 1e3) {
             s++;
         }
@@ -284,8 +243,7 @@ var DateUtilities = {
 
 function queueTicker() {
     serverRequests.running = true;
-    var canSend = serverRequests.sent < serverRequests.limit,
-        obj = serverRequests.queue.pop();
+    var canSend = serverRequests.sent < serverRequests.limit, obj = serverRequests.queue.pop();
     if (canSend && obj) {
         serverRequests.sent++;
         if (obj.type == 'rest') {
@@ -313,7 +271,14 @@ function queueREST(method, endpoint, data, successCallback, failureCallback, ski
         return;
     }
 
-    successCallback = typeof successCallback === 'function' ? __bind(successCallback, that) : function() {};
+    if (!endpoint) {
+        console.error('Missing endpoint'.red);
+        console.log(method, endpoint, data);
+        return;
+    }
+
+    successCallback = typeof successCallback === 'function' ? __bind(successCallback, that) : function() {
+    };
     failureCallback = typeof failureCallback === 'function' ? __bind(failureCallback, that) : function() {
         // Retry
         queueREST(method, endpoint, data, successCallback, failureCallback, skipQueue);
@@ -358,17 +323,17 @@ function sendREST(opts, successCallback, failureCallback) {
             failureCallback(err);
             return;
         }
-        try {
-            body = JSON.parse(body);
-            if (body.status === 'ok') {
-                successCallback(body.data);
-            } else {
-                failureCallback(body.status, body.data);
-            }
-        } catch (e) {
-            logger.log('[REST Error]'.red, e);
-            failureCallback(e);
+        //try {
+        body = JSON.parse(body);
+        if (body.status === 'ok') {
+            successCallback(body.data);
+        } else {
+            failureCallback(body.status, body.data);
         }
+        /*} catch (e) {
+         logger.log('[REST Error]'.red, e);
+         failureCallback(e);
+         }*/
     });
 }
 
@@ -377,9 +342,6 @@ function joinRoom(roomSlug, callback) {
         slug: roomSlug
     }, function() {
         queueREST('GET', 'rooms/state', undefined, function(data) {
-            // TODO: Remove debugging
-            require('fs').writeFileSync('roomState.json', JSON.stringify(data[0], null, 4));
-
             connectingRoomSlug = null;
             initRoom(data[0], function() {
                 if (typeof callback === 'function') {
@@ -393,10 +355,6 @@ function joinRoom(roomSlug, callback) {
             joinRoom(roomSlug, callback);
         }, 1e3);
     });
-}
-
-function send(data) {
-    return client.send(data);
 }
 
 function receivedChatMessage(m) {
@@ -425,24 +383,22 @@ function receivedChatMessage(m) {
                 return that.sendChat('@' + m.un + ' ' + message);
             },
             respondTimeout: function() {
-                var args = Array.prototype.slice.call(arguments),
-                    timeout = args.splice(args.length - 1, 1),
-                    message = args.join(' ');
+                var args = Array.prototype.slice.call(arguments), timeout = args.splice(args.length - 1, 1), message = args.join(' ');
                 if (isPM) {
                     return intPM(this.from, message);
                 }
                 return that.sendChat('@' + m.un + ' ' + message, timeout);
             },
-            haveRoomPermission: function(permission, success, failure) {
+            havePermission: function(permission, successCallback, failureCallback) {
                 if (permission === undefined) permission = 0;
-                if (this.from.role >= permission) {
-                    if (typeof success === 'function') {
-                        success();
+                if (that.havePermission(this.from.id, permission)) {
+                    if (typeof successCallback === 'function') {
+                        successCallback();
                     }
                     return true;
                 }
-                if (typeof failure === 'function') {
-                    failure();
+                if (typeof failureCallback === 'function') {
+                    failureCallback();
                 }
                 return false;
             },
@@ -467,8 +423,7 @@ function receivedChatMessage(m) {
         allUsers = room.getUsers();
         random = Math.ceil(Math.random() * 1E10);
         while (lastIndex > -1) {
-            var test = obj.args.substr(lastIndex),
-                found = null;
+            var test = obj.args.substr(lastIndex), found = null;
             for (i in allUsers) {
                 if (allUsers.hasOwnProperty(i) && test.indexOf(allUsers[i].username) === 1) {
                     if (found === null || allUsers[i].username.length > found.username.length) {
@@ -492,21 +447,21 @@ function receivedChatMessage(m) {
                 obj.args[obj.args.indexOf('%MENTION-' + random + '-' + i + '%')] = obj.mentions[i];
             }
         }
-        that.emit(eventTypes.CHAT_COMMAND, obj);
-        that.emit(eventTypes.CHAT_COMMAND + ':' + cmd, obj);
+        that.emit(PlugAPI.events.CHAT_COMMAND, obj);
+        that.emit(PlugAPI.events.CHAT_COMMAND + ':' + cmd, obj);
         if (that.deleteCommands) {
             that.moderateDeleteChat(m.cid);
         }
     } else if (m.type == 'emote') {
-        that.emit(eventTypes.CHAT_EMOTE, m);
+        that.emit(PlugAPI.events.CHAT_EMOTE, m);
     }
     if (m.type == 'pm') {
         that.emit('pm', m);
     } else {
-        that.emit(eventTypes.CHAT, m);
-        that.emit(eventTypes.CHAT + ':' + m.type, m);
+        that.emit(PlugAPI.events.CHAT, m);
+        that.emit(PlugAPI.events.CHAT + ':' + m.type, m);
         if (room.getUser() !== null && m.message.indexOf('@' + room.getUser().username) > -1) {
-            that.emit(eventTypes.CHAT + ':mention', m);
+            that.emit(PlugAPI.events.CHAT + ':mention', m);
             that.emit('mention', m);
         }
     }
@@ -571,8 +526,7 @@ function connectSocket(roomSlug) {
         that.emit('server:socket:connected');
     });
     ws.on('message', function(data) {
-        var type = data.slice(0, 1),
-            payload;
+        var type = data.slice(0, 1), payload;
         switch (type) {
             case 'a':
                 payload = JSON.parse(data.slice(1) || '[]');
@@ -596,14 +550,14 @@ function connectSocket(roomSlug) {
         logger.log('[Socket Server] Error:'.red, a);
         process.nextTick(function() {
             logger.log('[Socket Server] Reconnecting');
-            queueConnectSocket(room.meta.slug ? room.meta.slug : roomSlug);
+            queueConnectSocket(room.getRoomMeta().slug ? room.getRoomMeta().slug : roomSlug);
         });
     });
     ws.on('close', function(a) {
         logger.log('[Socket Server] Closed with code'.red, a);
         process.nextTick(function() {
             logger.log('[Socket Server] Reconnecting');
-            queueConnectSocket(room.meta.slug ? room.meta.slug : roomSlug);
+            queueConnectSocket(room.getRoomMeta().slug ? room.getRoomMeta().slug : roomSlug);
         });
     });
 }
@@ -611,7 +565,7 @@ function connectSocket(roomSlug) {
 function initRoom(data, callback) {
     room.reset();
     room.setRoomData(data);
-    that.emit(eventTypes.ADVANCE, {
+    that.emit(PlugAPI.events.ADVANCE, {
         currentDJ: room.getDJ(),
         djs: room.getDJs(),
         lastPlay: {
@@ -624,7 +578,7 @@ function initRoom(data, callback) {
         historyID: data.playback.historyID
     });
     queueREST('GET', 'rooms/history', undefined, __bind(room.setHistory, room));
-    that.emit(eventTypes.ROOM_JOIN, data.meta.name);
+    that.emit(PlugAPI.events.ROOM_JOIN, data.meta.name);
     initialized = true;
     return callback();
 }
@@ -637,7 +591,7 @@ function messageHandler(msg) {
                 joinRoom(connectingRoomSlug);
             });
             break;
-        case eventTypes.CHAT:
+        case PlugAPI.events.CHAT:
             chatHistory.push(msg.p);
 
             // If over limit, remove the first item
@@ -645,16 +599,16 @@ function messageHandler(msg) {
 
             receivedChatMessage(msg.p);
             return;
-        case eventTypes.CHAT_DELETE:
+        case PlugAPI.events.CHAT_DELETE:
             for (var i in chatHistory) {
                 if (!chatHistory.hasOwnProperty(i)) continue;
                 if (chatHistory[i].cid == msg.p.c) chatHistory.splice(i, 1);
             }
             break;
-        case eventTypes.USER_JOIN:
+        case PlugAPI.events.USER_JOIN:
             room.addUser(msg.p);
             break;
-        case eventTypes.USER_LEAVE:
+        case PlugAPI.events.USER_LEAVE:
             var userData = room.getUser(msg.p);
             if (userData == null) {
                 userData = {
@@ -664,17 +618,17 @@ function messageHandler(msg) {
             room.removeUser(msg.p);
             that.emit(msg.a, userData);
             return;
-        case eventTypes.USER_UPDATE:
+        case PlugAPI.events.USER_UPDATE:
             room.updateUser(msg.p);
             that.emit(msg.a, that.getUser(msg.p.i));
             return;
-        case eventTypes.VOTE:
+        case PlugAPI.events.VOTE:
             room.setVote(msg.p.i, msg.p.v);
             break;
-        case eventTypes.GRAB:
+        case PlugAPI.events.GRAB:
             room.setGrab(msg.p);
             break;
-        case eventTypes.ADVANCE:
+        case PlugAPI.events.ADVANCE:
             var advanceEvent = {
                 currentDJ: msg.p.c,
                 djs: msg.p.d,
@@ -691,7 +645,7 @@ function messageHandler(msg) {
             historyID = msg.p.h;
             that.emit(msg.type, advanceEvent);
             return;
-        case eventTypes.DJ_LIST_UPDATE:
+        case PlugAPI.events.DJ_LIST_UPDATE:
             room.setDJs(msg.p);
             break;
         case 'earn':
@@ -707,71 +661,79 @@ function messageHandler(msg) {
 }
 
 var PlugAPI = function(authenticationData) {
-    if (!authenticationData || !authenticationData.type) {
+    if (!authenticationData) {
         throw new Error('You must pass the authentication data into the PlugAPI object to connect correctly'.red);
     } else {
-        switch (authenticationData.type) {
-            case 'email':
-                if (!authenticationData.login.email) {
-                    throw new Error('Missing login e-mail'.red);
+        if (!authenticationData.email) {
+            throw new Error('Missing login e-mail'.red);
+        }
+        if (!authenticationData.password) {
+            throw new Error('Missing login password'.red);
+        }
+        var deasync = require('deasync');
+        var loggingIn = true, loggedIn = false;
+        if (fs.existsSync(_cookies.path)) {
+            _cookies.load();
+            request.get('https://plug.dj/_/users/me', {
+                headers: {
+                    'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
+                    Cookie: _cookies.toString()
                 }
-                if (!authenticationData.login.password) {
-                    throw new Error('Missing login password'.red);
+            }, function(err, res) {
+                if (res.statusCode === 200) {
+                    loggedIn = true;
                 }
-                var deasync;
-                try {
-                    deasync = require('deasync');
-                } catch (e) {
-                    throw new Error('Error loading module deasync. Try running `npm install deasync`.');
+                loggingIn = false;
+            });
+            // Wait until the session is set
+            while (loggingIn) {
+                deasync.sleep(100);
+            }
+        }
+        if (!loggedIn) {
+            loggingIn = true;
+
+            request.get('https://plug.dj/', {
+                headers: {
+                    'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
+                    Cookie: _cookies.toString()
                 }
-                var loggingIn = true;
-                request.get('https://plug.dj/', {
+            }, function(err, res, body) {
+                var csrfToken;
+
+                _cookies.fromHeaders(res.headers);
+
+                csrfToken = body.split('_csrf')[1].split('"')[1];
+
+                request({
+                    method: 'POST',
+                    uri: 'https://plug.dj/_/auth/login',
                     headers: {
-                        'User-Agent': 'plugAPI_' + PlugAPIInfo.version
+                        'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
+                        Cookie: _cookies.toString()
+                    },
+                    json: {
+                        csrf: csrfToken,
+                        email: authenticationData.email,
+                        password: authenticationData.password
                     }
-                }, function(err, res, body) {
-                    var csrfToken;
-
-                    _cookies.fromHeaders(res.headers);
-
-                    csrfToken = body.split('_csrf')[1].split('"')[1];
-
-                    request({
-                        method: 'POST',
-                        uri: 'https://plug.dj/_/auth/login',
-                        headers: {
-                            'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
-                            Cookie: _cookies.toString()
-                        },
-                        json: {
-                            csrf: csrfToken,
-                            email: authenticationData.login.email,
-                            password: authenticationData.login.password
-                        }
-                    }, function(err, res, data) {
-                        if (data.status !== 'ok') {
-                            console.log('LOGIN ERROR: '.red + data.status);
-                            process.exit(1);
-                        } else {
-                            _cookies.fromHeaders(res.headers);
-                            loggingIn = false;
-                        }
-                    });
+                }, function(err, res, data) {
+                    if (data.status !== 'ok') {
+                        console.log('LOGIN ERROR: '.red + data.status);
+                        process.exit(1);
+                    } else {
+                        _cookies.fromHeaders(res.headers);
+                        _cookies.save();
+                        loggedIn = true;
+                        loggingIn = false;
+                    }
                 });
-                // Wait until the session is set
-                while (loggingIn) {
-                    deasync.sleep(100);
-                }
-                break;
-            case 'cookie':
-                if (authenticationData.cookies.session) {
-                    _cookies.cookies['session'] = authenticationData.cookies.session;
-                } else {
-                    throw new Error('Missing session cookie value'.red);
-                }
-                break;
-            default:
-                throw new Error('Unknown authentication type'.red);
+            });
+
+            // Wait until the session is set
+            while (loggingIn) {
+                deasync.sleep(100);
+            }
         }
     }
 
@@ -799,76 +761,144 @@ var PlugAPI = function(authenticationData) {
      */
     this.deleteCommands = true;
 
+    room.registerUserExtensions(this);
+
     /**
-     * Add the user to the waitlist
+     * Pre-command Handler
+     * @return {boolean} If false, the command is not getting handled.
      */
-    room.User.prototype.addToWaitList = function() {
-        that.moderateAddDJ(this.id);
-    };
-    /**
-     * Remove the user from the waitlist
-     */
-    room.User.prototype.removeFromWaitList = function() {
-        that.moderateRemoveDJ(this.id);
-    };
-    /**
-     * Move the user to a new position in the waitlist
-     * @param {int} pos New position
-     */
-    room.User.prototype.moveInWaitList = function(pos) {
-        that.moderateMoveDJ(this.id, pos);
-    };
-
-    this.ROOM_ROLE = {
-        NONE: 0,
-        RESIDENTDJ: 1,
-        BOUNCER: 2,
-        MANAGER: 3,
-        COHOST: 4,
-        HOST: 5
-    };
-
-    this.GLOBAL_ROLES = {
-        NONE: 0,
-        AMBASSADOR: 3,
-        ADMIN: 5
-    };
-
-    this.STATUS = {
-        AVAILABLE: 0,
-        AFK: 1,
-        WORKING: 2,
-        GAMING: 3
-    };
-  
-    this.BAN = {
-        HOUR: 'h',
-        DAY: 'd',
-        PERMA: 'f'
-    };
-
-    this.MUTE = {
-        SHORT: 's',
-        MEDIUM: 'm',
-        LONG: 'l'
-    };
-
-    this.events = eventTypes;
-
     this.preCommandHandler = function() {
         return true;
     };
 
-    /**
-     * Logger
-     */
-    this.log = __bind(logger.log, logger);
-
-    logger.log('Running plugAPI v.' + PlugAPIInfo.version + '-dev');
-    logger.log('THIS IS A UNSTABLE VERSION! DO NOT USE FOR PRODUCTION!'.red);
+    this.log('Running plugAPI v.' + PlugAPIInfo.version + '-dev');
+    this.log('THIS IS A UNSTABLE VERSION! DO NOT USE FOR PRODUCTION!'.red);
 };
 
 util.inherits(PlugAPI, EventEmitter);
+
+/**
+ * Room ranks
+ * @type {{NONE: number, RESIDENTDJ: number, BOUNCER: number, MANAGER: number, COHOST: number, HOST: number}}
+ * @const
+ */
+PlugAPI.ROOM_ROLE = {
+    NONE: 0,
+    RESIDENTDJ: 1,
+    BOUNCER: 2,
+    MANAGER: 3,
+    COHOST: 4,
+    HOST: 5
+};
+
+/**
+ * Global Ranks
+ * @type {{NONE: number, VOLUNTEER: number, AMBASSADOR: number, LEADER: number, ADMIN: number}}
+ * @const
+ */
+PlugAPI.GLOBAL_ROLES = {
+    NONE: 0,
+    VOLUNTEER: 2,
+    AMBASSADOR: 3,
+    LEADER: 4,
+    ADMIN: 5
+};
+
+/**
+ * Statuses
+ * @type {{AVAILABLE: number, AFK: number, WORKING: number, GAMING: number}}
+ * @const
+ */
+PlugAPI.STATUS = {
+    AVAILABLE: 0,
+    AFK: 1,
+    WORKING: 2,
+    GAMING: 3
+};
+
+/**
+ * Ban Lengths
+ * @type {{HOUR: string, DAY: string, PERMA: string}}
+ * @const
+ */
+PlugAPI.BAN = {
+    HOUR: 'h',
+    DAY: 'd',
+    PERMA: 'f'
+};
+
+/**
+ * Mute Lengths
+ * Short: 15 minutes
+ * Medium: 30 minutes
+ * Long: 45 minutes
+ * @type {{SHORT: string, MEDIUM: string, LONG: string}}
+ * @const
+ */
+PlugAPI.MUTE = {
+    SHORT: 's',
+    MEDIUM: 'm',
+    LONG: 'l'
+};
+
+/**
+ * Event Types
+ * @type {Array}
+ * @const
+ */
+PlugAPI.events = {
+    ADVANCE: 'advance',
+    BAN: 'ban',
+    BOOTH_CYCLE: 'boothCycle',
+    BOOTH_LOCKED: 'boothLocked',
+    CHAT: 'chat',
+    CHAT_COMMAND: 'command',
+    CHAT_DELETE: 'chatDelete',
+    CHAT_EMOTE: 'emote',
+    COMMAND: 'command',
+    DJ_LIST_UPDATE: 'djListUpdate',
+    EMOTE: 'emote',
+    FOLLOW_JOIN: 'followJoin',
+    GRAB: 'grab',
+    MODERATE_ADD_DJ: 'modAddDJ',
+    MODERATE_ADD_WAITLIST: 'modAddWaitList',
+    MODERATE_AMBASSADOR: 'modAmbassador',
+    MODERATE_BAN: 'modBan',
+    MODERATE_MOVE_DJ: 'modMoveDJ',
+    MODERATE_MUTE: 'modMute',
+    MODERATE_REMOVE_DJ: 'modRemoveDJ',
+    MODERATE_REMOVE_WAITLIST: 'modRemoveWaitList',
+    MODERATE_SKIP: 'modSkip',
+    MODERATE_STAFF: 'modStaff',
+    PDJ_MESSAGE: 'pdjMessage',
+    PDJ_UPDATE: 'pdjUpdate',
+    PING: 'ping',
+    PLAYLIST_CYCLE: 'playlistCycle',
+    REQUEST_DURATION: 'requestDuration',
+    REQUEST_DURATION_RETRY: 'requestDurationRetry',
+    ROOM_CHANGE: 'roomChanged',
+    ROOM_DESCRIPTION_UPDATE: 'roomDescriptionUpdate',
+    ROOM_JOIN: 'roomJoin',
+    ROOM_NAME_UPDATE: 'roomNameUpdate',
+    ROOM_VOTE_SKIP: 'roomVoteSkip',
+    ROOM_WELCOME_UPDATE: 'roomWelcomeUpdate',
+    SESSION_CLOSE: 'sessionClose',
+    SKIP: 'skip',
+    STROBE_TOGGLE: 'strobeToggle',
+    USER_COUNTER_UPDATE: 'userCounterUpdate',
+    USER_FOLLOW: 'userFollow',
+    USER_JOIN: 'userJoin',
+    USER_LEAVE: 'userLeave',
+    USER_UPDATE: 'userUpdate',
+    VOTE: 'vote'
+};
+
+/**
+ * Logger
+ */
+PlugAPI.prototype.log = function() {
+    logger.log.apply(logger, arguments);
+};
 
 /**
  * Close the connection
@@ -897,12 +927,12 @@ PlugAPI.prototype.setCommandPrefix = function(prefix) {
 
 /**
  * Set the logger object, must contain a log function
- * @param {Object} logger
+ * @param {Object} newLogger
  * @returns {boolean} True if set
  */
-PlugAPI.prototype.setLogger = function(logger) {
-    if (logger && typeof logger === 'object' && !util.isArray(logger) && typeof logger.log === 'function') {
-        this.logger = logger;
+PlugAPI.prototype.setLogger = function(newLogger) {
+    if (newLogger && typeof newLogger === 'object' && !util.isArray(newLogger) && typeof newLogger.log === 'function') {
+        logger = newLogger;
         return true;
     }
     return false;
@@ -961,7 +991,7 @@ PlugAPI.prototype.sendChat = function(msg, timeout) {
 
 /**
  * Woot
- * @param {Function} callback
+ * @param {Function} [callback]
  */
 PlugAPI.prototype.woot = function(callback) {
     queueREST('POST', 'votes', {
@@ -972,7 +1002,7 @@ PlugAPI.prototype.woot = function(callback) {
 
 /**
  * Meh
- * @param {Function} callback
+ * @param {Function} [callback]
  */
 PlugAPI.prototype.meh = function(callback) {
     queueREST('POST', 'votes', {
@@ -1007,8 +1037,14 @@ PlugAPI.prototype.getHistory = function(callback) {
     });
 };
 
+/**
+ * Change the name of the community
+ * @param {String} name
+ * @param {Function} [callback]
+ * @return {boolean}
+ */
 PlugAPI.prototype.changeRoomName = function(name, callback) {
-    if (!room.meta.slug || !this.haveRoomPermission(undefined, this.ROOM_ROLE.COHOST)) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST)) {
         return false;
     }
     queueREST('POST', endpoints.ROOM_INFO, {
@@ -1020,7 +1056,7 @@ PlugAPI.prototype.changeRoomName = function(name, callback) {
 };
 
 PlugAPI.prototype.changeRoomDescription = function(description, callback) {
-    if (!room.meta.slug || !this.haveRoomPermission(undefined, this.ROOM_ROLE.COHOST)) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST)) {
         return false;
     }
     queueREST('POST', endpoints.ROOM_INFO, {
@@ -1031,7 +1067,7 @@ PlugAPI.prototype.changeRoomDescription = function(description, callback) {
     return true;
 };
 PlugAPI.prototype.changeRoomWelcome = function(welcome, callback) {
-    if (!room.meta.slug || !this.haveRoomPermission(undefined, this.ROOM_ROLE.COHOST)) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST)) {
         return false;
     }
     queueREST('POST', endpoints.ROOM_INFO, {
@@ -1042,7 +1078,7 @@ PlugAPI.prototype.changeRoomWelcome = function(welcome, callback) {
     return true;
 };
 PlugAPI.prototype.changeDJCycle = function(enabled, callback) {
-    if (!room.meta.slug || !this.haveRoomPermission(undefined, this.ROOM_ROLE.MANAGER)) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
         return false;
     }
     queueREST('POST', endpoints.ROOM_CYCLE_BOOTH, {
@@ -1052,21 +1088,21 @@ PlugAPI.prototype.changeDJCycle = function(enabled, callback) {
 };
 
 PlugAPI.prototype.getTimeElapsed = function() {
-    if (!room.meta.slug || room.getMedia() == null) {
+    if (!room.getRoomMeta().slug || room.getMedia() == null) {
         return -1;
     }
     return Math.min(room.getMedia().duration, DateUtilities.getSecondsElapsed(room.getStartTime()));
 };
 
 PlugAPI.prototype.getTimeRemaining = function() {
-    if (!room.meta.slug || room.getMedia() == null) {
+    if (!room.getRoomMeta().slug || room.getMedia() == null) {
         return -1;
     }
     return room.getMedia().duration - this.getTimeElapsed();
 };
 
 PlugAPI.prototype.joinBooth = function(callback) {
-    if (!room.meta.slug || room.isDJ() || room.isInWaitList() || (room.boothLocked && !this.haveRoomPermission(undefined, this.ROOM_ROLE.RESIDENTDJ)) || this.getDJs().length >= 50) {
+    if (!room.getRoomMeta().slug || room.isDJ() || room.isInWaitList() || (room.boothLocked && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.RESIDENTDJ)) || this.getDJs().length >= 50) {
         return false;
     }
     queueREST('POST', endpoints.MODERATE_BOOTH, undefined, callback);
@@ -1074,7 +1110,7 @@ PlugAPI.prototype.joinBooth = function(callback) {
 };
 
 PlugAPI.prototype.leaveBooth = function(callback) {
-    if (!room.meta.slug || (!room.isDJ() && !room.isInWaitList())) {
+    if (!room.getRoomMeta().slug || (!room.isDJ() && !room.isInWaitList())) {
         return false;
     }
     queueREST('DELETE', endpoints.MODERATE_BOOTH, undefined, callback);
@@ -1082,7 +1118,7 @@ PlugAPI.prototype.leaveBooth = function(callback) {
 };
 
 PlugAPI.prototype.moderateAddDJ = function(uid, callback) {
-    if (!room.meta.slug || !this.haveRoomPermission(undefined, this.ROOM_ROLE.BOUNCER) || room.isDJ(uid) || room.isInWaitList(uid) || (room.boothLocked && !this.haveRoomPermission(undefined, this.ROOM_ROLE.MANAGER))) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || room.isDJ(uid) || room.isInWaitList(uid) || (room.boothLocked && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER))) {
         return false;
     }
     queueREST('POST', endpoints.MODERATE_ADD_DJ, {
@@ -1092,7 +1128,7 @@ PlugAPI.prototype.moderateAddDJ = function(uid, callback) {
 };
 
 PlugAPI.prototype.moderateRemoveDJ = function(uid, callback) {
-    if (!room.meta.slug || !this.haveRoomPermission(undefined, this.ROOM_ROLE.BOUNCER) || (!room.isDJ(uid) && !room.isInWaitList(uid)) || (room.boothLocked && !this.haveRoomPermission(undefined, this.ROOM_ROLE.MANAGER))) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || (!room.isDJ(uid) && !room.isInWaitList(uid)) || (room.boothLocked && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER))) {
         return false;
     }
     queueREST('DELETE', endpoints.MODERATE_REMOVE_DJ + uid, undefined, callback);
@@ -1100,7 +1136,7 @@ PlugAPI.prototype.moderateRemoveDJ = function(uid, callback) {
 };
 
 PlugAPI.prototype.moderateMoveDJ = function(uid, index, callback) {
-    if (!room.meta.slug || !this.haveRoomPermission(undefined, this.ROOM_ROLE.MANAGER) || !room.isInWaitList(uid) || isNaN(index)) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER) || !room.isInWaitList(uid) || isNaN(index)) {
         return false;
     }
     queueREST('POST', endpoints.MODERATE_MOVE_DJ, {
@@ -1111,12 +1147,12 @@ PlugAPI.prototype.moderateMoveDJ = function(uid, index, callback) {
 };
 
 PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
-    if (!room.meta.slug) return false;
+    if (!room.getRoomMeta().slug) return false;
     var user = this.getUser(uid);
-    if (user ? room.getPermissions(user).canModBan : this.haveRoomPermission(undefined, this.ROOM_ROLE.BOUNCER)) {
+    if (user ? room.getPermissions(user).canModBan : this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER)) {
         reason = Number(reason || 1);
         if (!duration) duration = this.BAN.PERMA;
-        if (duration === this.BAN.PERMA && this.haveRoomPermission(undefined, this.ROOM_ROLE.BOUNCER) && !this.haveRoomPermission(undefined, this.ROOM_ROLE.MANAGER)) duration = this.BAN.DAY;
+        if (duration === this.BAN.PERMA && this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) duration = this.BAN.DAY;
         queueREST('POST', endpoints.MODERATE_BAN, {
             userID: uid,
             reason: reason,
@@ -1127,12 +1163,12 @@ PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
 };
 
 PlugAPI.prototype.moderateUnbanUser = function(uid, callback) {
-    if (!room.meta.slug || !this.haveRoomPermission(undefined, this.ROOM_ROLE.MANAGER)) return false;
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) return false;
     queueREST('DELETE', endpoints.MODERATE_UNBAN + uid, undefined, callback);
     return true;
 };
 PlugAPI.prototype.moderateForceSkip = function(callback) {
-    if (!room.meta.slug || !this.haveRoomPermission(undefined, this.ROOM_ROLE.BOUNCER) || room.getDJ() === null) return false;
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || room.getDJ() === null) return false;
     queueREST('POST', endpoints.MODERATE_SKIP, {
         userID: room.getDJ().id,
         historyID: historyID
@@ -1141,9 +1177,9 @@ PlugAPI.prototype.moderateForceSkip = function(callback) {
 };
 
 PlugAPI.prototype.moderateDeleteChat = function(cid, callback) {
-    if (!room.meta.slug) return false;
+    if (!room.getRoomMeta().slug) return false;
     var user = this.getUser(cid.split('-')[0]);
-    if (user ? room.getPermissions(user).canModChat : this.haveRoomPermission(undefined, this.ROOM_ROLE.BOUNCER)) {
+    if (user ? room.getPermissions(user).canModChat : this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER)) {
         queueREST('DELETE', endpoints.CHAT_DELETE + cid, undefined, callback, undefined, true);
     }
     return true;
@@ -1154,20 +1190,19 @@ PlugAPI.prototype.moderateLockWaitList = function(locked, clear, callback) {
 };
 
 PlugAPI.prototype.moderateSetRole = function(uid, role, callback) {
-    if (!room.meta.slug || isNaN(role)) return false;
+    if (!room.getRoomMeta().slug || isNaN(role)) return false;
     var user = this.getUser(uid);
-    if (user ? room.getPermissions(user).canModStaff : this.haveRoomPermission(undefined, this.ROOM_ROLE.MANAGER)) {
+    if (user ? room.getPermissions(user).canModStaff : this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
         queueREST('POST', endpoints.MODERATE_PERMISSIONS, {
-                userID: uid,
-                roleID: role
-            },
-            callback);
+            userID: uid,
+            roleID: role
+        }, callback);
     }
     return true;
 };
 
 PlugAPI.prototype.moderateLockBooth = function(locked, clear, callback) {
-    if (!room.meta.slug || this.getUser() === null || !this.haveRoomPermission(undefined, this.ROOM_ROLE.MANAGER) || (locked === room.boothLocked && !clear)) return false;
+    if (!room.getRoomMeta().slug || this.getUser() === null || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER) || (locked === room.boothLocked && !clear)) return false;
     queueREST('PUT', endpoints.ROOM_LOCK_BOOTH, {
         isLocked: locked,
         removeAllDJs: clear
@@ -1251,21 +1286,21 @@ PlugAPI.prototype.getRoomScore = function() {
 };
 
 PlugAPI.prototype.setStatus = function(status, callback) {
-    if (!room.meta.slug || !status || status < 0 || status > 3) return false;
+    if (!room.getRoomMeta().slug || !status || status < 0 || status > 3) return false;
     queueREST('PUT', endpoints.USER_SET_STATUS, {
         status: status
     }, callback);
     return true;
 };
 /*
-PlugAPI.prototype.createPlaylist = function(name, callback) {
-    if (!room.meta.slug || !name) return false;
-    queueREST(rpcNames.PLAYLIST_CREATE, name, callback);
-    return true;
-};
-*/
+ PlugAPI.prototype.createPlaylist = function(name, callback) {
+ if (!room.getRoomMeta().slug || !name) return false;
+ queueREST(rpcNames.PLAYLIST_CREATE, name, callback);
+ return true;
+ };
+ */
 PlugAPI.prototype.addSongToPlaylist = function(playlistId, songId, callback) {
-    if (!room.meta.slug || !playlistId || !songId) return false;
+    if (!room.getRoomMeta().slug || !playlistId || !songId) return false;
     queueREST('GET', endpoints.PLAYLIST + '/' + playlistId + '/media/insert', {
         media: songId,
         append: true
@@ -1274,50 +1309,51 @@ PlugAPI.prototype.addSongToPlaylist = function(playlistId, songId, callback) {
 };
 
 PlugAPI.prototype.getPlaylists = function(callback) {
-    if (!room.meta.slug) return false;
+    if (!room.getRoomMeta().slug) return false;
     queueREST('GET', endpoints.PLAYLIST, undefined, callback);
     return true;
 };
 
 PlugAPI.prototype.activatePlaylist = function(playlist_id, callback) {
-    if (!room.meta.slug || !playlist_id) return false;
+    if (!room.getRoomMeta().slug || !playlist_id) return false;
     queueREST('PUT', endpoints.PLAYLIST + '/' + playlist_id + '/activate', undefined, callback);
     return true;
 };
 PlugAPI.prototype.deletePlaylist = function(playlist_id, callback) {
-    if (!room.meta.slug || !playlist_id) return false;
+    if (!room.getRoomMeta().slug || !playlist_id) return false;
     queueREST('DELETE', endpoints.PLAYLIST + '/' + playlist_id, undefined, callback);
     return true;
 };
 PlugAPI.prototype.shufflePlaylist = function(playlist_id, callback) {
-    if (!room.meta.slug || !playlist_id) return false;
+    if (!room.getRoomMeta().slug || !playlist_id) return false;
     queueREST('PUT', endpoints.PLAYLIST + '/' + playlist_id + '/shuffle', undefined, callback);
     return true;
 };
 /*PlugAPI.prototype.playlistMoveSong = function(playlist_id, song_id, position, callback) {
-    if (!room.meta.slug || !playlist_id || !song_id || !position) return false;
-    queueREST(endpoints.PLAYLIST +'/' +playlist_id + '/media/move', {
-        ids: song_id
-    }, callback);
-    return true;
-};*/
+ if (!room.getRoomMeta().slug || !playlist_id || !song_id || !position) return false;
+ queueREST(endpoints.PLAYLIST +'/' +playlist_id + '/media/move', {
+ ids: song_id
+ }, callback);
+ return true;
+ };*/
 
 PlugAPI.prototype.setAvatar = function(avatar, callback) {
-    if (!room.meta.slug || !avatar) return false;
+    if (!room.getRoomMeta().slug || !avatar) return false;
     queueREST('PUT', endpoints.USER_SET_AVATAR, {
         id: avatar
     }, callback);
     return true;
 };
 
-PlugAPI.prototype.haveRoomPermission = function(uid, permission) {
-    var user = this.getUser(uid);
-    return !(user == null || user.role < permission);
-};
-
-PlugAPI.prototype.haveGlobalPermission = function(uid, permission) {
-    var user = this.getUser(uid);
-    return !(user == null || user.gRole < permission);
+/**
+ * Implementation of plug.dj havePermission method
+ * @param {Number} [uid]
+ * @param {Number} permission
+ * @param {Boolean} [global]
+ */
+PlugAPI.prototype.havePermission = function(uid, permission, global) {
+    if (global) return room.haveGlobalPermission(uid, permission);
+    return room.haveRoomPermission(uid, permission) || room.haveGlobalPermission(uid, permission);
 };
 
 PlugAPI.prototype.listen = function(port, address) {

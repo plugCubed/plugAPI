@@ -7,6 +7,73 @@ var songHistory = [];
  */
 var that = null;
 
+var User = function(data) {
+    this.avatarID = data.avatarID ? data.avatarID : '';
+    this.badge = data.badge ? data.badge : 0;
+    this.blurb = data.blurb ? data.blurb : undefined;
+    this.curated = grabs[data.id] === true;
+    this.ep = data.ep ? data.ep : undefined;
+    this.gRole = data.gRole ? data.gRole : 0;
+    this.id = data.id ? data.id : -1;
+    this.ignores = data.ignores ? data.ignores : undefined;
+    this.joined = data.joined ? data.joined : '';
+    this.language = data.language ? data.language : '';
+    this.level = data.level ? data.level : 0;
+    this.notifications = data.notifications ? data.notifications : undefined;
+    this.pVibes = data.pVibes ? data.pVibes : undefined;
+    this.pw = data.pw ? data.pw : undefined;
+    this.role = data.role ? data.role : 0;
+    this.slug = data.slug ? data.slug : undefined;
+    this.status = data.status ? data.status : 0;
+    this.username = data.username ? data.username : '';
+    this.vote = votes[data.id] !== undefined ? votes[data.id] === -1 ? -1 : 1 : 0;
+    this.xp = data.xp ? data.xp : 0;
+};
+
+User.prototype.toString = function() {
+    return this.username;
+};
+
+var booth, fx, grabs, meta, mutes, playback, self, role, users, votes;
+booth = {
+    currentDJ: -1,
+    isLocked: false,
+    shouldCycle: true,
+    waitingDJs: []
+};
+fx = [];
+grabs = {};
+meta = {
+    description: '',
+    favorite: false,
+    hostID: -1,
+    hostName: '',
+    id: -1,
+    name: '',
+    population: 0,
+    slug: '',
+    welcome: ''
+};
+mutes = {};
+playback = {
+    historyID: '',
+    media: {
+        author: '',
+        cid: '',
+        duration: -1,
+        format: -1,
+        id: -1,
+        image: '',
+        title: ''
+    },
+    playlistID: -1,
+    startTime: ''
+};
+self = {};
+role = 0;
+users = [];
+votes = {};
+
 /**
  * Room data container
  * SHOULD NOT BE USED/ACCESSED DIRECTLY
@@ -14,72 +81,6 @@ var that = null;
  */
 var Room = function() {
     that = this;
-
-    this.User = function(data) {
-        this.avatarID = data.avatarID ? data.avatarID : '';
-        this.badge = data.badge ? data.badge : 0;
-        this.blurb = data.blurb ? data.blurb : '';
-        this.curated = that.grabs[data.id] === true;
-        this.ep = data.ep ? data.ep : 0;
-        this.gRole = data.gRole ? data.gRole : 0;
-        this.id = data.id ? data.id : -1;
-        this.ignores = data.ignores ? data.ignores : undefined;
-        this.joined = data.joined ? data.joined : '';
-        this.language = data.language ? data.language : '';
-        this.level = data.level ? data.level : 0;
-        this.notifications = data.notifications ? data.notifications : undefined;
-        this.pVibes = data.pVibes ? data.pVibes : undefined;
-        this.pw = data.pw ? data.pw : false;
-        this.role = data.role ? data.role : 0;
-        this.slug = data.slug ? data.slug : '';
-        this.status = data.status ? data.status : 0;
-        this.username = data.username ? data.username : '';
-        this.vote = that.votes[data.id] !== undefined ? that.votes[data.id] === -1 ? -1 : 1 : 0;
-        this.xp = data.xp ? data.xp : 0;
-    };
-
-    this.User.prototype.toString = function() {
-        return this.username;
-    };
-
-    this.booth = {
-        currentDJ: -1,
-        isLocked: false,
-        shouldCycle: true,
-        waitingDJs: []
-    };
-    this.fx = [];
-    this.grabs = {};
-    this.meta = {
-        description: '',
-        favorite: false,
-        hostID: -1,
-        hostName: '',
-        id: -1,
-        name: '',
-        population: 0,
-        slug: '',
-        welcome: ''
-    };
-    this.mutes = {};
-    this.playback = {
-        historyID: '',
-        media: {
-            author: '',
-            cid: '',
-            duration: -1,
-            format: -1,
-            id: -1,
-            image: '',
-            title: ''
-        },
-        playlistID: -1,
-        startTime: ''
-    };
-    this.self = {};
-    this.role = 0;
-    this.users = [];
-    this.votes = {};
 };
 
 /**
@@ -101,12 +102,11 @@ Room.prototype.usersToArray = function(ids) {
 /**
  * Implementation of plug.dj methods
  * Gets the permissions over another user by user object
- * @param {Room.User} other
+ * @param {User} other
  * @return {{canModChat: boolean, canModMute: boolean, canModBan: boolean, canModStaff: boolean}}
  */
 Room.prototype.getPermissions = function(other) {
-    var me;
-    me = this.getSelf();
+    var me = this.getSelf();
 
     var permissions = {
         canModChat: false,
@@ -135,6 +135,28 @@ Room.prototype.getPermissions = function(other) {
 
     return permissions;
 };
+
+Room.prototype.registerUserExtensions = function(instance) {
+    /**
+     * Add the user to the waitlist
+     */
+    User.prototype.addToWaitList = function() {
+        instance.moderateAddDJ(this.id);
+    };
+    /**
+     * Remove the user from the waitlist
+     */
+    User.prototype.removeFromWaitList = function() {
+        instance.moderateRemoveDJ(this.id);
+    };
+    /**
+     * Move the user to a new position in the waitlist
+     * @param {int} pos New position
+     */
+    User.prototype.moveInWaitList = function(pos) {
+        instance.moderateMoveDJ(this.id, pos);
+    };
+}
 
 /**
  * Implementation of plug.dj methods
@@ -143,72 +165,62 @@ Room.prototype.getPermissions = function(other) {
  * @return {{canModChat: boolean, canModMute: boolean, canModBan: boolean, canModStaff: boolean}}
  */
 Room.prototype.getPermissionsID = function(uid) {
-    var me, other;
-    me = this.getSelf();
-    other = this.getUser(uid);
-
-    var permissions = {
-        canModChat: false,
-        canModMute: false,
-        canModBan: false,
-        canModStaff: false
-    };
-
-    if (other.gRole === 0) {
-        if (me.gRole === 5) {
-            permissions.canModChat = true;
-            permissions.canModBan = true;
-        } else {
-            permissions.canModChat = me.role > 1 && Math.max(me.role, me.gRole) > other.role;
-            permissions.canModBan = me.role > other.role;
-        }
-    }
-
-    if (me.gRole === 5) {
-        permissions.canModStaff = true;
-    } else if (other.gRole !== 5) {
-        permissions.canModStaff = Math.max(me.role, me.gRole) > Math.max(other.role, other.gRole);
-    }
-
-    permissions.canModMute = !(other.role > 0 || other.gRole > 0);
-
-    return permissions;
+    return this.getPermissions(this.getUser(uid));
 };
 
-/*Room.prototype.isAmbassador = function(userid) {
- if (!userid) userid = this.self.id;
- return this.ambassadors[userid] != null;
- };
+Room.prototype.haveRoomPermission = function(uid, permission) {
+    var user = this.getUser(uid);
+    return !(user == null || user.role < permission);
+};
 
- Room.prototype.isStaff = function(userid) {
- if (!userid) userid = this.self.id;
- return this.staff[userid] != null;
- };
+Room.prototype.haveGlobalPermission = function(uid, permission) {
+    var user = this.getUser(uid);
+    return !(user == null || user.gRole < permission);
+};
+
+Room.prototype.isAmbassador = function(uid) {
+    if (!uid) uid = self.id;
+    return this.haveGlobalPermission(uid, 2);
+};
+
+Room.prototype.isStaff = function(userid) {
+    if (!userid) userid = self.id;
+    return this.staff[userid] != null;
+};
+
+/**
+ * Is user current DJ?
+ * @param {Number} [uid]
+ * @return {boolean}
  */
-
-Room.prototype.isDJ = function(userid) {
-    if (!userid) userid = this.self.id;
-    return this.booth.currentDJ === userid;
+Room.prototype.isDJ = function(uid) {
+    if (!uid) uid = self.id;
+    return booth.currentDJ === uid;
 };
 
-Room.prototype.isInWaitList = function(userid) {
-    if (!userid) userid = this.self.id;
-    return this.getWaitListPosition(userid) > -1;
+/**
+ * Is user in waitlist?
+ * @param {Number} [uid]
+ * @return {boolean}
+ */
+Room.prototype.isInWaitList = function(uid) {
+    if (!uid) uid = self.id;
+    return this.getWaitListPosition(uid) > 0;
 };
 
 /**
  * Reset all room variables
  */
 Room.prototype.reset = function() {
-    this.booth = {
+    booth = {
         currentDJ: -1,
         isLocked: false,
         shouldCycle: true,
         waitingDJs: []
     };
-    this.fx = [];
-    this.grabs = {};
-    this.meta = {
+    fx = [];
+    grabs = {};
+    meta = {
         description: '',
         favorite: false,
         hostID: -1,
@@ -219,8 +231,8 @@ Room.prototype.reset = function() {
         slug: '',
         welcome: ''
     };
-    this.mutes = {};
-    this.playback = {
+    mutes = {};
+    playback = {
         historyID: '',
         media: {
             author: '',
@@ -234,9 +246,9 @@ Room.prototype.reset = function() {
         playlistID: -1,
         startTime: ''
     };
-    this.role = 0;
-    this.users = [];
-    this.votes = {};
+    role = 0;
+    users = [];
+    votes = {};
 };
 
 /**
@@ -245,10 +257,10 @@ Room.prototype.reset = function() {
  */
 Room.prototype.addUser = function(user) {
     // Don't add yourself
-    if (user.id === this.self.id) return;
+    if (user.id === self.id) return;
 
     // Only add if the user doesn't exist
-    if (this.getUser(user.id) === null) this.users.push(user);
+    if (this.getUser(user.id) === null) users.push(user);
 };
 
 /**
@@ -256,11 +268,11 @@ Room.prototype.addUser = function(user) {
  * @param {Number} uid UserID
  */
 Room.prototype.removeUser = function(uid) {
-    for (var i in this.users) {
-        if (!this.users.hasOwnProperty(i)) continue;
-        if (this.users[i].id == uid) {
+    for (var i in users) {
+        if (!users.hasOwnProperty(i)) continue;
+        if (users[i].id == uid) {
             // User found
-            delete this.users[i];
+            delete users[i];
             return;
         }
     }
@@ -271,13 +283,13 @@ Room.prototype.removeUser = function(uid) {
  * @param {Object} data User data changes
  */
 Room.prototype.updateUser = function(data) {
-    for (var i in this.users) {
-        if (!this.users.hasOwnProperty(i)) continue;
-        if (this.users[i].id === data.i) {
+    for (var i in users) {
+        if (!users.hasOwnProperty(i)) continue;
+        if (users[i].id === data.i) {
             for (var j in data) {
                 if (!data.hasOwnProperty(j)) continue;
                 if (j != 'i') {
-                    this.users[i][j] = data[j];
+                    users[i][j] = data[j];
                 }
             }
             return;
@@ -320,7 +332,7 @@ Room.prototype.updateUser = function(data) {
  * @param {Object} data Self data
  */
 Room.prototype.setSelf = function(data) {
-    this.self = data;
+    self = data;
 };
 
 /**
@@ -328,19 +340,19 @@ Room.prototype.setSelf = function(data) {
  * @param {Object} data Room data
  */
 Room.prototype.setRoomData = function(data) {
-    this.booth = data.booth;
-    this.fx = data.fx;
-    this.grabs = data.grabs;
-    this.meta = data.meta;
-    this.mutes = data.mutes;
-    this.playback = data.playback;
-    this.self.role = data.role;
-    this.users = data.users;
-    this.votes = data.votes;
+    booth = data.booth;
+    fx = data.fx;
+    grabs = data.grabs;
+    meta = data.meta;
+    mutes = data.mutes;
+    playback = data.playback;
+    self.role = data.role;
+    users = data.users;
+    votes = data.votes;
 };
 
 Room.prototype.setDJs = function(djs) {
-    this.booth.waitingDJs = djs;
+    booth.waitingDJs = djs;
 };
 
 /**
@@ -349,11 +361,11 @@ Room.prototype.setDJs = function(djs) {
  * @param mediaStartTime
  */
 Room.prototype.setMedia = function(mediaInfo, mediaStartTime) {
-    this.votes = {};
-    this.grabs = {};
+    votes = {};
+    grabs = {};
 
-    this.playback.media = mediaInfo;
-    this.playback.startTime = mediaStartTime;
+    playback.media = mediaInfo;
+    playback.startTime = mediaStartTime;
 };
 
 Room.prototype.advance = function(data) {
@@ -366,16 +378,17 @@ Room.prototype.advance = function(data) {
 
     this.setMedia(data.m, data.t);
     this.setDJs(data.d);
-    this.booth.currentDJ = data.c;
-    this.playback.historyID = data.h;
-    this.playback.playlistID = data.p;
+
+    booth.currentDJ = data.c;
+    playback.historyID = data.h;
+    playback.playlistID = data.p;
 
     var historyObj = {
         id: data.h,
         media: data.m,
         room: {
-            name: this.meta.name,
-            slug: this.meta.slug
+            name: meta.name,
+            slug: meta.slug
         },
         score: {
             positive: 0,
@@ -416,17 +429,17 @@ Room.prototype.advance = function(data) {
  };
  */
 Room.prototype.setGrab = function(uid) {
-    this.grabs[uid] = 1;
+    grabs[uid] = 1;
 };
 
 Room.prototype.setVote = function(uid, vote) {
-    this.votes[uid] = vote;
+    votes[uid] = vote;
 };
 
 Room.prototype.setEarn = function(data) {
-    this.self.xp = data.xp;
-    this.self.ep = data.ep;
-    this.self.level = data.level;
+    self.xp = data.xp;
+    self.ep = data.ep;
+    self.level = data.level;
 };
 
 /**
@@ -434,11 +447,11 @@ Room.prototype.setEarn = function(data) {
  * @returns {*}
  */
 Room.prototype.getUsers = function() {
-    return this.usersToArray([this.getSelf().id].concat((function() {
+    return this.usersToArray([self.id].concat((function() {
         var ids = [];
-        for (var i in that.users) {
-            if (!that.users.hasOwnProperty(i)) continue;
-            ids.push(that.users[i].id);
+        for (var i in users) {
+            if (!users.hasOwnProperty(i)) continue;
+            ids.push(users[i].id);
         }
         return ids;
     })()));
@@ -450,16 +463,16 @@ Room.prototype.getUsers = function() {
  * @returns {*}
  */
 Room.prototype.getUser = function(userid) {
-    if (!userid || userid === this.getSelf().id) return this.getSelf();
-    for (var i in this.users) {
-        if (!this.users.hasOwnProperty(i)) continue;
-        if (this.users[i].id === userid) return new this.User(this.users[i]);
+    if (!userid || userid === self.id) return this.getSelf();
+    for (var i in users) {
+        if (!users.hasOwnProperty(i)) continue;
+        if (users[i].id === userid) return new User(users[i]);
     }
     return null;
 };
 
 Room.prototype.getSelf = function() {
-    return this.self != null ? new this.User(this.self) : null;
+    return self != null ? new User(self) : null;
 };
 
 /**
@@ -467,8 +480,8 @@ Room.prototype.getSelf = function() {
  * @returns {*}
  */
 Room.prototype.getDJ = function() {
-    if (this.booth.currentDJ > 0) {
-        return this.getUser(this.booth.currentDJ);
+    if (booth.currentDJ > 0) {
+        return this.getUser(booth.currentDJ);
     }
     return null;
 };
@@ -478,7 +491,7 @@ Room.prototype.getDJ = function() {
  * @returns {Array}
  */
 Room.prototype.getDJs = function() {
-    return this.usersToArray([this.booth.currentDJ].concat(this.booth.waitingDJs));
+    return this.usersToArray([booth.currentDJ].concat(booth.waitingDJs));
 };
 
 /**
@@ -486,63 +499,45 @@ Room.prototype.getDJs = function() {
  * @returns {*}
  */
 Room.prototype.getWaitList = function() {
-    return this.usersToArray(this.booth.waitingDJs);
+    return this.usersToArray(booth.waitingDJs);
 };
 
 /**
  * Get a user's position in waitlist
  * @param {number} uid User ID
- * @returns {number} Position in waitlist.
+ * @returns {number}
+ * Position in waitlist.
  * If current DJ, it returns 0.
  * If not in waitlist, it returns -1
  */
 Room.prototype.getWaitListPosition = function(uid) {
-    var djs = this.getDJs(),
-        spot = 0;
-    for (var i in djs) {
-        if (djs.hasOwnProperty(i)) {
-            if (djs[i].id === uid) {
-                return spot;
-            }
-            spot++;
-        }
+    if (booth.currentDJ === uid) {
+        return 0;
     }
-    return -1;
+    var pos = booth.waitingDJs.indexOf();
+    return pos < 0 ? -1 : pos + 1;
 };
 
+/**
+ * Get the audience (not current DJ nor waiting)
+ * @return {Array}
+ */
 Room.prototype.getAudience = function() {
-    var audience = [],
-        _ref;
-    _ref = [this.self].concat(this.users);
+    var audience = [], _ref;
+    _ref = [self].concat(users);
     for (var i in _ref) {
         if (!_ref.hasOwnProperty(i)) continue;
         var userID = _ref[i].id;
-        if (this.booth.currentDJ !== userID && this.booth.waitingDJs.indexOf(userID) < 0) {
+        if (this.getWaitListPosition(userID) < 0) {
             audience.push(userID);
         }
     }
     return this.usersToArray(audience);
 };
-/*
- Room.prototype.getAmbassadors = function() {
- var ambassadors, id, user, _ref;
- ambassadors = [];
- _ref = this.users;
- for (id in _ref) {
- if (_ref.hasOwnProperty(id)) {
- user = _ref[id];
- if (user.ambassadors) {
- ambassadors.push(new this.User(user));
- }
- }
- }
- return ambassadors;
- };
- */
+
 Room.prototype.getStaff = function() {
-    var staff = [],
-        _ref;
-    _ref = [this.self].concat(this.users);
+    var staff = [], _ref;
+    _ref = [self].concat(users);
     for (var i in _ref) {
         if (!_ref.hasOwnProperty(i)) continue;
         var user = _ref[i];
@@ -552,37 +547,21 @@ Room.prototype.getStaff = function() {
     }
     return this.usersToArray(staff);
 };
-/*
- Room.prototype.getAdmins = function() {
- var admins, id, user, _ref;
- admins = [];
- _ref = this.users;
- for (id in _ref) {
- if (_ref.hasOwnProperty(id)) {
- user = _ref[id];
- if (id in this.admins) {
- admins.push(new this.User(user));
- }
- }
- }
- return admins;
- };
- */
 
 /**
  * Get the host of the community.
  * @returns {*} Host if in community, otherwise null
  */
 Room.prototype.getHost = function() {
-    return this.getUser(this.meta.hostID);
+    return this.getUser(meta.hostID);
 };
 
 Room.prototype.getMedia = function() {
-    return this.playback.media;
+    return playback.media;
 };
 
 Room.prototype.getStartTime = function() {
-    return this.playback.startTime;
+    return playback.startTime;
 };
 
 Room.prototype.getHistory = function() {
@@ -593,16 +572,19 @@ Room.prototype.setHistory = function(data) {
     songHistory = data;
 };
 
+Room.prototype.getRoomMeta = function() {
+    return util._extend({}, meta);
+}
+
 Room.prototype.getRoomScore = function() {
     var result = {
-            positive: 0,
-            listeners: Math.max(this.getUsers().length - 1, 0),
-            grabs: 0,
-            negative: 0,
-            skipped: 0
-        },
-        i;
-    var _ref = this.votes;
+        positive: 0,
+        listeners: Math.max(this.getUsers().length - 1, 0),
+        grabs: 0,
+        negative: 0,
+        skipped: 0
+    }, i;
+    var _ref = votes;
     for (i in _ref) {
         if (!_ref.hasOwnProperty(i)) continue;
         var vote = _ref[i];
@@ -612,7 +594,7 @@ Room.prototype.getRoomScore = function() {
             result.negative++;
         }
     }
-    var _ref1 = this.grabs;
+    var _ref1 = grabs;
     for (i in _ref1) {
         if (!_ref1.hasOwnProperty(i)) continue;
         if (_ref1[i] > 0) {

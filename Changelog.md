@@ -7,8 +7,7 @@ plugAPI Changelog
  * New connection method for socket server (Chat server and socket server combined)
 * **ADDED:** Manage a history of chat, limited to 512 messages (Same limit as browser clients)
 * **ADDED:** Documentation in JSDoc format (If you're using an IDE, this should give you in-editor documentation)
-* **ADDED:** Support for logging in with e-mail and password (Requires `deasync` package)
-* **CHANGED:** `bot.havePermissionAdded(uid, permission)` split up into `bot.haveRoomPermission(uid, permission)` and `bot.haveGlobalPermission(uid, permission)`
+* **CHANGED:** Uses e-mail and password as authentication
 * **CHANGED:** `bot.ROLE` split up into `bot.ROOM_ROLE` and `bot.GLOBAL_ROLE`
 * **REMOVED:** All deprecated functions are removed
 * **REMOVED:** `bot.isUsernameAvailable(name, callback)` and `bot.changeUsername(name, callback)` removed
