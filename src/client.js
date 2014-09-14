@@ -830,7 +830,7 @@ var PlugAPI = function(authenticationData) {
 
     this.GLOBAL_ROLES = {
         NONE: 0,
-        AMBASSADOR: 3,
+        AMBASSADOR: 2,
         ADMIN: 5
     };
 
