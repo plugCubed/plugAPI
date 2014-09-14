@@ -796,7 +796,7 @@ var PlugAPI = function(authenticationData) {
 
     this.GLOBAL_ROLES = {
         NONE: 0,
-        AMBASSADOR: 2,
+        AMBASSADOR: 3,
         ADMIN: 5
     };
 
@@ -806,11 +806,17 @@ var PlugAPI = function(authenticationData) {
         WORKING: 2,
         GAMING: 3
     };
-
+  
     this.BAN = {
-        HOUR: 60,
-        DAY: 1440,
-        PERMA: -1
+        HOUR: "h",
+        DAY: "d",
+        PERMA: "f"
+    };
+
+    this.MUTE = {
+        SHORT: "s",
+        MEDIUM: "m",
+        LONG: "l"
     };
 
     this.events = eventTypes;
