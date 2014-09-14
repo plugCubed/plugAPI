@@ -34,12 +34,18 @@ var endpoints = {
     CHAT_DELETE: 'chat/',
     MODERATE_ADD_DJ: 'booth/add',
     MODERATE_BAN: 'bans/add',
+    MODERATE_BOOTH: 'booth',
     MODERATE_MOVE_DJ: 'booth/move',
     MODERATE_PERMISSIONS: 'staff/update',
     MODERATE_REMOVE_DJ: 'booth/remove/',
     MODERATE_SKIP: 'booth/skip',
     MODERATE_UNBAN: 'bans/',
-    ROOM_LOCK_BOOTH: 'booth/lock'
+    PLAYLIST: 'playlists',
+    ROOM_CYCLE_BOOTH: 'booth/cycle',
+    ROOM_INFO: 'rooms/update',
+    ROOM_LOCK_BOOTH: 'booth/lock',
+    USER_SET_AVATAR: 'users/avatar',
+    USER_SET_STATUS: 'users/status'
 };
 var eventTypes = {
     ADVANCE: 'advance',
@@ -298,7 +304,6 @@ function queueTicker() {
 }
 
 function queueREST(method, endpoint, data, successCallback, failureCallback, skipQueue) {
-    logger.log(method, 'https://plug.dj/_/' + endpoint + JSON.stringify(data));
     if (['POST', 'PUT', 'GET', 'DELETE'].indexOf(method) < 0) {
         console.error(method, 'needs update'.red);
         return;
@@ -996,7 +1001,11 @@ PlugAPI.prototype.changeRoomName = function(name, callback) {
     if (!room.meta.slug || !this.haveRoomPermission(undefined, this.ROOM_ROLE.COHOST)) {
         return false;
     }
-    queueREST(rpcNames.MODERATE_UPDATE_NAME, [name], callback);
+    queueREST('POST', endpoints.ROOM_INFO, {
+        name: name,
+        description: undefined,
+        welcome: undefined
+    }, callback);
     return true;
 };
 
@@ -1004,15 +1013,31 @@ PlugAPI.prototype.changeRoomDescription = function(description, callback) {
     if (!room.meta.slug || !this.haveRoomPermission(undefined, this.ROOM_ROLE.COHOST)) {
         return false;
     }
-    queueREST(rpcNames.MODERATE_UPDATE_DESCRIPTION, [description], callback);
+    queueREST('POST', endpoints.ROOM_INFO, {
+        name: undefined,
+        description: description,
+        welcome: undefined
+    }, callback);
     return true;
 };
-
+PlugAPI.prototype.changeRoomWelcome = function(welcome, callback) {
+    if (!room.meta.slug || !this.haveRoomPermission(undefined, this.ROOM_ROLE.COHOST)) {
+        return false;
+    }
+    queueREST('POST', endpoints.ROOM_INFO, {
+        name: undefined,
+        description: undefined,
+        welcome: welcome
+    }, callback);
+    return true;
+};
 PlugAPI.prototype.changeDJCycle = function(enabled, callback) {
     if (!room.meta.slug || !this.haveRoomPermission(undefined, this.ROOM_ROLE.MANAGER)) {
         return false;
     }
-    queueREST(rpcNames.ROOM_CYCLE_BOOTH, [room.meta.slug, enabled], callback);
+    queueREST('POST', endpoints.ROOM_CYCLE_BOOTH, {
+        shouldCycle: enabled
+    }, callback);
     return true;
 };
 
@@ -1034,7 +1059,7 @@ PlugAPI.prototype.joinBooth = function(callback) {
     if (!room.meta.slug || room.isDJ() || room.isInWaitList() || (room.boothLocked && !this.haveRoomPermission(undefined, this.ROOM_ROLE.RESIDENTDJ)) || this.getDJs().length >= 50) {
         return false;
     }
-    queueREST(rpcNames.BOOTH_JOIN, [], callback);
+    queueREST('POST', endpoints.MODERATE_BOOTH, undefined, callback);
     return true;
 };
 
@@ -1042,7 +1067,7 @@ PlugAPI.prototype.leaveBooth = function(callback) {
     if (!room.meta.slug || (!room.isDJ() && !room.isInWaitList())) {
         return false;
     }
-    queueREST(rpcNames.BOOTH_LEAVE, [], callback);
+    queueREST('DELETE', endpoints.MODERATE_BOOTH, undefined, callback);
     return true;
 };
 
@@ -1060,7 +1085,7 @@ PlugAPI.prototype.moderateRemoveDJ = function(uid, callback) {
     if (!room.meta.slug || !this.haveRoomPermission(undefined, this.ROOM_ROLE.BOUNCER) || (!room.isDJ(uid) && !room.isInWaitList(uid)) || (room.boothLocked && !this.haveRoomPermission(undefined, this.ROOM_ROLE.MANAGER))) {
         return false;
     }
-    queueREST('DELETE', endpoints.MODERATE_REMOVE_DJ + uid, callback);
+    queueREST('DELETE', endpoints.MODERATE_REMOVE_DJ + uid, undefined, callback);
     return true;
 };
 
@@ -1093,7 +1118,7 @@ PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
 
 PlugAPI.prototype.moderateUnbanUser = function(uid, callback) {
     if (!room.meta.slug || !this.haveRoomPermission(undefined, this.ROOM_ROLE.MANAGER)) return false;
-    queueREST('DELETE', endpoints.MODERATE_UNBAN + uid, callback);
+    queueREST('DELETE', endpoints.MODERATE_UNBAN + uid, undefined, callback);
     return true;
 };
 
@@ -1123,7 +1148,7 @@ PlugAPI.prototype.moderateSetRole = function(uid, role, callback) {
     if (!room.meta.slug || isNaN(role)) return false;
     var user = this.getUser(uid);
     if (user ? room.getPermissions(user).canModStaff : this.haveRoomPermission(undefined, this.ROOM_ROLE.MANAGER)) {
-        queueREST(endpoints.MODERATE_PERMISSIONS, {
+        queueREST('POST', endpoints.MODERATE_PERMISSIONS, {
                 userID: uid,
                 roleID: role
             },
@@ -1218,44 +1243,61 @@ PlugAPI.prototype.getRoomScore = function() {
 
 PlugAPI.prototype.setStatus = function(status, callback) {
     if (!room.meta.slug || !status || status < 0 || status > 3) return false;
-    queueREST(rpcNames.USER_SET_STATUS, status, callback);
+    queueREST('PUT', endpoints.USER_SET_STATUS, {
+        status: status
+    }, callback);
     return true;
 };
-
+/*
 PlugAPI.prototype.createPlaylist = function(name, callback) {
     if (!room.meta.slug || !name) return false;
     queueREST(rpcNames.PLAYLIST_CREATE, name, callback);
     return true;
 };
-
+*/
 PlugAPI.prototype.addSongToPlaylist = function(playlistId, songId, callback) {
     if (!room.meta.slug || !playlistId || !songId) return false;
-    queueREST(rpcNames.PLAYLIST_MEDIA_INSERT, [playlistId, null, -1, [songId]], callback);
+    queueREST('GET', endpoints.PLAYLIST + '/' + playlistId + '/media/insert', {
+        media: songId,
+        append: true
+    }, callback);
     return true;
 };
 
 PlugAPI.prototype.getPlaylists = function(callback) {
     if (!room.meta.slug) return false;
-    queueREST(rpcNames.PLAYLIST_SELECT, [new Date(0).toISOString().replace('T', ' '), null, 100, null], callback);
+    queueREST('GET', endpoints.PLAYLIST, undefined, callback);
     return true;
 };
 
 PlugAPI.prototype.activatePlaylist = function(playlist_id, callback) {
     if (!room.meta.slug || !playlist_id) return false;
-    queueREST(rpcNames.PLAYLIST_ACTIVATE, [playlist_id], callback);
+    queueREST('PUT', endpoints.PLAYLIST + '/' + playlist_id + '/activate', undefined, callback);
     return true;
 };
-
-PlugAPI.prototype.playlistMoveSong = function(playlist, song_id, position, callback) {
-    if (!room.meta.slug) return false;
-    queueREST(rpcNames.PLAYLIST_MEDIA_MOVE, [playlist.id, playlist.items[position],
-        [song_id]
-    ], callback);
+PlugAPI.prototype.deletePlaylist = function(playlist_id, callback) {
+    if (!room.meta.slug || !playlist_id) return false;
+    queueREST('DELETE', endpoints.PLAYLIST + '/' + playlist_id, undefined, callback);
     return true;
 };
+PlugAPI.prototype.shufflePlaylist = function(playlist_id, callback) {
+    if (!room.meta.slug || !playlist_id) return false;
+    queueREST('PUT', endpoints.PLAYLIST + '/' + playlist_id + '/shuffle', undefined, callback);
+    return true;
+};
+/*PlugAPI.prototype.playlistMoveSong = function(playlist_id, song_id, position, callback) {
+    if (!room.meta.slug || !playlist_id || !song_id || !position) return false;
+    queueREST(endpoints.PLAYLIST +'/' +playlist_id + '/media/move', {
+        ids: song_id
+    }, callback);
+    return true;
+};*/
 
 PlugAPI.prototype.setAvatar = function(avatar, callback) {
-    queueREST(rpcNames.USER_SET_AVATAR, [avatar], callback);
+    if (!room.meta.slug || !avatar) return false;
+    queueREST('PUT', endpoints.USER_SET_AVATAR, {
+        id: avatar
+    }, callback);
     return true;
 };
 
