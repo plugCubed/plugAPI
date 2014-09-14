@@ -36,10 +36,12 @@ var endpoints = {
     MODERATE_BAN: 'bans/add',
     MODERATE_BOOTH: 'booth',
     MODERATE_MOVE_DJ: 'booth/move',
+    MODERATE_MUTE: 'mutes',
     MODERATE_PERMISSIONS: 'staff/update',
     MODERATE_REMOVE_DJ: 'booth/remove/',
     MODERATE_SKIP: 'booth/skip',
     MODERATE_UNBAN: 'bans/',
+    MODERATE_UNMUTE: 'mutes/',
     PLAYLIST: 'playlists',
     ROOM_CYCLE_BOOTH: 'booth/cycle',
     ROOM_INFO: 'rooms/update',
@@ -47,6 +49,7 @@ var endpoints = {
     USER_SET_AVATAR: 'users/avatar',
     USER_SET_STATUS: 'users/status'
 };
+
 var eventTypes = {
     ADVANCE: 'advance',
     BAN: 'ban',
@@ -66,6 +69,7 @@ var eventTypes = {
     MODERATE_AMBASSADOR: 'modAmbassador',
     MODERATE_BAN: 'modBan',
     MODERATE_MOVE_DJ: 'modMoveDJ',
+    MODERATE_MUTE: 'modMute',
     MODERATE_REMOVE_DJ: 'modRemoveDJ',
     MODERATE_REMOVE_WAITLIST: 'modRemoveWaitList',
     MODERATE_SKIP: 'modSkip',
@@ -232,16 +236,16 @@ var DateUtilities = {
         if (o > 0 && o * i > this.secondsSinceMidnight(t) * 1e3) {
             s++;
         }
-        return~~ s;
+        return ~~s;
     },
     hoursSince: function(e) {
-        return~~ ((this.ServerDate().getTime() - e.getTime()) / 36e5);
+        return ~~((this.ServerDate().getTime() - e.getTime()) / 36e5);
     },
     minutesSince: function(e) {
-        return~~ ((this.ServerDate().getTime() - e.getTime()) / 6e4);
+        return ~~((this.ServerDate().getTime() - e.getTime()) / 6e4);
     },
     secondsSince: function(e) {
-        return~~ ((this.ServerDate().getTime() - e.getTime()) / 1e3);
+        return ~~((this.ServerDate().getTime() - e.getTime()) / 1e3);
     },
     monthName: function(e, t) {
         var n = this.MONTHS[e.getMonth()];
@@ -250,7 +254,7 @@ var DateUtilities = {
     secondsSinceMidnight: function(e) {
         var t = new Date(e.getTime());
         this.midnight(t);
-        return~~ ((e.getTime() - t.getTime()) / 1e3);
+        return ~~((e.getTime() - t.getTime()) / 1e3);
     },
     midnight: function(e) {
         e.setHours(0);
@@ -259,7 +263,7 @@ var DateUtilities = {
         e.setMilliseconds(0);
     },
     minutesUntil: function(e) {
-        return~~ ((e.getTime() - this.ServerDate().getTime()) / 6e4);
+        return ~~((e.getTime() - this.ServerDate().getTime()) / 6e4);
     },
     millisecondsUntil: function(e) {
         return e.getTime() - this.ServerDate().getTime();
@@ -401,7 +405,7 @@ function receivedChatMessage(m) {
 
     m.message = encoder.htmlDecode(m.message);
 
-    if ((m.type == 'message' || m.type == 'pm') && m.message.indexOf(commandPrefix) === 0 && (that.processOwnMessages || m.uid != room.getSelf().id)) {
+    if ((m.type == 'message' || m.type == 'pm') && m.message.indexOf(commandPrefix) === 0 && (that.processOwnMessages || m.uid !== room.getSelf().id)) {
         if (typeof that.preCommandHandler === 'function' && that.preCommandHandler(m) === false) return;
 
         isPM = m.type == 'pm';
@@ -826,7 +830,7 @@ var PlugAPI = function(authenticationData) {
 
     this.GLOBAL_ROLES = {
         NONE: 0,
-        AMBASSADOR: 2,
+        AMBASSADOR: 3,
         ADMIN: 5
     };
 
@@ -841,6 +845,12 @@ var PlugAPI = function(authenticationData) {
         HOUR: 'h',
         DAY: 'd',
         PERMA: 'f'
+    };
+
+    this.MUTE = {
+        SHORT: 's',
+        MEDIUM: 'm',
+        LONG: 'l'
     };
 
     this.events = eventTypes;
@@ -1121,7 +1131,6 @@ PlugAPI.prototype.moderateUnbanUser = function(uid, callback) {
     queueREST('DELETE', endpoints.MODERATE_UNBAN + uid, undefined, callback);
     return true;
 };
-
 PlugAPI.prototype.moderateForceSkip = function(callback) {
     if (!room.meta.slug || !this.haveRoomPermission(undefined, this.ROOM_ROLE.BOUNCER) || room.getDJ() === null) return false;
     queueREST('POST', endpoints.MODERATE_SKIP, {
