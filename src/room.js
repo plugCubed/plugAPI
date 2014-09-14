@@ -1,6 +1,17 @@
 var util = require('util');
-var songHistory = [], that;
+var songHistory = [];
 
+/**
+ * That is this and this is that
+ * @type {Room}
+ */
+var that = null;
+
+/**
+ * Room data container
+ * SHOULD NOT BE USED/ACCESSED DIRECTLY
+ * @constructor
+ */
 var Room = function() {
     that = this;
 
@@ -71,6 +82,11 @@ var Room = function() {
     this.votes = {};
 };
 
+/**
+ * Make an array of userIDs to an array of user objects
+ * @param {Array} ids
+ * @return {Array}
+ */
 Room.prototype.usersToArray = function(ids) {
     var user, users;
     users = [];
@@ -81,6 +97,45 @@ Room.prototype.usersToArray = function(ids) {
             users.push(user);
     }
     return users;
+};
+
+/**
+ * Implementation of plug.dj methods
+ * Gets the permissions over another user
+ * @param {Number} uid Other userID
+ * @return {{canModChat: boolean, canModMute: boolean, canModBan: boolean, canModStaff: boolean}}
+ */
+Room.prototype.getPermissions = function(uid) {
+    var me, other;
+    me = this.getSelf();
+    other = this.getUser(uid);
+
+    var permissions = {
+        canModChat: false,
+        canModMute: false,
+        canModBan: false,
+        canModStaff: false
+    };
+
+    if (other.gRole === 0) {
+        if (me.gRole === 5) {
+            permissions.canModChat = true;
+            permissions.canModBan = true;
+        } else {
+            permissions.canModChat = me.role > 1 && Math.max(me.role, me.gRole) > other.role;
+            permissions.canModBan = me.role > other.role;
+        }
+    }
+
+    if (me.gRole === 5) {
+        permissions.canModStaff = true;
+    } else if (other.gRole !== 5) {
+        permissions.canModStaff = Math.max(me.role, me.gRole) > Math.max(other.role, other.gRole);
+    }
+
+    permissions.canModMute = !(other.role > 0 || other.gRole > 0);
+
+    return permissions;
 };
 
 /*Room.prototype.isAmbassador = function(userid) {
@@ -107,6 +162,9 @@ Room.prototype.usersToArray = function(ids) {
  };
 */
 
+/**
+ * Reset all room variables
+ */
 Room.prototype.reset = function() {
     this.booth = {
         currentDJ: -1,
@@ -147,13 +205,23 @@ Room.prototype.reset = function() {
     this.votes = {};
 };
 
+/**
+ * Add a new user
+ * @param {Object} user User data
+ */
 Room.prototype.addUser = function(user) {
     // Don't add yourself
     if (user.id === this.self.id) return;
 
-    this.users.push(user);
+    // Only add if the user doesn't exist
+    if (this.getUser(user.id) === null)
+        this.users.push(user);
 };
 
+/**
+ * Remove an user
+ * @param {Number} uid UserID
+ */
 Room.prototype.removeUser = function(uid) {
     for (var i in this.users) {
         if (!this.users.hasOwnProperty(i)) continue;
@@ -165,6 +233,10 @@ Room.prototype.removeUser = function(uid) {
     }
 };
 
+/**
+ * Update an user
+ * @param {Object} data User data changes
+ */
 Room.prototype.updateUser = function(data) {
     for (var i in this.users) {
         if (!this.users.hasOwnProperty(i)) continue;
@@ -210,10 +282,18 @@ Room.prototype.updateUser = function(data) {
  return this.owner = ownerId;
  };*/
 
+/**
+ * Set self object
+ * @param {Object} data Self data
+ */
 Room.prototype.setSelf = function(data) {
     this.self = data;
 };
 
+/**
+ * Set room data
+ * @param {Object} data Room data
+ */
 Room.prototype.setRoomData = function(data) {
     this.booth = data.booth;
     this.fx = data.fx;

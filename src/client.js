@@ -406,13 +406,16 @@ function receivedChatMessage(m) {
             },
             haveRoomPermission: function(permission, success, failure) {
                 if (permission === undefined) permission = 0;
-                var havePermission = room.getUser(m.uid) !== undefined && room.getUser(m.uid).permission >= permission;
-                if (havePermission && typeof success === 'function') {
-                    success();
-                } else if (!havePermission && typeof failure === 'function') {
+                if (this.from.role >= permission) {
+                    if (typeof success === 'function') {
+                        success();
+                    }
+                    return true;
+                }
+                if (typeof failure === 'function') {
                     failure();
                 }
-                return havePermission;
+                return false;
             },
             isFrom: function(ids, success, failure) {
                 if (typeof ids === 'string') ids = [ids];
