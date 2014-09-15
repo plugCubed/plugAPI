@@ -11,9 +11,9 @@ var User = function(data) {
     this.avatarID = data.avatarID ? data.avatarID : '';
     this.badge = data.badge ? data.badge : 0;
     this.blurb = data.blurb ? data.blurb : undefined;
-    this.curated = grabs[data.id] === true;
     this.ep = data.ep ? data.ep : undefined;
     this.gRole = data.gRole ? data.gRole : 0;
+    this.grab = grabs[data.id] === true;
     this.id = data.id ? data.id : -1;
     this.ignores = data.ignores ? data.ignores : undefined;
     this.joined = data.joined ? data.joined : '';
