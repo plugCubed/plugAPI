@@ -514,7 +514,7 @@ Room.prototype.getWaitListPosition = function(uid) {
     if (booth.currentDJ === uid) {
         return 0;
     }
-    var pos = booth.waitingDJs.indexOf();
+    var pos = booth.waitingDJs.indexOf(uid);
     return pos < 0 ? -1 : pos + 1;
 };
 
