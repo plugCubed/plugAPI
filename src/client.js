@@ -343,61 +343,18 @@ function receivedChatMessage(m) {
     m.message = encoder.htmlDecode(m.message);
 
     if ((m.type == 'message' || m.type == 'pm') && m.message.indexOf(commandPrefix) === 0 && (that.processOwnMessages || m.uid !== room.getSelf().id)) {
-        if (typeof that.preCommandHandler === 'function' && that.preCommandHandler(m) === false) return;
-
         isPM = m.type == 'pm';
         cmd = m.message.substr(commandPrefix.length).split(' ')[0];
         obj = {
             raw: m,
-            cid: m.cid,
+            id: m.cid,
             from: room.getUser(m.uid),
             command: cmd,
             args: m.message.substr(commandPrefix.length + cmd.length + 1),
-            mentions: [],
-            respond: function() {
-                var message = Array.prototype.slice.call(arguments).join(' ');
-                if (isPM) {
-                    return intPM(this.from, message);
-                }
-                return that.sendChat('@' + m.un + ' ' + message);
-            },
-            respondTimeout: function() {
-                var args = Array.prototype.slice.call(arguments), timeout = args.splice(args.length - 1, 1), message = args.join(' ');
-                if (isPM) {
-                    return intPM(this.from, message);
-                }
-                return that.sendChat('@' + m.un + ' ' + message, timeout);
-            },
-            havePermission: function(permission, successCallback, failureCallback) {
-                if (permission === undefined) permission = 0;
-                if (that.havePermission(this.from.id, permission)) {
-                    if (typeof successCallback === 'function') {
-                        successCallback();
-                    }
-                    return true;
-                }
-                if (typeof failureCallback === 'function') {
-                    failureCallback();
-                }
-                return false;
-            },
-            isFrom: function(ids, success, failure) {
-                if (typeof ids === 'string') ids = [ids];
-                if (ids === undefined || !util.isArray(ids)) {
-                    if (typeof failure === 'function') {
-                        failure();
-                    }
-                    return false;
-                }
-                var isFrom = ids.indexOf(m.uid) > -1;
-                if (isFrom && typeof success === 'function') {
-                    success();
-                } else if (!isFrom && typeof failure === 'function') {
-                    failure();
-                }
-                return isFrom;
-            }
+            mentions: []
         };
+
+        // Mentions => Mention placeholder
         lastIndex = obj.args.indexOf('@');
         allUsers = room.getUsers();
         random = Math.ceil(Math.random() * 1E10);
@@ -416,16 +373,68 @@ function receivedChatMessage(m) {
             }
             lastIndex = obj.args.indexOf('@', lastIndex + 1);
         }
+
+        // Arguments
         obj.args = obj.args.split(' ');
         for (i in obj.args) {
             if (!obj.args.hasOwnProperty(i)) continue;
             if (!isNaN(obj.args[i])) obj.args[i] = ~~obj.args[i];
         }
+
+        // Mention placeholder => User object
         for (i in obj.mentions) {
             if (obj.mentions.hasOwnProperty(i)) {
                 obj.args[obj.args.indexOf('%MENTION-' + random + '-' + i + '%')] = obj.mentions[i];
             }
         }
+
+        // Pre command handler
+        if (typeof that.preCommandHandler === 'function' && that.preCommandHandler(obj) === false) return;
+
+        // Functions
+        obj.respond = function() {
+            var message = Array.prototype.slice.call(arguments).join(' ');
+            if (isPM) {
+                return intPM(this.from, message);
+            }
+            return that.sendChat('@' + this.from.username + ' ' + message);
+        };
+        obj.respondTimeout = function() {
+            var args = Array.prototype.slice.call(arguments), timeout = args.splice(args.length - 1, 1), message = args.join(' ');
+            if (isPM) {
+                return intPM(this.from, message);
+            }
+            return that.sendChat('@' + this.from.username + ' ' + message, timeout);
+        };
+        obj.havePermission = function(permission, successCallback, failureCallback) {
+            if (permission === undefined) permission = 0;
+            if (that.havePermission(this.from.id, permission)) {
+                if (typeof successCallback === 'function') {
+                    successCallback();
+                }
+                return true;
+            }
+            if (typeof failureCallback === 'function') {
+                failureCallback();
+            }
+            return false;
+        };
+        obj.isFrom = function(ids, success, failure) {
+            if (typeof ids === 'string') ids = [ids];
+            if (ids === undefined || !util.isArray(ids)) {
+                if (typeof failure === 'function') {
+                    failure();
+                }
+                return false;
+            }
+            var isFrom = ids.indexOf(m.uid) > -1;
+            if (isFrom && typeof success === 'function') {
+                success();
+            } else if (!isFrom && typeof failure === 'function') {
+                failure();
+            }
+            return isFrom;
+        };
         that.emit(PlugAPI.events.CHAT_COMMAND, obj);
         that.emit(PlugAPI.events.CHAT_COMMAND + ':' + cmd, obj);
         if (that.deleteCommands) {
