@@ -8,7 +8,7 @@ path = require('path');
 fs = require('fs');
 
 // Third-party modules
-var EventEmitter, SockJS, request, WebSocket, encoder;
+var EventEmitter, SockJS, request, WebSocket, encoder, chalk;
 EventEmitter = require('eventemitter2').EventEmitter2;
 SockJS = require('sockjs-client-node');
 request = require('request');
@@ -26,7 +26,7 @@ WebSocket.prototype.sendEvent = function(type, data) {
     });
 };
 encoder = require('node-html-encoder').Encoder('entity');
-require('../colors.js');
+chalk = require('chalk');
 
 // plugAPI
 var Room, PlugAPIInfo, endpoints;
@@ -111,22 +111,7 @@ serverRequests = {
 };
 room = new Room();
 rpcHandlers = {};
-logger = {
-    pad: function(n) {
-        return n < 10 ? '0' + n.toString(10) : n.toString(10);
-    },
-    months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    timestamp: function() {
-        var d = new Date();
-        var time = [this.pad(d.getHours()), this.pad(d.getMinutes()), this.pad(d.getSeconds())].join(':');
-        return [d.getDate(), this.months[d.getMonth()], time].join(' ');
-    },
-    log: function() {
-        var args = Array.prototype.slice.call(arguments);
-        args.unshift(this.timestamp());
-        console.log.apply(console, args);
-    }
-};
+logger = new require('./logger');
 
 /*
  http.OutgoingMessage.prototype.__renderHeaders = http.OutgoingMessage.prototype._renderHeaders;
@@ -267,13 +252,7 @@ function queueTicker() {
 
 function queueREST(method, endpoint, data, successCallback, failureCallback, skipQueue) {
     if (['POST', 'PUT', 'GET', 'DELETE'].indexOf(method) < 0) {
-        console.error(method, 'needs update'.red);
-        return;
-    }
-
-    if (!endpoint) {
-        console.error('Missing endpoint'.red);
-        console.log(method, endpoint, data);
+        logger.error(method, 'needs update');
         return;
     }
 
@@ -319,7 +298,7 @@ function queueREST(method, endpoint, data, successCallback, failureCallback, ski
 function sendREST(opts, successCallback, failureCallback) {
     request(opts, function(err, res, body) {
         if (err) {
-            logger.log('[REST Error]'.red, err);
+            logger.error('[REST Error]', err);
             failureCallback(err);
             return;
         }
@@ -331,7 +310,7 @@ function sendREST(opts, successCallback, failureCallback) {
             failureCallback(body.status, body.data);
         }
         /*} catch (e) {
-         logger.log('[REST Error]'.red, e);
+         logger.error('[REST Error]', e);
          failureCallback(e);
          }*/
     });
@@ -350,7 +329,7 @@ function joinRoom(roomSlug, callback) {
             });
         });
     }, function(status) {
-        logger.log('Error while joining:'.red, status ? status : 'Unknown error');
+        logger.error('Error while joining:', status ? status : 'Unknown error');
         setTimeout(function() {
             joinRoom(roomSlug, callback);
         }, 1e3);
@@ -487,7 +466,7 @@ function getAuthCode(callback) {
         }
     }, function(err, res, body) {
         if (err) {
-            console.log('[ERROR] Error getting auth code:'.red, err);
+            logger.error('[ERROR] Error getting auth code:', err);
         } else {
             _authCode = body.split('_jm')[1].split('"')[1];
             var _st = body.split('_st')[1].split('"')[1];
@@ -519,7 +498,7 @@ function connectSocket(roomSlug) {
 
     ws = new WebSocket('wss://shalamar.plug.dj/socket/' + server_id + '/' + conn_id + '/websocket');
     ws.on('open', function() {
-        logger.log('[Socket Server] Connected'.green);
+        logger.success(chalk.green('[Socket Server] Connected'));
         ws.sendEvent('auth', _authCode);
 
         that.emit('connected');
@@ -547,16 +526,16 @@ function connectSocket(roomSlug) {
         return that.emit('tcpMessage', data);
     });
     ws.on('error', function(a) {
-        logger.log('[Socket Server] Error:'.red, a);
+        logger.error('[Socket Server] Error:', a);
         process.nextTick(function() {
-            logger.log('[Socket Server] Reconnecting');
+            logger.info('[Socket Server] Reconnecting');
             queueConnectSocket(room.getRoomMeta().slug ? room.getRoomMeta().slug : roomSlug);
         });
     });
     ws.on('close', function(a) {
-        logger.log('[Socket Server] Closed with code'.red, a);
+        logger.warn('[Socket Server] Closed with code', a);
         process.nextTick(function() {
-            logger.log('[Socket Server] Reconnecting');
+            logger.info('[Socket Server] Reconnecting');
             queueConnectSocket(room.getRoomMeta().slug ? room.getRoomMeta().slug : roomSlug);
         });
     });
@@ -653,7 +632,7 @@ function messageHandler(msg) {
             break;
         default:
         case void 0:
-            logger.log('UNKNOWN MESSAGE FORMAT'.blue, msg);
+            logger.warning('UNKNOWN MESSAGE FORMAT', msg);
     }
     if (msg.a) {
         that.emit(msg.a, msg.p);
@@ -662,13 +641,16 @@ function messageHandler(msg) {
 
 var PlugAPI = function(authenticationData) {
     if (!authenticationData) {
-        throw new Error('You must pass the authentication data into the PlugAPI object to connect correctly'.red);
+        logger.error('You must pass the authentication data into the PlugAPI object to connect correctly');
+        process.exit(1);
     } else {
         if (!authenticationData.email) {
-            throw new Error('Missing login e-mail'.red);
+            logger.error('Missing login e-mail');
+            process.exit(1);
         }
         if (!authenticationData.password) {
-            throw new Error('Missing login password'.red);
+            logger.error('Missing login password');
+            process.exit(1);
         }
         var deasync = require('deasync');
         var loggingIn = true, loggedIn = false;
@@ -719,7 +701,7 @@ var PlugAPI = function(authenticationData) {
                     }
                 }, function(err, res, data) {
                     if (data.status !== 'ok') {
-                        console.log('LOGIN ERROR: '.red + data.status);
+                        logger.error('LOGIN ERROR: ' + data.status);
                         process.exit(1);
                     } else {
                         _cookies.fromHeaders(res.headers);
@@ -771,8 +753,8 @@ var PlugAPI = function(authenticationData) {
         return true;
     };
 
-    this.log('Running plugAPI v.' + PlugAPIInfo.version + '-dev');
-    this.log('THIS IS A UNSTABLE VERSION! DO NOT USE FOR PRODUCTION!'.red);
+    logger.info('Running plugAPI v.' + PlugAPIInfo.version + '-dev');
+    logger.warn(chalk.yellow('THIS IS A UNSTABLE VERSION! DO NOT USE FOR PRODUCTION!'));
 };
 
 util.inherits(PlugAPI, EventEmitter);
@@ -894,10 +876,31 @@ PlugAPI.events = {
 };
 
 /**
- * Logger
+ * Get Logger
+ * @return {Logger}
  */
-PlugAPI.prototype.log = function() {
-    logger.log.apply(logger, arguments);
+PlugAPI.prototype.getLogger = function() {
+    return logger;
+};
+
+/**
+ * Set the Logger object, must contain a log, info, warn, warning and error function
+ * @param {Object} newLogger
+ * @returns {boolean} True if set
+ */
+PlugAPI.prototype.setLogger = function(newLogger) {
+    var requiredMethods = ['log', 'info', 'warn', 'warning', 'error'];
+
+    if (newLogger && typeof newLogger === 'object' && !util.isArray(newLogger)) {
+        for (var i in requiredMethods) {
+            if (!requiredMethods.hasOwnProperty(i)) continue;
+            if (typeof newLogger[requiredMethods[i]] !== 'function')
+                return false;
+        }
+        logger = newLogger;
+        return true;
+    }
+    return false;
 };
 
 /**
@@ -926,29 +929,17 @@ PlugAPI.prototype.setCommandPrefix = function(prefix) {
 };
 
 /**
- * Set the logger object, must contain a log function
- * @param {Object} newLogger
- * @returns {boolean} True if set
- */
-PlugAPI.prototype.setLogger = function(newLogger) {
-    if (newLogger && typeof newLogger === 'object' && !util.isArray(newLogger) && typeof newLogger.log === 'function') {
-        logger = newLogger;
-        return true;
-    }
-    return false;
-};
-
-/**
  * Connect to a room
  * @param {String} roomSlug Slug of room (The part after https://plug.dj/)
  */
 PlugAPI.prototype.connect = function(roomSlug) {
     if (!roomSlug || typeof roomSlug !== 'string' || roomSlug.length === 0 || roomSlug.indexOf('/') > -1) {
-        throw new Error('Invalid room name'.red);
+        logger.error('Invalid room name');
+        process.exit(1);
     }
 
     if (connectingRoomSlug != null) {
-        console.error('Already connecting to a room'.red);
+        logger.error('Already connecting to a room');
         return;
     }
 
@@ -1024,7 +1015,9 @@ PlugAPI.prototype.getChatHistory = function() {
  * @param {Function} callback Callback to get the history. History will be sent as argument.
  */
 PlugAPI.prototype.getHistory = function(callback) {
-    if (typeof callback !== 'function') throw new Error('You must specify callback!'.red);
+    if (typeof callback !== 'function') {
+        logger.error('You must specify callback to get history!');
+    }
     if (initialized) {
         var history = room.getHistory();
         if (history.length > 1) {

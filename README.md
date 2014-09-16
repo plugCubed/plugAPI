@@ -5,7 +5,7 @@ plugAPI
 
 A generic API for creating plug.dj bots.
 
-Originally by [Chris Vickery](https://github.com/chrisinajar), now maintained by [TAT](https://github.com/TATDK).
+Originally by [Chris Vickery](https://github.com/chrisinajar), now maintained by [TAT](https://github.com/TATDK) and [The plug³ Team](https://github.com/plugCubed).
 
 **NOTE:** Currently not supporting facebook login.
 
