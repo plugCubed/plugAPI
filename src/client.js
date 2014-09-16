@@ -322,6 +322,7 @@ function joinRoom(roomSlug, callback) {
         slug: roomSlug
     }, function() {
         queueREST('GET', 'rooms/state', undefined, function(data) {
+            fs.writeFileSync('roomState.json', JSON.stringify(data, null, 4));
             connectingRoomSlug = null;
             initRoom(data[0], function() {
                 if (typeof callback === 'function') {
@@ -562,9 +563,9 @@ function initRoom(data, callback) {
             media: null,
             score: null
         },
-        media: data.playback.media,
-        startTime: data.playback.startTime,
-        historyID: data.playback.historyID
+        media: room.getMedia(),
+        startTime: room.getStartTime(),
+        historyID: room.getHistoryID()
     });
     queueREST('GET', 'rooms/history', undefined, __bind(room.setHistory, room));
     that.emit(PlugAPI.events.ROOM_JOIN, data.meta.name);
@@ -573,7 +574,8 @@ function initRoom(data, callback) {
 }
 
 function messageHandler(msg) {
-    switch (msg.a) {
+    var type = msg.a, data = msg.p;
+    switch (type) {
         case 'ack':
             queueREST('GET', 'users/me', null, function(a) {
                 room.setSelf(a[0]);
@@ -581,71 +583,71 @@ function messageHandler(msg) {
             });
             break;
         case PlugAPI.events.CHAT:
-            chatHistory.push(msg.p);
+            chatHistory.push(data);
 
             // If over limit, remove the first item
             if (chatHistory.length > 512) chatHistory.shift();
 
-            receivedChatMessage(msg.p);
+            receivedChatMessage(data);
             return;
         case PlugAPI.events.CHAT_DELETE:
             for (var i in chatHistory) {
                 if (!chatHistory.hasOwnProperty(i)) continue;
-                if (chatHistory[i].cid == msg.p.c) chatHistory.splice(i, 1);
+                if (chatHistory[i].cid == data.c) chatHistory.splice(i, 1);
             }
             break;
         case PlugAPI.events.USER_JOIN:
-            room.addUser(msg.p);
+            room.addUser(data);
             break;
         case PlugAPI.events.USER_LEAVE:
-            var userData = room.getUser(msg.p);
+            var userData = room.getUser(data);
             if (userData == null) {
                 userData = {
-                    id: msg.p
+                    id: data
                 };
             }
-            room.removeUser(msg.p);
-            that.emit(msg.a, userData);
+            room.removeUser(data);
+            that.emit(type, userData);
             return;
         case PlugAPI.events.USER_UPDATE:
-            room.updateUser(msg.p);
-            that.emit(msg.a, that.getUser(msg.p.i));
+            room.updateUser(data);
+            that.emit(type, that.getUser(data.i));
             return;
         case PlugAPI.events.VOTE:
-            room.setVote(msg.p.i, msg.p.v);
+            room.setVote(data.i, data.v);
             break;
         case PlugAPI.events.GRAB:
-            room.setGrab(msg.p);
+            room.setGrab(data);
             break;
         case PlugAPI.events.ADVANCE:
             var advanceEvent = {
-                currentDJ: msg.p.c,
-                djs: msg.p.d,
                 lastPlay: {
-                    dj: that.getDJ(),
-                    media: that.getMedia(),
-                    score: that.getRoomScore()
+                    dj: room.getDJ(),
+                    media: room.getMedia(),
+                    score: room.getRoomScore()
                 },
-                media: msg.p.m,
-                startTime: msg.p.t,
-                historyID: msg.p.h
+                media: data.m,
+                startTime: data.t,
+                historyID: data.h
             };
-            room.advance(msg.p);
-            historyID = msg.p.h;
-            that.emit(PlugAPI.events.ADVANCE, advanceEvent);
+            room.advance(data);
+            advanceEvent.currentDJ = room.getDJ();
+            advanceEvent.djs = room.getDJs();
+            historyID = data.h;
+            that.emit(type, advanceEvent);
             return;
         case PlugAPI.events.DJ_LIST_UPDATE:
-            room.setDJs(msg.p);
+            room.setDJs(data);
             break;
         case 'earn':
-            room.setEarn(msg.p);
+            room.setEarn(data);
             break;
         default:
         case void 0:
             logger.warning('UNKNOWN MESSAGE FORMAT', msg);
     }
-    if (msg.a) {
-        that.emit(msg.a, msg.p);
+    if (type) {
+        that.emit(type, data);
     }
 }
 
