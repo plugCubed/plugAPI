@@ -622,7 +622,7 @@ function messageHandler(msg) {
             };
             room.advance(msg.p);
             historyID = msg.p.h;
-            that.emit(msg.type, advanceEvent);
+            that.emit(PlugAPI.events.ADVANCE, advanceEvent);
             return;
         case PlugAPI.events.DJ_LIST_UPDATE:
             room.setDJs(msg.p);
