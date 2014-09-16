@@ -578,7 +578,7 @@ Room.prototype.setHistory = function(data) {
 
 Room.prototype.getRoomMeta = function() {
     return util._extend({}, meta);
-}
+};
 
 Room.prototype.getRoomScore = function() {
     var result = {

@@ -344,17 +344,20 @@ function receivedChatMessage(m) {
 
     m.message = encoder.htmlDecode(m.message);
 
+    obj = {
+        raw: m,
+        id: m.cid,
+        from: room.getUser(m.uid),
+        message: m.message,
+        mentions: []
+    };
+
     if ((m.type == 'message' || m.type == 'pm') && m.message.indexOf(commandPrefix) === 0 && (that.processOwnMessages || m.uid !== room.getSelf().id)) {
         isPM = m.type == 'pm';
         cmd = m.message.substr(commandPrefix.length).split(' ')[0];
-        obj = {
-            raw: m,
-            id: m.cid,
-            from: room.getUser(m.uid),
-            command: cmd,
-            args: m.message.substr(commandPrefix.length + cmd.length + 1),
-            mentions: []
-        };
+
+        obj.command = cmd;
+        obj.args = m.message.substr(commandPrefix.length + cmd.length + 1);
 
         // Mentions => Mention placeholder
         lastIndex = obj.args.indexOf('@');
@@ -443,16 +446,16 @@ function receivedChatMessage(m) {
             that.moderateDeleteChat(m.cid);
         }
     } else if (m.type == 'emote') {
-        that.emit(PlugAPI.events.CHAT_EMOTE, m);
+        that.emit(PlugAPI.events.CHAT_EMOTE, obj);
     }
     if (m.type == 'pm') {
-        that.emit('pm', m);
+        that.emit('pm', obj);
     } else {
-        that.emit(PlugAPI.events.CHAT, m);
-        that.emit(PlugAPI.events.CHAT + ':' + m.type, m);
+        that.emit(PlugAPI.events.CHAT, obj);
+        that.emit(PlugAPI.events.CHAT + ':' + obj.raw.type, obj);
         if (room.getUser() !== null && m.message.indexOf('@' + room.getUser().username) > -1) {
-            that.emit(PlugAPI.events.CHAT + ':mention', m);
-            that.emit('mention', m);
+            that.emit(PlugAPI.events.CHAT + ':mention', obj);
+            that.emit('mention', obj);
         }
     }
 }
