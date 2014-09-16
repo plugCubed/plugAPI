@@ -564,6 +564,10 @@ Room.prototype.getStartTime = function() {
     return playback.startTime;
 };
 
+Room.prototype.getHistoryID = function() {
+    return playback.historyID;
+};
+
 Room.prototype.getHistory = function() {
     return songHistory;
 };

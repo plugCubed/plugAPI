@@ -29,46 +29,33 @@ function chalkPaint(sidewalkChalks, text) {
 }
 
 module.exports = function(channel) {
-    return {
-        log: function() {
+    function createLogFunc(level) {
+        return function() {
             var args = Array.prototype.slice.call(arguments);
-            var level = 'info';
-            if (levels[args[0]] !== undefined) {
-                level = args.shift();
-            }
-
-            args.unshift(new Array(10 - channel.length - 2).join(' '));
-            args.unshift('[' + channel + ']');
-            args.unshift(new Array(10 - level.length - 2).join(' '));
-            args.unshift(chalkPaint(levels[level], '[' + level.toUpperCase() + ']'));
-            args.unshift(timestamp());
-
-            console.log.apply(console, args);
-        },
-        success: function() {
-            var args = Array.prototype.slice.call(arguments);
-            args.unshift('success');
-            this.log.apply(this, args);
-        },
-        info: function() {
-            var args = Array.prototype.slice.call(arguments);
-            args.unshift('info');
-            this.log.apply(this, args);
-        },
-        warn: function() {
-            var args = Array.prototype.slice.call(arguments);
-            args.unshift('warning');
-            this.log.apply(this, args);
-        },
-        warning: function() {
-            var args = Array.prototype.slice.call(arguments);
-            args.unshift('warning');
-            this.log.apply(this, args);
-        },
-        error: function() {
-            var args = Array.prototype.slice.call(arguments);
-            args.unshift('error');
-            this.log.apply(this, args);
+            args.unshift(level);
+            log.apply(this, args);
         }
+    }
+    function log() {
+        var args = Array.prototype.slice.call(arguments);
+        var level = 'info';
+        if (levels[args[0]] !== undefined) {
+            level = args.shift();
+        }
+
+        args.unshift(new Array(10 - channel.length - 2).join(' '));
+        args.unshift('[' + channel + ']');
+        args.unshift(new Array(10 - level.length - 2).join(' '));
+        args.unshift(chalkPaint(levels[level], '[' + level.toUpperCase() + ']'));
+        args.unshift(timestamp());
+
+        console.log.apply(console, args);
+    }
+    return {
+        success: createLogFunc('success'),
+        info: createLogFunc('info'),
+        warn: createLogFunc('warning'),
+        warning: createLogFunc('warning'),
+        error: createLogFunc('error')
     };
 };
