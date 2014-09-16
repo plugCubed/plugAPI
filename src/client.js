@@ -302,17 +302,17 @@ function sendREST(opts, successCallback, failureCallback) {
             failureCallback(err);
             return;
         }
-        //try {
-        body = JSON.parse(body);
-        if (body.status === 'ok') {
-            successCallback(body.data);
-        } else {
-            failureCallback(body.status, body.data);
+        try {
+            body = JSON.parse(body);
+            if (body.status === 'ok') {
+                successCallback(body.data);
+            } else {
+                failureCallback(body.status, body.data);
+            }
+        } catch (e) {
+            logger.error('[REST Error]', e);
+            failureCallback(e);
         }
-        /*} catch (e) {
-         logger.error('[REST Error]', e);
-         failureCallback(e);
-         }*/
     });
 }
 
