@@ -1,6 +1,8 @@
-var chalk = require('chalk');
-var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-var levels = {
+var chalk, months, levels;
+
+chalk = require('chalk');
+months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+levels = {
     success: ['green'],
     info: ['white'],
     warning: ['yellow', 'underline'],
@@ -26,43 +28,47 @@ function chalkPaint(sidewalkChalks, text) {
     return combinedChalk(text);
 }
 
-module.exports = {
-    log: function() {
-        var args = Array.prototype.slice.call(arguments);
-        var level = 'info';
-        if (levels[args[0]] !== undefined) {
-            level = args.shift();
+module.exports = function(channel) {
+    return {
+        log: function() {
+            var args = Array.prototype.slice.call(arguments);
+            var level = 'info';
+            if (levels[args[0]] !== undefined) {
+                level = args.shift();
+            }
+
+            args.unshift(new Array(10 - channel.length - 2).join(' '));
+            args.unshift('[' + channel + ']');
+            args.unshift(new Array(10 - level.length - 2).join(' '));
+            args.unshift(chalkPaint(levels[level], '[' + level.toUpperCase() + ']'));
+            args.unshift(timestamp());
+
+            console.log.apply(console, args);
+        },
+        success: function() {
+            var args = Array.prototype.slice.call(arguments);
+            args.unshift('success');
+            this.log.apply(this, args);
+        },
+        info: function() {
+            var args = Array.prototype.slice.call(arguments);
+            args.unshift('info');
+            this.log.apply(this, args);
+        },
+        warn: function() {
+            var args = Array.prototype.slice.call(arguments);
+            args.unshift('warning');
+            this.log.apply(this, args);
+        },
+        warning: function() {
+            var args = Array.prototype.slice.call(arguments);
+            args.unshift('warning');
+            this.log.apply(this, args);
+        },
+        error: function() {
+            var args = Array.prototype.slice.call(arguments);
+            args.unshift('error');
+            this.log.apply(this, args);
         }
-
-        args.unshift(new Array(10 - level.length - 2).join(' '));
-        args.unshift(chalkPaint(levels[level], '[' + level.toUpperCase() + ']'));
-        args.unshift(timestamp());
-
-        console.log.apply(console, args);
-    },
-    success: function() {
-        var args = Array.prototype.slice.call(arguments);
-        args.unshift('success');
-        this.log.apply(this, args);
-    },
-    info: function() {
-        var args = Array.prototype.slice.call(arguments);
-        args.unshift('info');
-        this.log.apply(this, args);
-    },
-    warn: function() {
-        var args = Array.prototype.slice.call(arguments);
-        args.unshift('warning');
-        this.log.apply(this, args);
-    },
-    warning: function() {
-        var args = Array.prototype.slice.call(arguments);
-        args.unshift('warning');
-        this.log.apply(this, args);
-    },
-    error: function() {
-        var args = Array.prototype.slice.call(arguments);
-        args.unshift('error');
-        this.log.apply(this, args);
-    }
+    };
 };

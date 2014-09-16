@@ -29,8 +29,9 @@ encoder = require('node-html-encoder').Encoder('entity');
 chalk = require('chalk');
 
 // plugAPI
-var Room, PlugAPIInfo, endpoints;
+var Room, Logger, PlugAPIInfo, endpoints;
 Room = require('./room');
+Logger = require('./logger');
 PlugAPIInfo = require('../package.json');
 endpoints = {
     CHAT_DELETE: 'chat/',
@@ -111,7 +112,7 @@ serverRequests = {
 };
 room = new Room();
 rpcHandlers = {};
-logger = new require('./logger');
+logger = new Logger('PlugAPI');
 
 /*
  http.OutgoingMessage.prototype.__renderHeaders = http.OutgoingMessage.prototype._renderHeaders;
@@ -885,11 +886,13 @@ PlugAPI.events = {
 };
 
 /**
- * Get Logger
+ * Create a new logger for your own scripts.
+ * @param channel
  * @return {Logger}
  */
-PlugAPI.prototype.getLogger = function() {
-    return logger;
+PlugAPI.getLogger = function(channel) {
+    if (!channel) channel = 'Unknown';
+    return new Logger(channel);
 };
 
 /**
