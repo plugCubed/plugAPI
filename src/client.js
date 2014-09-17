@@ -59,7 +59,7 @@ endpoints = {
  */
 var that = null;
 
-var ws, p3Socket, initialized, commandPrefix, apiId, _authCode, _cookies, chatHistory, historyID, serverRequests, room, connectingRoomSlug, rpcHandlers, logger;
+var ws, p3Socket, initialized, commandPrefix, apiId, _authCode, _cookies, chatHistory, serverRequests, room, connectingRoomSlug, rpcHandlers, logger;
 ws = null;
 p3Socket = null;
 initialized = false;
@@ -636,7 +636,6 @@ function messageHandler(msg) {
             room.advance(data);
             advanceEvent.currentDJ = room.getDJ();
             advanceEvent.djs = room.getDJs();
-            historyID = data.h;
             that.emit(type, advanceEvent);
             return;
         case PlugAPI.events.DJ_LIST_UPDATE:
@@ -1004,7 +1003,7 @@ PlugAPI.prototype.sendChat = function(msg, timeout) {
 PlugAPI.prototype.woot = function(callback) {
     queueREST('POST', 'votes', {
         direction: 1,
-        historyID: historyID
+        historyID: room.getHistoryID()
     }, callback);
 };
 
@@ -1015,7 +1014,7 @@ PlugAPI.prototype.woot = function(callback) {
 PlugAPI.prototype.meh = function(callback) {
     queueREST('POST', 'votes', {
         direction: -1,
-        historyID: historyID
+        historyID: room.getHistoryID()
     }, callback);
 };
 
@@ -1181,7 +1180,7 @@ PlugAPI.prototype.moderateForceSkip = function(callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || room.getDJ() === null) return false;
     queueREST('POST', endpoints.MODERATE_SKIP, {
         userID: room.getDJ().id,
-        historyID: historyID
+        historyID: room.getHistoryID()
     }, callback);
     return true;
 };
@@ -1228,7 +1227,7 @@ PlugAPI.prototype.getUser = function(uid) {
     return room.getUser(uid);
 };
 
-PlugAPI.prototype.getAudience = function(name) {
+PlugAPI.prototype.getAudience = function() {
     return room.getAudience();
 };
 
