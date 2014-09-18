@@ -59,7 +59,7 @@ endpoints = {
  */
 var that = null;
 
-var ws, p3Socket, initialized, commandPrefix, apiId, _authCode, _cookies, chatHistory, serverRequests, room, connectingRoomSlug, rpcHandlers, logger;
+var ws, p3Socket, initialized, commandPrefix, apiId, _authCode, _cookies, chatHistory, serverRequests, room, connectingRoomSlug, rpcHandlers, logger, floodProtectionDelay, chatQueue;
 ws = null;
 p3Socket = null;
 initialized = false;
@@ -113,6 +113,8 @@ serverRequests = {
 room = new Room();
 rpcHandlers = {};
 logger = new Logger('PlugAPI');
+floodProtectionDelay = 200;
+chatQueue = [];
 
 /*
  http.OutgoingMessage.prototype.__renderHeaders = http.OutgoingMessage.prototype._renderHeaders;
@@ -141,19 +143,36 @@ function intPM(receiver, msg) {
     });
 }
 
-function intChat(msg, timeout) {
-    ws.sendEvent('chat', msg);
-    if (timeout !== undefined && !isNaN(timeout) && ~~timeout > 0) {
-        var specificChatDeleter = function(data) {
-            if (data.uid == room.getSelf().id && data.message.trim() == msg.trim()) {
-                setTimeout(function() {
-                    that.moderateDeleteChat(data.cid);
-                }, ~~timeout * 1E3);
-                that.off('chat', specificChatDeleter);
+(function() {
+    function sendNextMessage() {
+        if (chatQueue.length > 0) {
+            var nextMessage = chatQueue.shift(), msg = nextMessage.msg, timeout = nextMessage.timeout;
+            ws.sendEvent('chat', msg);
+            if (timeout !== undefined && !isNaN(timeout) && ~~timeout > 0) {
+                var specificChatDeleter = function(data) {
+                    if (data.uid == room.getSelf().id && data.message.trim() == msg.trim()) {
+                        setTimeout(function() {
+                            that.moderateDeleteChat(data.cid);
+                        }, ~~timeout * 1E3);
+                        that.off('chat', specificChatDeleter);
+                    }
+                };
+                that.on('chat', specificChatDeleter);
             }
-        };
-        that.on('chat', specificChatDeleter);
+        }
+        setTimeout(function() {
+            sendNextMessage();
+        }, floodProtectionDelay);
     }
+
+    sendNextMessage();
+})();
+
+function queueChat(msg, timeout) {
+    chatQueue.push({
+        msg: msg,
+        timeout: timeout
+    });
 }
 
 /**
@@ -641,8 +660,21 @@ function messageHandler(msg) {
         case PlugAPI.events.DJ_LIST_UPDATE:
             room.setDJs(data);
             break;
+        case PlugAPI.events.FLOOD_CHAT:
+            floodProtectionDelay += 500;
+            setTimeout(function() {
+                floodProtectionDelay -= 500;
+            }, floodProtectionDelay * 5);
+            break;
         case 'earn':
             room.setEarn(data);
+            break;
+        case 'notify':
+            if (data.action === 'levelUp') {
+                logger.info('Congratulations, you have leveled up to level', data.value);
+            } else {
+                logger.info('Notify', data);
+            }
             break;
         default:
         case void 0:
@@ -855,6 +887,7 @@ PlugAPI.events = {
     DJ_LIST_UPDATE: 'djListUpdate',
     EMOTE: 'emote',
     FOLLOW_JOIN: 'followJoin',
+    FLOOD_CHAT: 'floodChat',
     GRAB: 'grab',
     MODERATE_ADD_DJ: 'modAddDJ',
     MODERATE_ADD_WAITLIST: 'modAddWaitList',
@@ -986,13 +1019,13 @@ PlugAPI.prototype.sendChat = function(msg, timeout) {
             if (i > 0) {
                 msg = '(continued) ' + msg;
             }
-            intChat(msg, timeout);
+            queueChat(msg, timeout);
             if (i + 1 >= this.multiLineLimit) {
                 break;
             }
         }
     } else {
-        intChat(msg, timeout);
+        queueChat(msg, timeout);
     }
 };
 
