@@ -561,15 +561,20 @@ function connectSocket(roomSlug) {
     ws.on('error', function(a) {
         logger.error('[Socket Server] Error:', a);
         process.nextTick(function() {
+            var slug = room.getRoomMeta().slug ? room.getRoomMeta().slug : roomSlug;
+            PlugAPI.close();
             logger.info('[Socket Server] Reconnecting');
-            queueConnectSocket(room.getRoomMeta().slug ? room.getRoomMeta().slug : roomSlug);
+            PlugAPI.connect(slug)
         });
     });
     ws.on('close', function(a) {
         logger.warn('[Socket Server] Closed with code', a);
         process.nextTick(function() {
+            var slug = room.getRoomMeta().slug ? room.getRoomMeta().slug : roomSlug;
+            PlugAPI.close();
             logger.info('[Socket Server] Reconnecting');
-            queueConnectSocket(room.getRoomMeta().slug ? room.getRoomMeta().slug : roomSlug);
+            PlugAPI.connect(slug)
+
         });
     });
 }
