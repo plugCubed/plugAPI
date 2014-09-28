@@ -564,8 +564,8 @@ function connectSocket(roomSlug) {
 			var slug = room.getRoomMeta().slug ? room.getRoomMeta().slug : roomSlug;
 			that.close();
 			logger.info('[Socket Server] Reconnecting');
-			setTimeout(function(){
-				that.connect(slug)
+			setTimeout(function() {
+				that.connect(slug);
 			}, 10 * 1000);
 
 		});
@@ -576,8 +576,8 @@ function connectSocket(roomSlug) {
 			var slug = room.getRoomMeta().slug ? room.getRoomMeta().slug : roomSlug;
 			that.close();
 			logger.info('[Socket Server] Reconnecting');
-			setTimeout(function(){
-				that.connect(slug)
+			setTimeout(function() {
+				that.connect(slug);
 			}, 10 * 1000);
 
 		});
