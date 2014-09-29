@@ -57,18 +57,18 @@ endpoints = {
  * That is this and this is that
  * @type {PlugAPI}
  */
-var that = null;
+ var that = null;
 
-var ws, p3Socket, initialized, commandPrefix, apiId, _authCode, _cookies, chatHistory, serverRequests, room, connectingRoomSlug, rpcHandlers, logger, floodProtectionDelay, chatQueue;
-ws = null;
-p3Socket = null;
-initialized = false;
-commandPrefix = '!';
-apiId = 0;
-chatHistory = [];
-connectingRoomSlug = null;
-_authCode = '';
-_cookies = {
+ var ws, p3Socket, initialized, commandPrefix, apiId, _authCode, _cookies, chatHistory, serverRequests, room, connectingRoomSlug, rpcHandlers, logger, floodProtectionDelay, chatQueue;
+ ws = null;
+ p3Socket = null;
+ initialized = false;
+ commandPrefix = '!';
+ apiId = 0;
+ chatHistory = [];
+ connectingRoomSlug = null;
+ _authCode = '';
+ _cookies = {
     cookies: {},
     path: path.resolve(__dirname, '..', 'cookies.tmp'),
     load: function() {
@@ -103,18 +103,18 @@ _cookies = {
         }
         return cookies.join('; ');
     }
-};
-serverRequests = {
+ };
+ serverRequests = {
     queue: [],
     sent: 0,
     limit: 10,
     running: false
-};
-room = new Room();
-rpcHandlers = {};
-logger = new Logger('PlugAPI');
-floodProtectionDelay = 200;
-chatQueue = [];
+ };
+ room = new Room();
+ rpcHandlers = {};
+ logger = new Logger('PlugAPI');
+ floodProtectionDelay = 200;
+ chatQueue = [];
 
 /*
  http.OutgoingMessage.prototype.__renderHeaders = http.OutgoingMessage.prototype._renderHeaders;
@@ -127,13 +127,13 @@ chatQueue = [];
  };
  */
 
-function __bind(fn, me) {
+ function __bind(fn, me) {
     return function() {
         return fn.apply(me, arguments);
     };
-}
+ }
 
-function intPM(receiver, msg) {
+ function intPM(receiver, msg) {
     p3Socket.send({
         type: 'PM',
         value: {
@@ -141,9 +141,9 @@ function intPM(receiver, msg) {
             message: msg
         }
     });
-}
+ }
 
-(function() {
+ (function() {
     function sendNextMessage() {
         if (chatQueue.length > 0) {
             var nextMessage = chatQueue.shift(), msg = nextMessage.msg, timeout = nextMessage.timeout;
@@ -166,21 +166,21 @@ function intPM(receiver, msg) {
     }
 
     sendNextMessage();
-})();
+ })();
 
-function queueChat(msg, timeout) {
+ function queueChat(msg, timeout) {
     chatQueue.push({
         msg: msg,
         timeout: timeout
     });
-}
+ }
 
 /**
  DateUtilities
  Copyright (C) 2014 by Plug DJ, Inc.
  Modified by TAT (TAT@plugCubed.net)
  */
-var DateUtilities = {
+ var DateUtilities = {
     MONTHS: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
     SERVER_TIME: null,
     OFFSET: 0,
@@ -244,9 +244,9 @@ var DateUtilities = {
     convertUnixDateStringToDate: function(e) {
         return e ? new Date(e.substr(0, 4), Number(e.substr(5, 2)) - 1, e.substr(8, 2), e.substr(11, 2), e.substr(14, 2), e.substr(17, 2)) : null;
     }
-};
+ };
 
-function queueTicker() {
+ function queueTicker() {
     serverRequests.running = true;
     var canSend = serverRequests.sent < serverRequests.limit, obj = serverRequests.queue.pop();
     if (canSend && obj) {
@@ -268,9 +268,9 @@ function queueTicker() {
     } else {
         serverRequests.running = false;
     }
-}
+ }
 
-function queueREST(method, endpoint, data, successCallback, failureCallback, skipQueue) {
+ function queueREST(method, endpoint, data, successCallback, failureCallback, skipQueue) {
     if (['POST', 'PUT', 'GET', 'DELETE'].indexOf(method) < 0) {
         logger.error(method, 'needs update');
         return;
@@ -541,17 +541,17 @@ function connectSocket(roomSlug) {
         var type = data.slice(0, 1), payload;
         switch (type) {
             case 'a':
-                payload = JSON.parse(data.slice(1) || '[]');
-                for (var i = 0; i < payload.length; i++) {
-                    ws.emit('data', payload[i][0]);
-                }
-                break;
+            payload = JSON.parse(data.slice(1) || '[]');
+            for (var i = 0; i < payload.length; i++) {
+                ws.emit('data', payload[i][0]);
+            }
+            break;
             case 'm':
-                payload = JSON.parse(data.slice(1) || 'null');
-                ws.emit('data', payload);
-                break;
+            payload = JSON.parse(data.slice(1) || 'null');
+            ws.emit('data', payload);
+            break;
             default:
-                break;
+            break;
         }
     });
     ws.on('data', messageHandler);
@@ -561,15 +561,25 @@ function connectSocket(roomSlug) {
     ws.on('error', function(a) {
         logger.error('[Socket Server] Error:', a);
         process.nextTick(function() {
+            var slug = room.getRoomMeta().slug ? room.getRoomMeta().slug : roomSlug;
+            that.close();
             logger.info('[Socket Server] Reconnecting');
-            queueConnectSocket(room.getRoomMeta().slug ? room.getRoomMeta().slug : roomSlug);
+            setTimeout(function() {
+                that.connect(slug);
+            }, 10 * 1000);
+
         });
     });
     ws.on('close', function(a) {
         logger.warn('[Socket Server] Closed with code', a);
         process.nextTick(function() {
+            var slug = room.getRoomMeta().slug ? room.getRoomMeta().slug : roomSlug;
+            that.close();
             logger.info('[Socket Server] Reconnecting');
-            queueConnectSocket(room.getRoomMeta().slug ? room.getRoomMeta().slug : roomSlug);
+            setTimeout(function() {
+                that.connect(slug);
+            }, 10 * 1000);
+
         });
     });
 }
@@ -599,29 +609,29 @@ function messageHandler(msg) {
     var type = msg.a, data = msg.p;
     switch (type) {
         case 'ack':
-            queueREST('GET', 'users/me', null, function(a) {
-                room.setSelf(a[0]);
-                joinRoom(connectingRoomSlug);
-            });
-            break;
+        queueREST('GET', 'users/me', null, function(a) {
+            room.setSelf(a[0]);
+            joinRoom(connectingRoomSlug);
+        });
+        break;
         case PlugAPI.events.CHAT:
-            chatHistory.push(data);
+        chatHistory.push(data);
 
             // If over limit, remove the first item
             if (chatHistory.length > 512) chatHistory.shift();
 
             receivedChatMessage(data);
             return;
-        case PlugAPI.events.CHAT_DELETE:
+            case PlugAPI.events.CHAT_DELETE:
             for (var i in chatHistory) {
                 if (!chatHistory.hasOwnProperty(i)) continue;
                 if (chatHistory[i].cid == data.c) chatHistory.splice(i, 1);
             }
             break;
-        case PlugAPI.events.USER_JOIN:
+            case PlugAPI.events.USER_JOIN:
             room.addUser(data);
             break;
-        case PlugAPI.events.USER_LEAVE:
+            case PlugAPI.events.USER_LEAVE:
             var userData = room.getUser(data);
             if (userData == null) {
                 userData = {
@@ -631,17 +641,17 @@ function messageHandler(msg) {
             room.removeUser(data);
             that.emit(type, userData);
             return;
-        case PlugAPI.events.USER_UPDATE:
+            case PlugAPI.events.USER_UPDATE:
             room.updateUser(data);
             that.emit(type, that.getUser(data.i));
             return;
-        case PlugAPI.events.VOTE:
+            case PlugAPI.events.VOTE:
             room.setVote(data.i, data.v);
             break;
-        case PlugAPI.events.GRAB:
+            case PlugAPI.events.GRAB:
             room.setGrab(data);
             break;
-        case PlugAPI.events.ADVANCE:
+            case PlugAPI.events.ADVANCE:
             var advanceEvent = {
                 lastPlay: {
                     dj: room.getDJ(),
@@ -657,62 +667,62 @@ function messageHandler(msg) {
             advanceEvent.djs = room.getDJs();
             that.emit(type, advanceEvent);
             return;
-        case PlugAPI.events.DJ_LIST_UPDATE:
+            case PlugAPI.events.DJ_LIST_UPDATE:
             room.setDJs(data);
             break;
-        case PlugAPI.events.FLOOD_CHAT:
+            case PlugAPI.events.FLOOD_CHAT:
             floodProtectionDelay += 500;
             setTimeout(function() {
                 floodProtectionDelay -= 500;
             }, floodProtectionDelay * 5);
             break;
-        case 'earn':
+            case 'earn':
             room.setEarn(data);
             break;
-        case 'notify':
+            case 'notify':
             if (data.action === 'levelUp') {
                 logger.info('Congratulations, you have leveled up to level', data.value);
             } else {
                 logger.info('Notify', data);
             }
             break;
-        default:
-        case void 0:
+            default:
+            case void 0:
             logger.warning('UNKNOWN MESSAGE FORMAT', msg);
+        }
+        if (type) {
+            that.emit(type, data);
+        }
     }
-    if (type) {
-        that.emit(type, data);
-    }
-}
 
-var PlugAPI = function(authenticationData) {
-    if (!authenticationData) {
-        logger.error('You must pass the authentication data into the PlugAPI object to connect correctly');
-        process.exit(1);
-    } else {
-        if (!authenticationData.email) {
-            logger.error('Missing login e-mail');
+    var PlugAPI = function(authenticationData) {
+        if (!authenticationData) {
+            logger.error('You must pass the authentication data into the PlugAPI object to connect correctly');
             process.exit(1);
-        }
-        if (!authenticationData.password) {
-            logger.error('Missing login password');
-            process.exit(1);
-        }
-        var deasync = require('deasync');
-        var loggingIn = true, loggedIn = false;
-        if (fs.existsSync(_cookies.path)) {
-            _cookies.load();
-            request.get('https://plug.dj/_/users/me', {
-                headers: {
-                    'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
-                    Cookie: _cookies.toString()
-                }
-            }, function(err, res) {
-                if (res.statusCode === 200) {
-                    loggedIn = true;
-                }
-                loggingIn = false;
-            });
+        } else {
+            if (!authenticationData.email) {
+                logger.error('Missing login e-mail');
+                process.exit(1);
+            }
+            if (!authenticationData.password) {
+                logger.error('Missing login password');
+                process.exit(1);
+            }
+            var deasync = require('deasync');
+            var loggingIn = true, loggedIn = false;
+            if (fs.existsSync(_cookies.path)) {
+                _cookies.load();
+                request.get('https://plug.dj/_/users/me', {
+                    headers: {
+                        'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
+                        Cookie: _cookies.toString()
+                    }
+                }, function(err, res) {
+                    if (res.statusCode === 200) {
+                        loggedIn = true;
+                    }
+                    loggingIn = false;
+                });
             // Wait until the session is set
             while (loggingIn) {
                 deasync.sleep(100);
@@ -771,89 +781,89 @@ var PlugAPI = function(authenticationData) {
      * Should the bot split messages up if hitting message length limit?
      * @type {boolean}
      */
-    this.multiLine = false;
+     this.multiLine = false;
     /**
      * Max splits
      * @type {number}
      */
-    this.multiLineLimit = 5;
-    this.enablePlugCubedSocket = false;
+     this.multiLineLimit = 5;
+     this.enablePlugCubedSocket = false;
     /**
      * Should the bot process commands the bot itself is sending?
      * @type {boolean}
      */
-    this.processOwnMessages = false;
+     this.processOwnMessages = false;
     /**
      * Should the bot delete incomming commands?
      * @type {boolean}
      */
-    this.deleteCommands = true;
+     this.deleteCommands = true;
 
-    room.registerUserExtensions(this);
+     room.registerUserExtensions(this);
 
     /**
      * Pre-command Handler
      * @return {boolean} If false, the command is not getting handled.
      */
-    this.preCommandHandler = function() {
+     this.preCommandHandler = function() {
         return true;
-    };
+     };
 
-    logger.info('Running plugAPI v.' + PlugAPIInfo.version + '-dev');
-    logger.warn(chalk.yellow('THIS IS A UNSTABLE VERSION! DO NOT USE FOR PRODUCTION!'));
-};
+     logger.info('Running plugAPI v.' + PlugAPIInfo.version + '-dev');
+     logger.warn(chalk.yellow('THIS IS A UNSTABLE VERSION! DO NOT USE FOR PRODUCTION!'));
+ };
 
-util.inherits(PlugAPI, EventEmitter);
+ util.inherits(PlugAPI, EventEmitter);
 
 /**
  * Room ranks
  * @type {{NONE: number, RESIDENTDJ: number, BOUNCER: number, MANAGER: number, COHOST: number, HOST: number}}
  * @const
  */
-PlugAPI.ROOM_ROLE = {
+ PlugAPI.ROOM_ROLE = {
     NONE: 0,
     RESIDENTDJ: 1,
     BOUNCER: 2,
     MANAGER: 3,
     COHOST: 4,
     HOST: 5
-};
+ };
 
 /**
  * Global Ranks
  * @type {{NONE: number, VOLUNTEER: number, AMBASSADOR: number, LEADER: number, ADMIN: number}}
  * @const
  */
-PlugAPI.GLOBAL_ROLES = {
+ PlugAPI.GLOBAL_ROLES = {
     NONE: 0,
     VOLUNTEER: 2,
     AMBASSADOR: 3,
     LEADER: 4,
     ADMIN: 5
-};
+ };
 
 /**
  * Statuses
  * @type {{AVAILABLE: number, AFK: number, WORKING: number, GAMING: number}}
  * @const
  */
-PlugAPI.STATUS = {
+ PlugAPI.STATUS = {
     AVAILABLE: 0,
     AFK: 1,
     WORKING: 2,
     GAMING: 3
-};
+ };
 
 /**
  * Ban Lengths
  * @type {{HOUR: string, DAY: string, PERMA: string}}
  * @const
  */
-PlugAPI.BAN = {
+ PlugAPI.BAN = {
     HOUR: 'h',
     DAY: 'd',
     PERMA: 'f'
-};
+ };
 
 /**
  * Mute Lengths
@@ -863,18 +873,18 @@ PlugAPI.BAN = {
  * @type {{SHORT: string, MEDIUM: string, LONG: string}}
  * @const
  */
-PlugAPI.MUTE = {
+ PlugAPI.MUTE = {
     SHORT: 's',
     MEDIUM: 'm',
     LONG: 'l'
-};
+ };
 
 /**
  * Event Types
  * @type {{ADVANCE: string, BAN: string, BOOTH_CYCLE: string, BOOTH_LOCKED: string, CHAT: string, CHAT_COMMAND: string, CHAT_DELETE: string, CHAT_EMOTE: string, COMMAND: string, DJ_LIST_UPDATE: string, EMOTE: string, FOLLOW_JOIN: string, GRAB: string, MODERATE_ADD_DJ: string, MODERATE_ADD_WAITLIST: string, MODERATE_AMBASSADOR: string, MODERATE_BAN: string, MODERATE_MOVE_DJ: string, MODERATE_MUTE: string, MODERATE_REMOVE_DJ: string, MODERATE_REMOVE_WAITLIST: string, MODERATE_SKIP: string, MODERATE_STAFF: string, PDJ_MESSAGE: string, PDJ_UPDATE: string, PING: string, PLAYLIST_CYCLE: string, REQUEST_DURATION: string, REQUEST_DURATION_RETRY: string, ROOM_CHANGE: string, ROOM_DESCRIPTION_UPDATE: string, ROOM_JOIN: string, ROOM_NAME_UPDATE: string, ROOM_VOTE_SKIP: string, ROOM_WELCOME_UPDATE: string, SESSION_CLOSE: string, SKIP: string, STROBE_TOGGLE: string, USER_COUNTER_UPDATE: string, USER_FOLLOW: string, USER_JOIN: string, USER_LEAVE: string, USER_UPDATE: string, VOTE: string}}
  * @const
  */
-PlugAPI.events = {
+ PlugAPI.events = {
     ADVANCE: 'advance',
     BAN: 'ban',
     BOOTH_CYCLE: 'boothCycle',
@@ -920,24 +930,24 @@ PlugAPI.events = {
     USER_LEAVE: 'userLeave',
     USER_UPDATE: 'userUpdate',
     VOTE: 'vote'
-};
+ };
 
 /**
  * Create a new logger for your own scripts.
  * @param channel
  * @return {Logger}
  */
-PlugAPI.getLogger = function(channel) {
+ PlugAPI.getLogger = function(channel) {
     if (!channel) channel = 'Unknown';
     return new Logger(channel);
-};
+ };
 
 /**
  * Set the Logger object, must contain a log, info, warn, warning and error function
  * @param {Object} newLogger
  * @returns {boolean} True if set
  */
-PlugAPI.prototype.setLogger = function(newLogger) {
+ PlugAPI.prototype.setLogger = function(newLogger) {
     var requiredMethods = ['log', 'info', 'warn', 'warning', 'error'];
 
     if (newLogger && typeof newLogger === 'object' && !util.isArray(newLogger)) {
@@ -950,38 +960,38 @@ PlugAPI.prototype.setLogger = function(newLogger) {
         return true;
     }
     return false;
-};
+ };
 
 /**
  * Close the connection
  */
-PlugAPI.prototype.close = function() {
+ PlugAPI.prototype.close = function() {
     ws.removeAllListeners('close');
     ws.close();
     if (this.enablePlugCubedSocket) {
         p3Socket.removeAllListeners('close');
         p3Socket.close();
     }
-};
+ };
 
 /**
  * Set the command prefix
  * @param prefix
  * @returns {boolean} True if set
  */
-PlugAPI.prototype.setCommandPrefix = function(prefix) {
+ PlugAPI.prototype.setCommandPrefix = function(prefix) {
     if (!prefix || typeof prefix !== 'string' || prefix.length < 1) {
         return false;
     }
     commandPrefix = prefix;
     return true;
-};
+ };
 
 /**
  * Connect to a room
  * @param {String} roomSlug Slug of room (The part after https://plug.dj/)
  */
-PlugAPI.prototype.connect = function(roomSlug) {
+ PlugAPI.prototype.connect = function(roomSlug) {
     if (!roomSlug || typeof roomSlug !== 'string' || roomSlug.length === 0 || roomSlug.indexOf('/') > -1) {
         logger.error('Invalid room name');
         process.exit(1);
@@ -1011,7 +1021,7 @@ PlugAPI.prototype.connect = function(roomSlug) {
  * @param {String} msg Message
  * @param {int} [timeout] If set, auto deletes the message after x seconds. (Needs to have modChat permission)
  */
-PlugAPI.prototype.sendChat = function(msg, timeout) {
+ PlugAPI.prototype.sendChat = function(msg, timeout) {
     if (msg.length > 235 && this.multiLine) {
         var lines = msg.replace(/.{235}\S*\s+/g, '$&¤').split(/\s+¤/);
         for (var i = 0; i < lines.length; i++) {
@@ -1027,43 +1037,43 @@ PlugAPI.prototype.sendChat = function(msg, timeout) {
     } else {
         queueChat(msg, timeout);
     }
-};
+ };
 
 /**
  * Woot
  * @param {Function} [callback]
  */
-PlugAPI.prototype.woot = function(callback) {
+ PlugAPI.prototype.woot = function(callback) {
     queueREST('POST', 'votes', {
         direction: 1,
         historyID: room.getHistoryID()
     }, callback);
-};
+ };
 
 /**
  * Meh
  * @param {Function} [callback]
  */
-PlugAPI.prototype.meh = function(callback) {
+ PlugAPI.prototype.meh = function(callback) {
     queueREST('POST', 'votes', {
         direction: -1,
         historyID: room.getHistoryID()
     }, callback);
-};
+ };
 
 /**
  * Get a history over chat messages. (Limit 512 messages)
  * @returns {Array} Chat history
  */
-PlugAPI.prototype.getChatHistory = function() {
+ PlugAPI.prototype.getChatHistory = function() {
     return chatHistory;
-};
+ };
 
 /**
  * Get a history over songs played. (Limit 50 songs)
  * @param {Function} callback Callback to get the history. History will be sent as argument.
  */
-PlugAPI.prototype.getHistory = function(callback) {
+ PlugAPI.prototype.getHistory = function(callback) {
     if (typeof callback !== 'function') {
         logger.error('You must specify callback to get history!');
     }
@@ -1077,7 +1087,7 @@ PlugAPI.prototype.getHistory = function(callback) {
     setImmediate(function() {
         that.getHistory(callback);
     });
-};
+ };
 
 /**
  * Change the name of the community
@@ -1085,7 +1095,7 @@ PlugAPI.prototype.getHistory = function(callback) {
  * @param {Function} [callback]
  * @return {boolean}
  */
-PlugAPI.prototype.changeRoomName = function(name, callback) {
+ PlugAPI.prototype.changeRoomName = function(name, callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST)) {
         return false;
     }
@@ -1095,9 +1105,9 @@ PlugAPI.prototype.changeRoomName = function(name, callback) {
         welcome: undefined
     }, callback);
     return true;
-};
+ };
 
-PlugAPI.prototype.changeRoomDescription = function(description, callback) {
+ PlugAPI.prototype.changeRoomDescription = function(description, callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST)) {
         return false;
     }
@@ -1107,8 +1117,8 @@ PlugAPI.prototype.changeRoomDescription = function(description, callback) {
         welcome: undefined
     }, callback);
     return true;
-};
-PlugAPI.prototype.changeRoomWelcome = function(welcome, callback) {
+ };
+ PlugAPI.prototype.changeRoomWelcome = function(welcome, callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST)) {
         return false;
     }
@@ -1118,8 +1128,8 @@ PlugAPI.prototype.changeRoomWelcome = function(welcome, callback) {
         welcome: welcome
     }, callback);
     return true;
-};
-PlugAPI.prototype.changeDJCycle = function(enabled, callback) {
+ };
+ PlugAPI.prototype.changeDJCycle = function(enabled, callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
         return false;
     }
@@ -1127,39 +1137,39 @@ PlugAPI.prototype.changeDJCycle = function(enabled, callback) {
         shouldCycle: enabled
     }, callback);
     return true;
-};
+ };
 
-PlugAPI.prototype.getTimeElapsed = function() {
+ PlugAPI.prototype.getTimeElapsed = function() {
     if (!room.getRoomMeta().slug || room.getMedia() == null) {
         return -1;
     }
     return Math.min(room.getMedia().duration, DateUtilities.getSecondsElapsed(room.getStartTime()));
-};
+ };
 
-PlugAPI.prototype.getTimeRemaining = function() {
+ PlugAPI.prototype.getTimeRemaining = function() {
     if (!room.getRoomMeta().slug || room.getMedia() == null) {
         return -1;
     }
     return room.getMedia().duration - this.getTimeElapsed();
-};
+ };
 
-PlugAPI.prototype.joinBooth = function(callback) {
+ PlugAPI.prototype.joinBooth = function(callback) {
     if (!room.getRoomMeta().slug || room.isDJ() || room.isInWaitList() || (room.boothLocked && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.RESIDENTDJ)) || this.getDJs().length >= 50) {
         return false;
     }
     queueREST('POST', endpoints.MODERATE_BOOTH, undefined, callback);
     return true;
-};
+ };
 
-PlugAPI.prototype.leaveBooth = function(callback) {
+ PlugAPI.prototype.leaveBooth = function(callback) {
     if (!room.getRoomMeta().slug || (!room.isDJ() && !room.isInWaitList())) {
         return false;
     }
     queueREST('DELETE', endpoints.MODERATE_BOOTH, undefined, callback);
     return true;
-};
+ };
 
-PlugAPI.prototype.moderateAddDJ = function(uid, callback) {
+ PlugAPI.prototype.moderateAddDJ = function(uid, callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || room.isDJ(uid) || room.isInWaitList(uid) || (room.boothLocked && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER))) {
         return false;
     }
@@ -1167,17 +1177,17 @@ PlugAPI.prototype.moderateAddDJ = function(uid, callback) {
         id: uid
     }, callback);
     return true;
-};
+ };
 
-PlugAPI.prototype.moderateRemoveDJ = function(uid, callback) {
+ PlugAPI.prototype.moderateRemoveDJ = function(uid, callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || (!room.isDJ(uid) && !room.isInWaitList(uid)) || (room.boothLocked && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER))) {
         return false;
     }
     queueREST('DELETE', endpoints.MODERATE_REMOVE_DJ + uid, undefined, callback);
     return true;
-};
+ };
 
-PlugAPI.prototype.moderateMoveDJ = function(uid, index, callback) {
+ PlugAPI.prototype.moderateMoveDJ = function(uid, index, callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER) || !room.isInWaitList(uid) || isNaN(index)) {
         return false;
     }
@@ -1186,9 +1196,9 @@ PlugAPI.prototype.moderateMoveDJ = function(uid, index, callback) {
         position: index > 50 ? 49 : index < 1 ? 1 : --index
     }, callback);
     return true;
-};
+ };
 
-PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
+ PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
     if (!room.getRoomMeta().slug) return false;
     var user = this.getUser(uid);
     if (user ? room.getPermissions(user).canModBan : this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER)) {
@@ -1202,36 +1212,36 @@ PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
         }, callback);
     }
     return true;
-};
+ };
 
-PlugAPI.prototype.moderateUnbanUser = function(uid, callback) {
+ PlugAPI.prototype.moderateUnbanUser = function(uid, callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) return false;
     queueREST('DELETE', endpoints.MODERATE_UNBAN + uid, undefined, callback);
     return true;
-};
-PlugAPI.prototype.moderateForceSkip = function(callback) {
+ };
+ PlugAPI.prototype.moderateForceSkip = function(callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || room.getDJ() === null) return false;
     queueREST('POST', endpoints.MODERATE_SKIP, {
         userID: room.getDJ().id,
         historyID: room.getHistoryID()
     }, callback);
     return true;
-};
+ };
 
-PlugAPI.prototype.moderateDeleteChat = function(cid, callback) {
+ PlugAPI.prototype.moderateDeleteChat = function(cid, callback) {
     if (!room.getRoomMeta().slug) return false;
     var user = this.getUser(cid.split('-')[0]);
     if (user ? room.getPermissions(user).canModChat : this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER)) {
         queueREST('DELETE', endpoints.CHAT_DELETE + cid, undefined, callback, undefined, true);
     }
     return true;
-};
+ };
 
-PlugAPI.prototype.moderateLockWaitList = function(locked, clear, callback) {
+ PlugAPI.prototype.moderateLockWaitList = function(locked, clear, callback) {
     return this.moderateLockBooth(locked, clear, callback);
-};
+ };
 
-PlugAPI.prototype.moderateSetRole = function(uid, role, callback) {
+ PlugAPI.prototype.moderateSetRole = function(uid, role, callback) {
     if (!room.getRoomMeta().slug || isNaN(role)) return false;
     var user = this.getUser(uid);
     if (user ? room.getPermissions(user).canModStaff : this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
@@ -1241,68 +1251,68 @@ PlugAPI.prototype.moderateSetRole = function(uid, role, callback) {
         }, callback);
     }
     return true;
-};
+ };
 
-PlugAPI.prototype.moderateLockBooth = function(locked, clear, callback) {
+ PlugAPI.prototype.moderateLockBooth = function(locked, clear, callback) {
     if (!room.getRoomMeta().slug || this.getUser() === null || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER) || (locked === room.boothLocked && !clear)) return false;
     queueREST('PUT', endpoints.ROOM_LOCK_BOOTH, {
         isLocked: locked,
         removeAllDJs: clear
     }, callback);
     return true;
-};
+ };
 
-PlugAPI.prototype.getUsers = function() {
+ PlugAPI.prototype.getUsers = function() {
     return room.getUsers();
-};
+ };
 
-PlugAPI.prototype.getUser = function(uid) {
+ PlugAPI.prototype.getUser = function(uid) {
     return room.getUser(uid);
-};
+ };
 
-PlugAPI.prototype.getAudience = function() {
+ PlugAPI.prototype.getAudience = function() {
     return room.getAudience();
-};
+ };
 
-PlugAPI.prototype.getDJ = function() {
+ PlugAPI.prototype.getDJ = function() {
     return room.getDJ();
-};
+ };
 
-PlugAPI.prototype.getDJs = function() {
+ PlugAPI.prototype.getDJs = function() {
     return room.getDJs();
-};
+ };
 
-PlugAPI.prototype.getStaff = function() {
+ PlugAPI.prototype.getStaff = function() {
     return room.getStaff();
-};
+ };
 
-PlugAPI.prototype.getAdmins = function() {
+ PlugAPI.prototype.getAdmins = function() {
     return room.getAdmins();
-};
+ };
 
 /**
  * Get the user object for the host
  * @returns {*}
  */
-PlugAPI.prototype.getHost = function() {
+ PlugAPI.prototype.getHost = function() {
     return room.getHost();
-};
+ };
 
 /**
  * Get the user object for yourself
  * @returns {*}
  */
-PlugAPI.prototype.getSelf = function() {
+ PlugAPI.prototype.getSelf = function() {
     return room.getSelf();
-};
+ };
 
 /**
  * Get all DJs in waitlist
  * @returns {*}
  */
-PlugAPI.prototype.getWaitList = function() {
+ PlugAPI.prototype.getWaitList = function() {
     return room.getWaitList();
-};
+ };
 
 /**
  * Get a user's position in waitlist
@@ -1311,29 +1321,29 @@ PlugAPI.prototype.getWaitList = function() {
  * If current DJ, it returns 0.
  * If not in waitlist, it returns -1
  */
-PlugAPI.prototype.getWaitListPosition = function(uid) {
+ PlugAPI.prototype.getWaitListPosition = function(uid) {
     return room.getWaitListPosition(uid);
-};
+ };
 
-PlugAPI.prototype.getAmbassadors = function() {
+ PlugAPI.prototype.getAmbassadors = function() {
     return room.getAmbassadors();
-};
+ };
 
-PlugAPI.prototype.getMedia = function() {
+ PlugAPI.prototype.getMedia = function() {
     return room.getMedia();
-};
+ };
 
-PlugAPI.prototype.getRoomScore = function() {
+ PlugAPI.prototype.getRoomScore = function() {
     return room.getRoomScore();
-};
+ };
 
-PlugAPI.prototype.setStatus = function(status, callback) {
+ PlugAPI.prototype.setStatus = function(status, callback) {
     if (!room.getRoomMeta().slug || !status || status < 0 || status > 3) return false;
     queueREST('PUT', endpoints.USER_SET_STATUS, {
         status: status
     }, callback);
     return true;
-};
+ };
 /*
  PlugAPI.prototype.createPlaylist = function(name, callback) {
  if (!room.getRoomMeta().slug || !name) return false;
@@ -1341,43 +1351,43 @@ PlugAPI.prototype.setStatus = function(status, callback) {
  return true;
  };
  */
-PlugAPI.prototype.addSongToPlaylist = function(playlistId, songId, callback) {
+ PlugAPI.prototype.addSongToPlaylist = function(playlistId, songId, callback) {
     if (!room.getRoomMeta().slug || !playlistId || !songId) return false;
     queueREST('GET', endpoints.PLAYLIST + '/' + playlistId + '/media/insert', {
         media: songId,
         append: true
     }, callback);
     return true;
-};
+ };
 
-PlugAPI.prototype.getPlaylists = function(callback) {
+ PlugAPI.prototype.getPlaylists = function(callback) {
     if (!room.getRoomMeta().slug) return false;
     queueREST('GET', endpoints.PLAYLIST, undefined, callback);
     return true;
-};
+ };
 
-PlugAPI.prototype.activatePlaylist = function(playlist_id, callback) {
+ PlugAPI.prototype.activatePlaylist = function(playlist_id, callback) {
     if (!room.getRoomMeta().slug || !playlist_id) return false;
     queueREST('PUT', endpoints.PLAYLIST + '/' + playlist_id + '/activate', undefined, callback);
     return true;
-};
-PlugAPI.prototype.deletePlaylist = function(playlist_id, callback) {
+ };
+ PlugAPI.prototype.deletePlaylist = function(playlist_id, callback) {
     if (!room.getRoomMeta().slug || !playlist_id) return false;
     queueREST('DELETE', endpoints.PLAYLIST + '/' + playlist_id, undefined, callback);
     return true;
-};
-PlugAPI.prototype.shufflePlaylist = function(playlist_id, callback) {
+ };
+ PlugAPI.prototype.shufflePlaylist = function(playlist_id, callback) {
     if (!room.getRoomMeta().slug || !playlist_id) return false;
     queueREST('PUT', endpoints.PLAYLIST + '/' + playlist_id + '/shuffle', undefined, callback);
     return true;
-};
+ };
 /*PlugAPI.prototype.playlistMoveSong = function(playlist_id, song_id, position, callback) {
  if (!room.getRoomMeta().slug || !playlist_id || !song_id || !position) return false;
  queueREST(endpoints.PLAYLIST +'/' +playlist_id + '/media/move', {
  ids: song_id
  }, callback);
  return true;
- };*/
+};*/
 
 PlugAPI.prototype.setAvatar = function(avatar, callback) {
     if (!room.getRoomMeta().slug || !avatar) return false;
@@ -1393,12 +1403,12 @@ PlugAPI.prototype.setAvatar = function(avatar, callback) {
  * @param {Number} permission
  * @param {Boolean} [global]
  */
-PlugAPI.prototype.havePermission = function(uid, permission, global) {
+ PlugAPI.prototype.havePermission = function(uid, permission, global) {
     if (global) return room.haveGlobalPermission(uid, permission);
     return room.haveRoomPermission(uid, permission) || room.haveGlobalPermission(uid, permission);
-};
+ };
 
-PlugAPI.prototype.listen = function(port, address) {
+ PlugAPI.prototype.listen = function(port, address) {
     var _this = this;
     http.createServer(function(req, res) {
         var dataStr = '';
@@ -1410,9 +1420,9 @@ PlugAPI.prototype.listen = function(port, address) {
             _this.emit('httpRequest', req, res);
         });
     }).listen(port, address);
-};
+ };
 
-PlugAPI.prototype.tcpListen = function(port, address) {
+ PlugAPI.prototype.tcpListen = function(port, address) {
     var _this = this;
     net.createServer(function(socket) {
         socket.on('connect', function() {
@@ -1428,5 +1438,5 @@ PlugAPI.prototype.tcpListen = function(port, address) {
             _this.emit('tcpEnd', socket);
         });
     }).listen(port, address);
-};
-module.exports = PlugAPI;
+ };
+ module.exports = PlugAPI;
