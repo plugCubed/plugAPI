@@ -36,6 +36,7 @@ module.exports = function(channel) {
             log.apply(this, args);
         }
     }
+
     function log() {
         var args = Array.prototype.slice.call(arguments);
         var level = 'info';
@@ -51,6 +52,7 @@ module.exports = function(channel) {
 
         console.log.apply(console, args);
     }
+
     return {
         success: createLogFunc('success'),
         info: createLogFunc('info'),
