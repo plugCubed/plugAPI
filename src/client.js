@@ -8,8 +8,12 @@ path = require('path');
 fs = require('fs');
 
 // Third-party modules
-var EventEmitter, SockJS, request, WebSocket, encoder, chalk;
-EventEmitter = require('eventemitter2').EventEmitter2;
+var EventEmitter2, EventEmitter, SockJS, request, WebSocket, encoder, chalk;
+EventEmitter2 = require('eventemitter2').EventEmitter2;
+EventEmitter = new EventEmitter2({
+    wildcard: true,
+    delimiter: ':'
+});
 SockJS = require('sockjs-client-node');
 request = require('request');
 WebSocket = require('ws');
@@ -59,7 +63,11 @@ endpoints = {
  */
 var that = null;
 
-var ws, p3Socket, initialized, commandPrefix, apiId, _authCode, _cookies, chatHistory, serverRequests, room, connectingRoomSlug, rpcHandlers, logger, floodProtectionDelay, chatQueue;
+/**
+ * @type {null|WebSocket}
+ */
+var ws;
+var p3Socket, initialized, commandPrefix, apiId, _authCode, _cookies, chatHistory, serverRequests, room, connectingRoomSlug, rpcHandlers, logger, floodProtectionDelay, chatQueue;
 ws = null;
 p3Socket = null;
 initialized = false;
@@ -418,16 +426,24 @@ function receivedChatMessage(m) {
         // Functions
         obj.respond = function() {
             var message = Array.prototype.slice.call(arguments).join(' ');
+
             if (isPM) {
                 return intPM(this.from, message);
             }
+
             return that.sendChat('@' + this.from.username + ' ' + message);
         };
         obj.respondTimeout = function() {
-            var args = Array.prototype.slice.call(arguments), timeout = args.splice(args.length - 1, 1), message = args.join(' ');
+            var args, timeout, message;
+
+            args = Array.prototype.slice.call(arguments);
+            timeout = parseInt(args.splice(args.length - 1, 1), 10);
+            message = args.join(' ');
+
             if (isPM) {
                 return intPM(this.from, message);
             }
+
             return that.sendChat('@' + this.from.username + ' ' + message, timeout);
         };
         obj.havePermission = function(permission, successCallback, failureCallback) {
@@ -499,18 +515,23 @@ function getAuthCode(callback) {
         }
     }, function(err, res, body) {
         if (err) {
-            logger.error('[ERROR] Error getting auth code:', err);
-        } else {
+            logger.error('Error getting auth code:', err);
+        } else if (res.statusCode === 200) {
             _authCode = body.split('_jm')[1].split('"')[1];
             var _st = body.split('_st')[1].split('"')[1];
             DateUtilities.setServerTime(_st);
             callback();
+        } else {
+            logger.error('Error getting auth code: HTTP ' + res.statusCode);
+            _cookies.cookies = {};
+            that.close();
+            that.connect(room.getRoomMeta().slug);
         }
     });
 }
 
 function connectSocket(roomSlug) {
-    if (_authCode === null) {
+    if (_authCode === null || _authCode === '') {
         getAuthCode(function() {
             connectSocket(roomSlug);
         });
@@ -606,7 +627,7 @@ function initRoom(data, callback) {
 }
 
 function messageHandler(msg) {
-    var type = msg.a, data = msg.p;
+    var type = msg.a, data = msg.p, i;
     switch (type) {
         case 'ack':
             queueREST('GET', 'users/me', null, function(a) {
@@ -623,7 +644,7 @@ function messageHandler(msg) {
             receivedChatMessage(data);
             return;
         case PlugAPI.events.CHAT_DELETE:
-            for (var i in chatHistory) {
+            for (i in chatHistory) {
                 if (!chatHistory.hasOwnProperty(i)) continue;
                 if (chatHistory[i].cid == data.c) chatHistory.splice(i, 1);
             }
@@ -675,6 +696,21 @@ function messageHandler(msg) {
             setTimeout(function() {
                 floodProtectionDelay -= 500;
             }, floodProtectionDelay * 5);
+            logger.warning('Flood protection: Slowing down the sending of chat messages temporary');
+            break;
+        case PlugAPI.events.MODERATE_STAFF:
+            for (i in data.u) {
+                if (!data.u.hasOwnProperty(i)) continue;
+                room.updateUser({
+                    i: data.u[i].i,
+                    role: data.u[i].p
+                });
+            }
+            break;
+        case 'killSession':
+            _cookies.cookies = {};
+            that.close();
+            that.connect(room.getRoomMeta().slug);
             break;
         case 'earn':
             room.setEarn(data);
@@ -688,7 +724,7 @@ function messageHandler(msg) {
             break;
         default:
         case void 0:
-            logger.warning('UNKNOWN MESSAGE FORMAT', msg);
+            logger.warning('UNKNOWN MESSAGE FORMAT\n', JSON.stringify(msg, null, 4));
     }
     if (type) {
         that.emit(type, data);
@@ -812,8 +848,6 @@ var PlugAPI = function(authenticationData) {
     logger.info('Running plugAPI v.' + PlugAPIInfo.version + '-dev');
     logger.warn(chalk.yellow('THIS IS A UNSTABLE VERSION! DO NOT USE FOR PRODUCTION!'));
 };
-
-util.inherits(PlugAPI, EventEmitter);
 
 /**
  * Room ranks
@@ -942,13 +976,73 @@ PlugAPI.getLogger = function(channel) {
     return new Logger(channel);
 };
 
+PlugAPI.prototype.addListener = function() {
+    EventEmitter.addListener.apply(EventEmitter, arguments);
+    return this;
+};
+
+PlugAPI.prototype.on = function() {
+    EventEmitter.on.apply(EventEmitter, arguments);
+    return this;
+};
+
+PlugAPI.prototype.onAny = function() {
+    EventEmitter.onAny.apply(EventEmitter, arguments);
+    return this;
+};
+
+PlugAPI.prototype.offAny = function() {
+    EventEmitter.offAny.apply(EventEmitter, arguments);
+    return this;
+};
+
+PlugAPI.prototype.once = function() {
+    EventEmitter.once.apply(EventEmitter, arguments);
+    return this;
+};
+
+PlugAPI.prototype.many = function() {
+    EventEmitter.many.apply(EventEmitter, arguments);
+    return this;
+};
+
+PlugAPI.prototype.removeListener = function() {
+    EventEmitter.removeListener.apply(EventEmitter, arguments);
+    return this;
+};
+
+PlugAPI.prototype.off = function() {
+    EventEmitter.off.apply(EventEmitter, arguments);
+    return this;
+};
+
+PlugAPI.prototype.removeAllListeners = function() {
+    EventEmitter.removeAllListeners.apply(EventEmitter, arguments);
+    return this;
+};
+
+PlugAPI.prototype.setMaxListeners = function() {
+    EventEmitter.setMaxListeners.apply(EventEmitter, arguments);
+    return this;
+};
+
+PlugAPI.prototype.listeners = function() {
+    EventEmitter.listeners.apply(EventEmitter, arguments);
+    return this;
+};
+
+PlugAPI.prototype.emit = function() {
+    EventEmitter.emit.apply(EventEmitter, arguments);
+    return this;
+};
+
 /**
- * Set the Logger object, must contain a log, info, warn, warning and error function
+ * Set the Logger object, must contain a info, warn, warning and error function
  * @param {Object} newLogger
  * @returns {boolean} True if set
  */
 PlugAPI.prototype.setLogger = function(newLogger) {
-    var requiredMethods = ['log', 'info', 'warn', 'warning', 'error'];
+    var requiredMethods = ['info', 'warn', 'warning', 'error'];
 
     if (newLogger && typeof newLogger === 'object' && !util.isArray(newLogger)) {
         for (var i in requiredMethods) {
@@ -966,6 +1060,7 @@ PlugAPI.prototype.setLogger = function(newLogger) {
  * Close the connection
  */
 PlugAPI.prototype.close = function() {
+    connectingRoomSlug = null;
     ws.removeAllListeners('close');
     ws.close();
     if (this.enablePlugCubedSocket) {
@@ -1011,9 +1106,7 @@ PlugAPI.prototype.connect = function(roomSlug) {
     }
 
     connectingRoomSlug = roomSlug;
-    getAuthCode(function(auth) {
-        queueConnectSocket(roomSlug, auth);
-    });
+    queueConnectSocket(roomSlug);
 };
 
 /**
@@ -1284,6 +1377,14 @@ PlugAPI.prototype.getDJs = function() {
 
 PlugAPI.prototype.getStaff = function() {
     return room.getStaff();
+};
+
+PlugAPI.prototype.getAllStaff = function(callback) {
+    if (!callback || typeof callback !== 'function') {
+        logger.error('Missing callback for getAllStaff');
+        return;
+    }
+    queueREST('GET', 'staff', undefined, callback);
 };
 
 PlugAPI.prototype.getAdmins = function() {

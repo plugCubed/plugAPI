@@ -34,6 +34,8 @@ User.prototype.toString = function() {
     return this.username;
 };
 
+var cacheUsers = {};
+
 var booth, fx, grabs, meta, mutes, playback, self, role, users, votes;
 booth = {
     currentDJ: -1,
@@ -261,6 +263,9 @@ Room.prototype.addUser = function(user) {
 
     // Only add if the user doesn't exist
     if (this.getUser(user.id) === null) users.push(user);
+
+    // Remove user from cache
+    delete cacheUsers[booth.currentDJ];
 };
 
 /**
@@ -272,7 +277,7 @@ Room.prototype.removeUser = function(uid) {
         if (!users.hasOwnProperty(i)) continue;
         if (users[i].id == uid) {
             // User found
-            delete users[i];
+            cacheUsers[uid] = users.splice(i, 1);
             return;
         }
     }
@@ -407,6 +412,9 @@ Room.prototype.advance = function(data) {
     if (songHistory.unshift(historyObj) > 50) {
         songHistory.splice(50, songHistory.length - 50);
     }
+
+    // Clear cache of users
+    cacheUsers = {};
 };
 /*
  Room.prototype.setPermissions = function() {
@@ -481,7 +489,12 @@ Room.prototype.getSelf = function() {
  */
 Room.prototype.getDJ = function() {
     if (booth.currentDJ > 0) {
-        return this.getUser(booth.currentDJ);
+        var user = this.getUser(booth.currentDJ);
+        if (user !== null)
+            return user;
+
+        if (cacheUsers[booth.currentDJ] !== undefined)
+            return new User(cacheUsers[booth.currentDJ]);
     }
     return null;
 };
