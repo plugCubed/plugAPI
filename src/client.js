@@ -1226,7 +1226,7 @@ PlugAPI.prototype.changeDJCycle = function(enabled, callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
         return false;
     }
-    queueREST('POST', endpoints.ROOM_CYCLE_BOOTH, {
+    queueREST('PUT', endpoints.ROOM_CYCLE_BOOTH, {
         shouldCycle: enabled
     }, callback);
     return true;
