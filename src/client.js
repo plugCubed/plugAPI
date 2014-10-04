@@ -8,13 +8,12 @@ path = require('path');
 fs = require('fs');
 
 // Third-party modules
-var EventEmitter2, EventEmitter, SockJS, request, WebSocket, encoder, chalk;
+var EventEmitter2, EventEmitter, request, WebSocket, encoder, chalk;
 EventEmitter2 = require('eventemitter2').EventEmitter2;
 EventEmitter = new EventEmitter2({
     wildcard: true,
     delimiter: ':'
 });
-SockJS = require('sockjs-client-node');
 request = require('request');
 WebSocket = require('ws');
 WebSocket.prototype._send = WebSocket.prototype.send;

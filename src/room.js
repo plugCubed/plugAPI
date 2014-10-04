@@ -416,26 +416,7 @@ Room.prototype.advance = function(data) {
     // Clear cache of users
     cacheUsers = {};
 };
-/*
- Room.prototype.setPermissions = function() {
- var id, user, _ref, _results;
- _ref = this.users;
- _results = [];
- for (id in _ref) {
- if (_ref.hasOwnProperty(id)) {
- user = _ref[id];
- if (this.isAmbassador(id)) {
- _results.push(this.users[id]['permission'] = this.ambassadors[id]);
- } else if (this.isStaff(id)) {
- _results.push(this.users[id]['permission'] = this.staff[id]);
- } else {
- _results.push(this.users[id]['permission'] = 0);
- }
- }
- }
- return _results;
- };
- */
+
 Room.prototype.setGrab = function(uid) {
     grabs[uid] = 1;
 };
