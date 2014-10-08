@@ -123,17 +123,6 @@ logger = new Logger('PlugAPI');
 floodProtectionDelay = 200;
 chatQueue = [];
 
-/*
- http.OutgoingMessage.prototype.__renderHeaders = http.OutgoingMessage.prototype._renderHeaders;
- http.OutgoingMessage.prototype._renderHeaders = function() {
- if (this._header) {
- throw new Error('Can\'t render headers after they are sent to the client.');
- }
- this.setHeader('Cookie', _cookies.toString());
- return this.__renderHeaders();
- };
- */
-
 function __bind(fn, me) {
     return function() {
         return fn.apply(me, arguments);
@@ -348,7 +337,6 @@ function joinRoom(roomSlug, callback) {
         slug: roomSlug
     }, function() {
         queueREST('GET', 'rooms/state', undefined, function(data) {
-            fs.writeFileSync('roomState.json', JSON.stringify(data, null, 4));
             connectingRoomSlug = null;
             initRoom(data[0], function() {
                 if (typeof callback === 'function') {
@@ -584,9 +572,9 @@ function connectSocket(roomSlug) {
             var slug = room.getRoomMeta().slug ? room.getRoomMeta().slug : roomSlug;
             that.close();
             logger.info('[Socket Server] Reconnecting');
-            setTimeout(function() {
+            setImmediate(function() {
                 that.connect(slug);
-            }, 10 * 1000);
+            });
 
         });
     });
@@ -596,10 +584,9 @@ function connectSocket(roomSlug) {
             var slug = room.getRoomMeta().slug ? room.getRoomMeta().slug : roomSlug;
             that.close();
             logger.info('[Socket Server] Reconnecting');
-            setTimeout(function() {
+            setImmediate(function() {
                 that.connect(slug);
-            }, 10 * 1000);
-
+            });
         });
     });
 }
@@ -625,6 +612,10 @@ function initRoom(data, callback) {
     return callback();
 }
 
+/**
+ *
+ * @param {Object} msg
+ */
 function messageHandler(msg) {
     var type = msg.a, data = msg.p, i;
     switch (type) {
@@ -706,15 +697,22 @@ function messageHandler(msg) {
                 });
             }
             break;
-        case 'killSession':
+        case PlugAPI.events.MODERATE_ADD_DJ:
+        case PlugAPI.events.MODERATE_REMOVE_DJ:
+        case PlugAPI.events.MODERATE_MOVE_DJ:
+            break;
+        case PlugAPI.events.DJ_LIST_CYCLE:
+            room.setCycle(data.f);
+            break;
+        case PlugAPI.events.KILL_SESSION:
             _cookies.cookies = {};
             that.close();
             that.connect(room.getRoomMeta().slug);
             break;
-        case 'earn':
+        case PlugAPI.events.EARN:
             room.setEarn(data);
             break;
-        case 'notify':
+        case PlugAPI.events.NOTIFY:
             if (data.action === 'levelUp') {
                 logger.info('Congratulations, you have leveled up to level', data.value);
             } else {
@@ -914,24 +912,25 @@ PlugAPI.MUTE = {
 
 /**
  * Event Types
- * @type {{ADVANCE: string, BAN: string, BOOTH_CYCLE: string, BOOTH_LOCKED: string, CHAT: string, CHAT_COMMAND: string, CHAT_DELETE: string, CHAT_EMOTE: string, COMMAND: string, DJ_LIST_UPDATE: string, EMOTE: string, FOLLOW_JOIN: string, GRAB: string, MODERATE_ADD_DJ: string, MODERATE_ADD_WAITLIST: string, MODERATE_AMBASSADOR: string, MODERATE_BAN: string, MODERATE_MOVE_DJ: string, MODERATE_MUTE: string, MODERATE_REMOVE_DJ: string, MODERATE_REMOVE_WAITLIST: string, MODERATE_SKIP: string, MODERATE_STAFF: string, PDJ_MESSAGE: string, PDJ_UPDATE: string, PING: string, PLAYLIST_CYCLE: string, REQUEST_DURATION: string, REQUEST_DURATION_RETRY: string, ROOM_CHANGE: string, ROOM_DESCRIPTION_UPDATE: string, ROOM_JOIN: string, ROOM_NAME_UPDATE: string, ROOM_VOTE_SKIP: string, ROOM_WELCOME_UPDATE: string, SESSION_CLOSE: string, SKIP: string, STROBE_TOGGLE: string, USER_COUNTER_UPDATE: string, USER_FOLLOW: string, USER_JOIN: string, USER_LEAVE: string, USER_UPDATE: string, VOTE: string}}
- * @const
+ * @const {{ADVANCE: string, BAN: string, BOOTH_LOCKED: string, CHAT: string, CHAT_COMMAND: string, CHAT_DELETE: string, CHAT_EMOTE: string, COMMAND: string, DJ_LIST_CYCLE: string, DJ_LIST_UPDATE: string, EARN: string, EMOTE: string, FOLLOW_JOIN: string, FLOOD_CHAT: string, GRAB: string, KILL_SESSION: string, MODERATE_ADD_DJ: string, MODERATE_ADD_WAITLIST: string, MODERATE_AMBASSADOR: string, MODERATE_BAN: string, MODERATE_MOVE_DJ: string, MODERATE_MUTE: string, MODERATE_REMOVE_DJ: string, MODERATE_REMOVE_WAITLIST: string, MODERATE_SKIP: string, MODERATE_STAFF: string, NOTIFY: string, PDJ_MESSAGE: string, PDJ_UPDATE: string, PING: string, PLAYLIST_CYCLE: string, REQUEST_DURATION: string, REQUEST_DURATION_RETRY: string, ROOM_CHANGE: string, ROOM_DESCRIPTION_UPDATE: string, ROOM_JOIN: string, ROOM_NAME_UPDATE: string, ROOM_VOTE_SKIP: string, ROOM_WELCOME_UPDATE: string, SESSION_CLOSE: string, SKIP: string, STROBE_TOGGLE: string, USER_COUNTER_UPDATE: string, USER_FOLLOW: string, USER_JOIN: string, USER_LEAVE: string, USER_UPDATE: string, VOTE: string}}
  */
 PlugAPI.events = {
     ADVANCE: 'advance',
     BAN: 'ban',
-    BOOTH_CYCLE: 'boothCycle',
     BOOTH_LOCKED: 'boothLocked',
     CHAT: 'chat',
     CHAT_COMMAND: 'command',
     CHAT_DELETE: 'chatDelete',
     CHAT_EMOTE: 'emote',
     COMMAND: 'command',
+    DJ_LIST_CYCLE: 'djListCycle',
     DJ_LIST_UPDATE: 'djListUpdate',
+    EARN: 'earn',
     EMOTE: 'emote',
     FOLLOW_JOIN: 'followJoin',
     FLOOD_CHAT: 'floodChat',
     GRAB: 'grab',
+    KILL_SESSION: 'killSession',
     MODERATE_ADD_DJ: 'modAddDJ',
     MODERATE_ADD_WAITLIST: 'modAddWaitList',
     MODERATE_AMBASSADOR: 'modAmbassador',
@@ -942,6 +941,7 @@ PlugAPI.events = {
     MODERATE_REMOVE_WAITLIST: 'modRemoveWaitList',
     MODERATE_SKIP: 'modSkip',
     MODERATE_STAFF: 'modStaff',
+    NOTIFY: 'notify',
     PDJ_MESSAGE: 'pdjMessage',
     PDJ_UPDATE: 'pdjUpdate',
     PING: 'ping',
@@ -1053,6 +1053,14 @@ PlugAPI.prototype.setLogger = function(newLogger) {
         return true;
     }
     return false;
+};
+
+/**
+ * Join another room
+ * @param {String} slug
+ */
+PlugAPI.prototype.changeRoom = function(slug) {
+    joinRoom(slug);
 };
 
 /**
@@ -1246,7 +1254,7 @@ PlugAPI.prototype.getTimeRemaining = function() {
 };
 
 PlugAPI.prototype.joinBooth = function(callback) {
-    if (!room.getRoomMeta().slug || room.isDJ() || room.isInWaitList() || (room.boothLocked && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.RESIDENTDJ)) || this.getDJs().length >= 50) {
+    if (!room.getRoomMeta().slug || room.isDJ() || room.isInWaitList() || (room.getBoothMeta().isLocked && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.RESIDENTDJ)) || this.getDJs().length >= 50) {
         return false;
     }
     queueREST('POST', endpoints.MODERATE_BOOTH, undefined, callback);
@@ -1262,7 +1270,7 @@ PlugAPI.prototype.leaveBooth = function(callback) {
 };
 
 PlugAPI.prototype.moderateAddDJ = function(uid, callback) {
-    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || room.isDJ(uid) || room.isInWaitList(uid) || (room.boothLocked && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER))) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || room.isDJ(uid) || room.isInWaitList(uid) || (room.getBoothMeta().isLocked && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER))) {
         return false;
     }
     queueREST('POST', endpoints.MODERATE_ADD_DJ, {
@@ -1272,7 +1280,7 @@ PlugAPI.prototype.moderateAddDJ = function(uid, callback) {
 };
 
 PlugAPI.prototype.moderateRemoveDJ = function(uid, callback) {
-    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || (!room.isDJ(uid) && !room.isInWaitList(uid)) || (room.boothLocked && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER))) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || (!room.isDJ(uid) && !room.isInWaitList(uid)) || (room.getBoothMeta().isLocked && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER))) {
         return false;
     }
     queueREST('DELETE', endpoints.MODERATE_REMOVE_DJ + uid, undefined, callback);
@@ -1346,7 +1354,7 @@ PlugAPI.prototype.moderateSetRole = function(uid, role, callback) {
 };
 
 PlugAPI.prototype.moderateLockBooth = function(locked, clear, callback) {
-    if (!room.getRoomMeta().slug || this.getUser() === null || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER) || (locked === room.boothLocked && !clear)) return false;
+    if (!room.getRoomMeta().slug || this.getUser() === null || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER) || (locked === room.getBoothMeta().isLocked && !clear)) return false;
     queueREST('PUT', endpoints.ROOM_LOCK_BOOTH, {
         isLocked: locked,
         removeAllDJs: clear
@@ -1358,26 +1366,51 @@ PlugAPI.prototype.getUsers = function() {
     return room.getUsers();
 };
 
+/**
+ * Get specific user in the community
+ * @param {Number} [uid]
+ * @return {*}
+ */
 PlugAPI.prototype.getUser = function(uid) {
     return room.getUser(uid);
 };
 
+/**
+ * Get users in the community that aren't DJing nor in the waitlist
+ * @return {Array}
+ */
 PlugAPI.prototype.getAudience = function() {
     return room.getAudience();
 };
 
+/**
+ * Get the DJ
+ * @return {*}
+ */
 PlugAPI.prototype.getDJ = function() {
     return room.getDJ();
 };
 
+/**
+ * Get the DJ and users in the waitlist
+ * @return {Array}
+ */
 PlugAPI.prototype.getDJs = function() {
     return room.getDJs();
 };
 
+/**
+ * Get staff currently in the community
+ * @return {Array}
+ */
 PlugAPI.prototype.getStaff = function() {
     return room.getStaff();
 };
 
+/**
+ * Get all staff for the community, also offline.
+ * @param {Function} callback
+ */
 PlugAPI.prototype.getAllStaff = function(callback) {
     if (!callback || typeof callback !== 'function') {
         logger.error('Missing callback for getAllStaff');
@@ -1386,6 +1419,10 @@ PlugAPI.prototype.getAllStaff = function(callback) {
     queueREST('GET', 'staff', undefined, callback);
 };
 
+/**
+ * Get plug.dj admins currently in the community
+ * @return {*}
+ */
 PlugAPI.prototype.getAdmins = function() {
     return room.getAdmins();
 };
@@ -1499,7 +1536,7 @@ PlugAPI.prototype.setAvatar = function(avatar, callback) {
 
 /**
  * Implementation of plug.dj havePermission method
- * @param {Number} [uid]
+ * @param {undefined|Number} [uid]
  * @param {Number} permission
  * @param {Boolean} [global]
  */

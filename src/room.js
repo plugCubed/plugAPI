@@ -448,7 +448,7 @@ Room.prototype.getUsers = function() {
 
 /**
  * Get specific user in the community
- * @param {Number} userid
+ * @param {Number} [userid]
  * @returns {*}
  */
 Room.prototype.getUser = function(userid) {
@@ -570,6 +570,20 @@ Room.prototype.setHistory = function(data) {
     songHistory = data;
 };
 
+Room.prototype.setCycle = function(cycle) {
+    booth.shouldCycle = cycle;
+};
+
+/**
+ * @return {booth}
+ */
+Room.prototype.getBoothMeta = function() {
+    return util._extend({}, booth);
+};
+
+/**
+ * @return {meta}
+ */
 Room.prototype.getRoomMeta = function() {
     return util._extend({}, meta);
 };
