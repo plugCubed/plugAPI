@@ -1541,6 +1541,10 @@ PlugAPI.prototype.getAvatars = function(callback) {
     return true;
 };
 
+PlugAPI.prototype.getAvatar = function() {
+    return room.getUser().avatarID;
+};
+
 /**
  * Implementation of plug.dj havePermission method
  * @param {undefined|Number} [uid]
