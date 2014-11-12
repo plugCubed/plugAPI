@@ -53,7 +53,8 @@ endpoints = {
     ROOM_INFO: 'rooms/update',
     ROOM_LOCK_BOOTH: 'booth/lock',
     USER_SET_AVATAR: 'users/avatar',
-    USER_SET_STATUS: 'users/status'
+    USER_SET_STATUS: 'users/status',
+    USER_GET_AVATARS: "store/inventory/avatars"
 };
 
 /**
@@ -1531,6 +1532,12 @@ PlugAPI.prototype.setAvatar = function(avatar, callback) {
     queueREST('PUT', endpoints.USER_SET_AVATAR, {
         id: avatar
     }, callback);
+    return true;
+};
+
+PlugAPI.prototype.getAvatars = function(callback) {
+    if (!room.getRoomMeta().slug) return false;
+    queueREST('GET', endpoints.USER_GET_AVATARS, undefined, callback);
     return true;
 };
 
