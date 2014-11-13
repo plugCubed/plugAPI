@@ -146,9 +146,9 @@ function intPM(receiver, msg) {
             ws.sendEvent('chat', msg);
             if (timeout !== undefined && !isNaN(timeout) && ~~timeout > 0) {
                 var specificChatDeleter = function(data) {
-                    if (data.uid == room.getSelf().id && data.message.trim() == msg.trim()) {
+                    if (data.raw.uid == room.getSelf().id && data.message.trim() == msg.trim()) {
                         setTimeout(function() {
-                            that.moderateDeleteChat(data.cid);
+                            that.moderateDeleteChat(data.raw.cid);
                         }, ~~timeout * 1E3);
                         that.off('chat', specificChatDeleter);
                     }
