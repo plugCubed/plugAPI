@@ -66,7 +66,7 @@ var that = null;
  * @type {null|WebSocket}
  */
 var ws;
-var p3Socket, initialized, commandPrefix, apiId, _authCode, _cookies, chatHistory, serverRequests, room, connectingRoomSlug, rpcHandlers, logger, floodProtectionDelay, chatQueue;
+var p3Socket, initialized, commandPrefix, apiId, _authCode, _cookies, chatHistory, serverRequests, room, connectingRoomSlug, rpcHandlers, logger, floodProtectionDelay, chatQueue, authenticationInfo;
 ws = null;
 p3Socket = null;
 initialized = false;
@@ -511,8 +511,9 @@ function getAuthCode(callback) {
         } else {
             logger.error('Error getting auth code: HTTP ' + res.statusCode);
             _cookies.cookies = {};
+            var slug = room.getRoomMeta().slug;
             that.close();
-            that.connect(room.getRoomMeta().slug);
+            that.connect(slug);
         }
     });
 }
@@ -620,6 +621,15 @@ function messageHandler(msg) {
     var type = msg.a, data = msg.p, i;
     switch (type) {
         case 'ack':
+            if (data !== 1) {
+                var slug = room.getRoomMeta().slug;
+                _cookies.cookies = {};
+                that.close();
+                _authCode = null;
+                PerformLogin(true);
+                that.connect(slug);
+                return;
+            }
             queueREST('GET', 'users/me', null, function(a) {
                 room.setSelf(a[0]);
                 joinRoom(connectingRoomSlug);
@@ -705,9 +715,11 @@ function messageHandler(msg) {
             room.setCycle(data.f);
             break;
         case PlugAPI.events.KILL_SESSION:
+            var slug = room.getRoomMeta().slug;
             _cookies.cookies = {};
             that.close();
-            that.connect(room.getRoomMeta().slug);
+            _authCode = null;
+            that.connect(slug);
             break;
         case PlugAPI.events.EARN:
             room.setEarn(data);
@@ -728,6 +740,73 @@ function messageHandler(msg) {
     }
 }
 
+function PerformLogin(ignoreCache) {
+    var deasync = require('deasync');
+    var loggingIn = true, loggedIn = false;
+    if (!ignoreCache && fs.existsSync(_cookies.path)) {
+        _cookies.load();
+        request.get('https://plug.dj/_/users/me', {
+            headers: {
+                'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
+                Cookie: _cookies.toString()
+            }
+        }, function(err, res) {
+            if (res.statusCode === 200) {
+                loggedIn = true;
+            }
+            loggingIn = false;
+        });
+        // Wait until the session is set
+        while (loggingIn) {
+            deasync.sleep(100);
+        }
+    }
+    if (!loggedIn) {
+        loggingIn = true;
+
+        request.get('https://plug.dj/', {
+            headers: {
+                'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
+                Cookie: _cookies.toString()
+            }
+        }, function(err, res, body) {
+            var csrfToken;
+
+            _cookies.fromHeaders(res.headers);
+
+            csrfToken = body.split('_csrf')[1].split('"')[1];
+
+            request({
+                method: 'POST',
+                uri: 'https://plug.dj/_/auth/login',
+                headers: {
+                    'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
+                    Cookie: _cookies.toString()
+                },
+                json: {
+                    csrf: csrfToken,
+                    email: authenticationInfo.email,
+                    password: authenticationInfo.password
+                }
+            }, function(err, res, data) {
+                if (data.status !== 'ok') {
+                    logger.error('LOGIN ERROR: ' + data.status);
+                    process.exit(1);
+                } else {
+                    _cookies.fromHeaders(res.headers);
+                    _cookies.save();
+                    loggedIn = true;
+                    loggingIn = false;
+                }
+            });
+        });
+
+        // Wait until the session is set
+        while (loggingIn) {
+            deasync.sleep(100);
+        }
+    }
+}
 var PlugAPI = function(authenticationData) {
     if (!authenticationData) {
         logger.error('You must pass the authentication data into the PlugAPI object to connect correctly');
@@ -741,72 +820,10 @@ var PlugAPI = function(authenticationData) {
             logger.error('Missing login password');
             process.exit(1);
         }
-        var deasync = require('deasync');
-        var loggingIn = true, loggedIn = false;
-        if (fs.existsSync(_cookies.path)) {
-            _cookies.load();
-            request.get('https://plug.dj/_/users/me', {
-                headers: {
-                    'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
-                    Cookie: _cookies.toString()
-                }
-            }, function(err, res) {
-                if (res.statusCode === 200) {
-                    loggedIn = true;
-                }
-                loggingIn = false;
-            });
-            // Wait until the session is set
-            while (loggingIn) {
-                deasync.sleep(100);
-            }
-        }
-        if (!loggedIn) {
-            loggingIn = true;
-
-            request.get('https://plug.dj/', {
-                headers: {
-                    'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
-                    Cookie: _cookies.toString()
-                }
-            }, function(err, res, body) {
-                var csrfToken;
-
-                _cookies.fromHeaders(res.headers);
-
-                csrfToken = body.split('_csrf')[1].split('"')[1];
-
-                request({
-                    method: 'POST',
-                    uri: 'https://plug.dj/_/auth/login',
-                    headers: {
-                        'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
-                        Cookie: _cookies.toString()
-                    },
-                    json: {
-                        csrf: csrfToken,
-                        email: authenticationData.email,
-                        password: authenticationData.password
-                    }
-                }, function(err, res, data) {
-                    if (data.status !== 'ok') {
-                        logger.error('LOGIN ERROR: ' + data.status);
-                        process.exit(1);
-                    } else {
-                        _cookies.fromHeaders(res.headers);
-                        _cookies.save();
-                        loggedIn = true;
-                        loggingIn = false;
-                    }
-                });
-            });
-
-            // Wait until the session is set
-            while (loggingIn) {
-                deasync.sleep(100);
-            }
-        }
     }
+
+    authenticationInfo = authenticationData;
+    PerformLogin();
 
     that = this;
 
@@ -1070,6 +1087,7 @@ PlugAPI.prototype.close = function() {
     connectingRoomSlug = null;
     ws.removeAllListeners('close');
     ws.close();
+    room = new Room();
     if (this.enablePlugCubedSocket) {
         p3Socket.removeAllListeners('close');
         p3Socket.close();
@@ -1301,7 +1319,7 @@ PlugAPI.prototype.moderateMoveDJ = function(uid, index, callback) {
 PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
     if (!room.getRoomMeta().slug) return false;
     var user = this.getUser(uid);
-    if (user ? room.getPermissions(user).canModBan : this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER)) {
+    if (user !== null ? room.getPermissions(user).canModBan : this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER)) {
         reason = Number(reason || 1);
         if (!duration) duration = this.BAN.PERMA;
         if (duration === this.BAN.PERMA && this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) duration = this.BAN.DAY;
@@ -1331,7 +1349,7 @@ PlugAPI.prototype.moderateForceSkip = function(callback) {
 PlugAPI.prototype.moderateDeleteChat = function(cid, callback) {
     if (!room.getRoomMeta().slug) return false;
     var user = this.getUser(cid.split('-')[0]);
-    if (user ? room.getPermissions(user).canModChat : this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER)) {
+    if (user !== null ? room.getPermissions(user).canModChat : this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER)) {
         queueREST('DELETE', endpoints.CHAT_DELETE + cid, undefined, callback, undefined, true);
     }
     return true;
@@ -1344,7 +1362,7 @@ PlugAPI.prototype.moderateLockWaitList = function(locked, clear, callback) {
 PlugAPI.prototype.moderateSetRole = function(uid, role, callback) {
     if (!room.getRoomMeta().slug || isNaN(role)) return false;
     var user = this.getUser(uid);
-    if (user ? room.getPermissions(user).canModStaff : this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
+    if (user !== null ? room.getPermissions(user).canModStaff : this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
         queueREST('POST', endpoints.MODERATE_PERMISSIONS, {
             userID: uid,
             roleID: role
