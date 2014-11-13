@@ -615,7 +615,8 @@ function initRoom(data, callback) {
 }
 
 /**
- *
+ * The handling of incoming messages from the Plug.DJ socket server.
+ * If any cases are returned instead of breaking (stopping the emitting to the user code) it MUST be commented just before returning.
  * @param {Object} msg
  */
 function messageHandler(msg) {
@@ -629,13 +630,15 @@ function messageHandler(msg) {
                 _authCode = null;
                 PerformLogin(true);
                 that.connect(slug);
+                // This event should not be emitted to the user code.
                 return;
             }
             queueREST('GET', 'users/me', null, function(a) {
                 room.setSelf(a[0]);
                 joinRoom(connectingRoomSlug);
             });
-            break;
+            // This event should not be emitted to the user code.
+            return;
         case PlugAPI.events.CHAT:
             chatHistory.push(data);
 
@@ -643,6 +646,8 @@ function messageHandler(msg) {
             if (chatHistory.length > 512) chatHistory.shift();
 
             receivedChatMessage(data);
+
+            // receivedChatMessage will emit the event with correct chat object and over correct event types
             return;
         case PlugAPI.events.CHAT_DELETE:
             for (i in chatHistory) {
@@ -662,10 +667,12 @@ function messageHandler(msg) {
             }
             room.removeUser(data);
             that.emit(type, userData);
+            // This is getting emitted with the full user object instead of only the user ID
             return;
         case PlugAPI.events.USER_UPDATE:
             room.updateUser(data);
             that.emit(type, that.getUser(data.i));
+            // This is getting emitted with the full user object instead of only the user ID
             return;
         case PlugAPI.events.VOTE:
             room.setVote(data.i, data.v);
@@ -688,6 +695,7 @@ function messageHandler(msg) {
             advanceEvent.currentDJ = room.getDJ();
             advanceEvent.djs = room.getDJs();
             that.emit(type, advanceEvent);
+            // This is getting emitted with an advance object containing more information than the incoming data
             return;
         case PlugAPI.events.DJ_LIST_UPDATE:
             room.setDJs(data);
@@ -711,6 +719,11 @@ function messageHandler(msg) {
         case PlugAPI.events.MODERATE_ADD_DJ:
         case PlugAPI.events.MODERATE_REMOVE_DJ:
         case PlugAPI.events.MODERATE_MOVE_DJ:
+            /*
+            These will be ignored by PlugAPI.
+            The server will send updates to current song and waitlist.
+            The events are still being sent to the code, so the bot can still react to the events.
+             */
             break;
         case PlugAPI.events.DJ_LIST_CYCLE:
             room.setCycle(data.f);
