@@ -75,7 +75,7 @@ commandPrefix = '!';
 apiId = 0;
 chatHistory = [];
 connectingRoomSlug = null;
-_authCode = '';
+_authCode = null;
 _cookies = {
     cookies: {},
     path: path.resolve(__dirname, '..', 'cookies.tmp'),
@@ -1101,6 +1101,7 @@ PlugAPI.prototype.close = function() {
     connectingRoomSlug = null;
     ws.removeAllListeners('close');
     ws.close();
+    _authCode = null;
     room = new Room();
     if (this.enablePlugCubedSocket) {
         p3Socket.removeAllListeners('close');
