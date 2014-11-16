@@ -413,7 +413,6 @@ function joinRoom(roomSlug, callback) {
     }, function() {
         queueREST('GET', 'rooms/state', undefined, function(data) {
             connectingRoomSlug = null;
-            fs.writeFileSync('roomstate.json', JSON.stringify(data[0], null, 4));
             initRoom(data[0], function() {
                 if (typeof callback === 'function') {
                     callback(data);
