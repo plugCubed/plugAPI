@@ -76,6 +76,15 @@ role = 0;
 users = [];
 votes = {};
 
+
+setInterval(function() {
+    for (var i in mutes) {
+        if (!mutes.hasOwnProperty(i)) continue;
+        if (mutes[i] > 0)
+            mutes[i]--;
+    }
+}, 1e3);
+
 /**
  * Room data container
  * SHOULD NOT BE USED/ACCESSED DIRECTLY
@@ -158,7 +167,7 @@ Room.prototype.registerUserExtensions = function(instance) {
     User.prototype.moveInWaitList = function(pos) {
         instance.moderateMoveDJ(this.id, pos);
     };
-}
+};
 
 /**
  * Implementation of plug.dj methods
@@ -302,35 +311,9 @@ Room.prototype.updateUser = function(data) {
     }
 };
 
-/*
- Room.prototype.setUsers = function(users) {
- var user, _i, _len, _results;
- this.users = {};
- _results = [];
- for (_i = 0, _len = users.length; _i < _len; _i++) {
- user = users[_i];
- _results.push(this.users[user.id] = user);
- }
- return _results;
- };
-
- Room.prototype.setStaff = function(ids) {
- this.staff = ids;
- return this.setPermissions();
- };
-
- Room.prototype.setAmbassadors = function(ids) {
- this.ambassadors = ids;
- return this.setPermissions();
- };
-
- Room.prototype.setAdmins = function(ids) {
- return this.admins = ids;
- };
-
- Room.prototype.setOwner = function(ownerId) {
- return this.owner = ownerId;
- };*/
+Room.prototype.isMuted = function(uid) {
+    return mutes[uid] != null && mutes[uid] > 0;
+};
 
 /**
  * Set self object
@@ -415,6 +398,10 @@ Room.prototype.advance = function(data) {
 
     // Clear cache of users
     cacheUsers = {};
+};
+
+Room.prototype.muteUser = function(data) {
+    mutes[data.i]
 };
 
 Room.prototype.setGrab = function(uid) {
@@ -510,6 +497,32 @@ Room.prototype.getWaitListPosition = function(uid) {
     }
     var pos = booth.waitingDJs == null ? -1 : booth.waitingDJs.indexOf(uid);
     return pos < 0 ? -1 : pos + 1;
+};
+
+Room.prototype.getAdmins = function() {
+    var admins = [], _ref;
+    _ref = [self].concat(users);
+    for (var i in _ref) {
+        if (!_ref.hasOwnProperty(i)) continue;
+        var user = _ref[i];
+        if (user.gRole == 5) {
+            admins.push(user.id);
+        }
+    }
+    return this.usersToArray(admins);
+};
+
+Room.prototype.getAmbassadors = function() {
+    var ambassadors = [], _ref;
+    _ref = [self].concat(users);
+    for (var i in _ref) {
+        if (!_ref.hasOwnProperty(i)) continue;
+        var user = _ref[i];
+        if (user.gRole < 5 && user.gRole > 1) {
+            ambassadors.push(user.id);
+        }
+    }
+    return this.usersToArray(ambassadors);
 };
 
 /**

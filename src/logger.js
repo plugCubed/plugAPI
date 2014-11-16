@@ -28,7 +28,7 @@ function chalkPaint(sidewalkChalks, text) {
     return combinedChalk(text);
 }
 
-module.exports = function(channel) {
+function Logger(channel) {
     function createLogFunc(level) {
         return function() {
             var args = Array.prototype.slice.call(arguments);
@@ -60,4 +60,6 @@ module.exports = function(channel) {
         warning: createLogFunc('warning'),
         error: createLogFunc('error')
     };
-};
+}
+
+module.exports = Logger;

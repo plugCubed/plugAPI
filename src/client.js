@@ -32,11 +32,35 @@ encoder = require('node-html-encoder').Encoder('entity');
 chalk = require('chalk');
 
 // plugAPI
-var Room, Logger, PlugAPIInfo, endpoints;
-Room = require('./room');
-Logger = require('./logger');
-PlugAPIInfo = require('../package.json');
-endpoints = {
+/**
+ * Room class
+ * @type {Room|exports}
+ */
+var Room = require('./room');
+
+/**
+ * CookieHandler class
+ * @type {CookieHandler|exports}
+ */
+var CookieHandler = require('./cookie');
+
+/**
+ * Logger class
+ * @type {Logger|exports}
+ */
+var Logger = require('./logger');
+
+/**
+ * Package.json of plugAPI
+ * @type {exports}
+ */
+var PlugAPIInfo = require('../package.json');
+
+/**
+ * REST Endpoints
+ * @type {{CHAT_DELETE: string, MODERATE_ADD_DJ: string, MODERATE_BAN: string, MODERATE_BOOTH: string, MODERATE_MOVE_DJ: string, MODERATE_MUTE: string, MODERATE_PERMISSIONS: string, MODERATE_REMOVE_DJ: string, MODERATE_SKIP: string, MODERATE_UNBAN: string, MODERATE_UNMUTE: string, PLAYLIST: string, ROOM_CYCLE_BOOTH: string, ROOM_INFO: string, ROOM_LOCK_BOOTH: string, USER_SET_AVATAR: string, USER_SET_STATUS: string, USER_GET_AVATARS: string}}
+ */
+var endpoints = {
     CHAT_DELETE: 'chat/',
     MODERATE_ADD_DJ: 'booth/add',
     MODERATE_BAN: 'bans/add',
@@ -66,63 +90,87 @@ var that = null;
 /**
  * @type {null|WebSocket}
  */
-var ws;
-var p3Socket, initialized, commandPrefix, apiId, _authCode, _cookies, chatHistory, serverRequests, room, connectingRoomSlug, rpcHandlers, logger, floodProtectionDelay, chatQueue, authenticationInfo;
-ws = null;
-p3Socket = null;
-initialized = false;
-commandPrefix = '!';
-apiId = 0;
-chatHistory = [];
-connectingRoomSlug = null;
-_authCode = null;
-_cookies = {
-    cookies: {},
-    path: path.resolve(__dirname, '..', 'cookies.tmp'),
-    load: function() {
-        this.cookies = JSON.parse(fs.readFileSync(this.path));
-    },
-    save: function() {
-        fs.writeFileSync(this.path, JSON.stringify(this.cookies));
-    },
-    fromHeaders: function(headers) {
-        for (var i in headers) {
-            if (!headers.hasOwnProperty(i)) continue;
-            if (i == 'set-cookie') {
-                for (var j in headers[i]) {
-                    if (!headers[i].hasOwnProperty(j)) continue;
-                    var cookieString, cookieKeyValue, key, value;
+var ws = null;
+/**
+ * Instance of room
+ * @type {Room}
+ */
+var room = new Room();
 
-                    cookieString = headers[i][j];
-                    cookieKeyValue = cookieString.split(';')[0].split('=');
-                    key = cookieKeyValue.shift();
-                    value = cookieKeyValue.join('=');
+/**
+ * Is everything initialized?
+ * @type {Boolean}
+ */
+var initialized = false;
 
-                    this.cookies[key] = value;
-                }
-            }
-        }
-    },
-    toString: function() {
-        var cookies = [];
-        for (var i in this.cookies) {
-            if (!this.cookies.hasOwnProperty(i)) continue;
-            cookies.push(i + '=' + this.cookies[i]);
-        }
-        return cookies.join('; ');
-    }
-};
-serverRequests = {
+/**
+ * Prefix that defines if a message is a command
+ * @type {String}
+ */
+var commandPrefix = '!';
+
+/**
+ * Auth code for plug.DJ
+ * @type {null|String}
+ * @private
+ */
+var _authCode = null;
+
+/**
+ * Cookie handler
+ * @type {CookieHandler}
+ * @private
+ */
+var _cookies = new CookieHandler();
+
+/**
+ * List over chat history
+ * Contains up to 512 messages
+ * @type {Array}
+ */
+var chatHistory = [];
+
+/**
+ * Contains informations about requests sent to server
+ * @type {{queue: Array, sent: Number, limit: Number, running: Boolean}}
+ */
+var serverRequests = {
     queue: [],
     sent: 0,
     limit: 10,
     running: false
 };
-room = new Room();
-rpcHandlers = {};
-logger = new Logger('PlugAPI');
-floodProtectionDelay = 200;
-chatQueue = [];
+
+/**
+ * Slug of room, that the bot is currently connecting to
+ * @type {null|String}
+ */
+var connectingRoomSlug = null;
+
+/**
+ * The logger of plugAPI
+ * @type {Logger}
+ */
+var logger = new Logger('plugAPI');
+
+/**
+ * Current delay between chat messages
+ * @type {number}
+ */
+var floodProtectionDelay = 200;
+
+/**
+ * Queue of outgoing chat messages
+ * @type {Array}
+ */
+var chatQueue = [];
+
+/**
+ * Authentication information (e-mail and password)
+ * THIS MUST NEVER BE ACCESSIBLE NOR PRINTING OUT TO CONSOLE
+ * @type {Object}
+ */
+var authenticationInfo;
 
 function __bind(fn, me) {
     return function() {
@@ -130,17 +178,10 @@ function __bind(fn, me) {
     };
 }
 
-function intPM(receiver, msg) {
-    p3Socket.send({
-        type: 'PM',
-        value: {
-            id: typeof receiver === 'object' ? receiver.id : receiver,
-            message: msg
-        }
-    });
-}
-
 (function() {
+    /**
+     * Send the next chat message in queue
+     */
     function sendNextMessage() {
         if (chatQueue.length > 0) {
             var nextMessage = chatQueue.shift(), msg = nextMessage.msg, timeout = nextMessage.timeout;
@@ -165,6 +206,11 @@ function intPM(receiver, msg) {
     sendNextMessage();
 })();
 
+/**
+ * Queue chat message
+ * @param {String} msg Chat message
+ * @param {Number} [timeout] Timeout before auto deleting message (in seconds)
+ */
 function queueChat(msg, timeout) {
     chatQueue.push({
         msg: msg,
@@ -172,10 +218,11 @@ function queueChat(msg, timeout) {
     });
 }
 
+//noinspection JSUnusedGlobalSymbols
 /**
- DateUtilities
- Copyright (C) 2014 by Plug DJ, Inc.
- Modified by TAT (TAT@plugCubed.net)
+ * DateUtilities
+ * Copyright (C) 2014 by Plug DJ, Inc.
+ * Modified by TAT (TAT@plugCubed.net)
  */
 var DateUtilities = {
     MONTHS: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
@@ -243,6 +290,10 @@ var DateUtilities = {
     }
 };
 
+/**
+ * The ticker that runs through the queue and executes them when it's time
+ * @private
+ */
 function queueTicker() {
     serverRequests.running = true;
     var canSend = serverRequests.sent < serverRequests.limit, obj = serverRequests.queue.pop();
@@ -267,6 +318,16 @@ function queueTicker() {
     }
 }
 
+/**
+ * Queue REST request
+ * @param {"POST"|"PUT"|"GET"|"DELETE"} method REST method
+ * @param {String} endpoint Endpoint on server
+ * @param {Object|Undefined} [data] Data
+ * @param {Function|Undefined} [successCallback] Callback function on success
+ * @param {Function|Undefined} [failureCallback] Callback function on failure
+ * @param {Boolean} [skipQueue] Skip queue and send the request immediately
+ * @private
+ */
 function queueREST(method, endpoint, data, successCallback, failureCallback, skipQueue) {
     if (['POST', 'PUT', 'GET', 'DELETE'].indexOf(method) < 0) {
         logger.error(method, 'needs update');
@@ -312,6 +373,13 @@ function queueREST(method, endpoint, data, successCallback, failureCallback, ski
     }
 }
 
+/**
+ * Send a REST request
+ * @param {Object} opts
+ * @param {Function} successCallback Callback function on success
+ * @param {Function} failureCallback Callback function on failure
+ * @private
+ */
 function sendREST(opts, successCallback, failureCallback) {
     request(opts, function(err, res, body) {
         if (err) {
@@ -333,12 +401,19 @@ function sendREST(opts, successCallback, failureCallback) {
     });
 }
 
+/**
+ * Queue that the bot should join a room.
+ * @param {String} roomSlug Slug of room to join after connection
+ * @param {Function} [callback] Callback function
+ * @private
+ */
 function joinRoom(roomSlug, callback) {
     queueREST('POST', 'rooms/join', {
         slug: roomSlug
     }, function() {
         queueREST('GET', 'rooms/state', undefined, function(data) {
             connectingRoomSlug = null;
+            fs.writeFileSync('roomstate.json', JSON.stringify(data[0], null, 4));
             initRoom(data[0], function() {
                 if (typeof callback === 'function') {
                     callback(data);
@@ -353,26 +428,31 @@ function joinRoom(roomSlug, callback) {
     });
 }
 
-function receivedChatMessage(m) {
-    var i, isPM, cmd, obj, lastIndex, allUsers, random;
+/**
+ * Handling incoming messages.
+ * Emitting the correct events depending on commands, mentions, etc.
+ * @param {Object} messageData plug.DJ message event data
+ * @private
+ */
+function receivedChatMessage(messageData) {
+    var i, cmd, obj, lastIndex, allUsers, random;
     if (!initialized) return;
 
-    m.message = encoder.htmlDecode(m.message);
+    messageData.message = encoder.htmlDecode(messageData.message);
 
     obj = {
-        raw: m,
-        id: m.cid,
-        from: room.getUser(m.uid),
-        message: m.message,
+        raw: messageData,
+        id: messageData.cid,
+        from: room.getUser(messageData.uid),
+        message: messageData.message,
         mentions: []
     };
 
-    if ((m.type == 'message' || m.type == 'pm') && m.message.indexOf(commandPrefix) === 0 && (that.processOwnMessages || m.uid !== room.getSelf().id)) {
-        isPM = m.type == 'pm';
-        cmd = m.message.substr(commandPrefix.length).split(' ')[0];
+    if ((messageData.type == 'message' || messageData.type == 'pm') && messageData.message.indexOf(commandPrefix) === 0 && (that.processOwnMessages || messageData.uid !== room.getSelf().id)) {
+        cmd = messageData.message.substr(commandPrefix.length).split(' ')[0];
 
         obj.command = cmd;
-        obj.args = m.message.substr(commandPrefix.length + cmd.length + 1);
+        obj.args = messageData.message.substr(commandPrefix.length + cmd.length + 1);
 
         // Mentions => Mention placeholder
         lastIndex = obj.args.indexOf('@');
@@ -415,10 +495,6 @@ function receivedChatMessage(m) {
         obj.respond = function() {
             var message = Array.prototype.slice.call(arguments).join(' ');
 
-            if (isPM) {
-                return intPM(this.from, message);
-            }
-
             return that.sendChat('@' + this.from.username + ' ' + message);
         };
         obj.respondTimeout = function() {
@@ -427,10 +503,6 @@ function receivedChatMessage(m) {
             args = Array.prototype.slice.call(arguments);
             timeout = parseInt(args.splice(args.length - 1, 1), 10);
             message = args.join(' ');
-
-            if (isPM) {
-                return intPM(this.from, message);
-            }
 
             return that.sendChat('@' + this.from.username + ' ' + message, timeout);
         };
@@ -455,7 +527,7 @@ function receivedChatMessage(m) {
                 }
                 return false;
             }
-            var isFrom = ids.indexOf(m.uid) > -1;
+            var isFrom = ids.indexOf(messageData.uid) > -1;
             if (isFrom && typeof success === 'function') {
                 success();
             } else if (!isFrom && typeof failure === 'function') {
@@ -466,23 +538,28 @@ function receivedChatMessage(m) {
         that.emit(PlugAPI.events.CHAT_COMMAND, obj);
         that.emit(PlugAPI.events.CHAT_COMMAND + ':' + cmd, obj);
         if (that.deleteCommands) {
-            that.moderateDeleteChat(m.cid);
+            that.moderateDeleteChat(messageData.cid);
         }
-    } else if (m.type == 'emote') {
+    } else if (messageData.type == 'emote') {
         that.emit(PlugAPI.events.CHAT_EMOTE, obj);
     }
-    if (m.type == 'pm') {
+    if (messageData.type == 'pm') {
         that.emit('pm', obj);
     } else {
         that.emit(PlugAPI.events.CHAT, obj);
         that.emit(PlugAPI.events.CHAT + ':' + obj.raw.type, obj);
-        if (room.getUser() !== null && m.message.indexOf('@' + room.getUser().username) > -1) {
+        if (room.getUser() !== null && messageData.message.indexOf('@' + room.getUser().username) > -1) {
             that.emit(PlugAPI.events.CHAT + ':mention', obj);
             that.emit('mention', obj);
         }
     }
 }
 
+/**
+ * Queue that the bot should connect to the socket server
+ * @param {String} roomSlug Slug of room to join after connection
+ * @private
+ */
 function queueConnectSocket(roomSlug) {
     serverRequests.queue.push({
         type: 'connect',
@@ -494,6 +571,11 @@ function queueConnectSocket(roomSlug) {
     }
 }
 
+/**
+ * Get the auth code for the user
+ * @param {Function} callback Callback function
+ * @private
+ */
 function getAuthCode(callback) {
     request({
         url: 'https://plug.dj/',
@@ -511,7 +593,7 @@ function getAuthCode(callback) {
             callback();
         } else {
             logger.error('Error getting auth code: HTTP ' + res.statusCode);
-            _cookies.cookies = {};
+            _cookies.clear();
             var slug = room.getRoomMeta().slug;
             that.close();
             that.connect(slug);
@@ -519,6 +601,11 @@ function getAuthCode(callback) {
     });
 }
 
+/**
+ * Connect to plug.DJ's socket server
+ * @param {String} roomSlug Slug of room to join after connection
+ * @private
+ */
 function connectSocket(roomSlug) {
     if (_authCode === null || _authCode === '') {
         getAuthCode(function() {
@@ -526,8 +613,6 @@ function connectSocket(roomSlug) {
         });
         return;
     }
-    apiId = 0;
-    rpcHandlers = {};
 
     var server_id = Math.floor(Math.random() * 1000);
     var conn_id = (function() {
@@ -541,6 +626,7 @@ function connectSocket(roomSlug) {
 
     ws = new WebSocket('wss://shalamar.plug.dj/socket/' + server_id + '/' + conn_id + '/websocket');
     ws.on('open', function() {
+        //noinspection JSUnresolvedFunction
         logger.success(chalk.green('[Socket Server] Connected'));
         ws.sendEvent('auth', _authCode);
 
@@ -593,6 +679,12 @@ function connectSocket(roomSlug) {
     });
 }
 
+/**
+ * Initialize the room with roomstate data
+ * @param {Object} data Roomstate Data
+ * @param {Function} callback Callback function
+ * @private
+ */
 function initRoom(data, callback) {
     room.reset();
     room.setRoomData(data);
@@ -611,21 +703,31 @@ function initRoom(data, callback) {
     queueREST('GET', 'rooms/history', undefined, __bind(room.setHistory, room));
     that.emit(PlugAPI.events.ROOM_JOIN, data.meta.name);
     initialized = true;
-    return callback();
+    callback();
 }
 
 /**
  * The handling of incoming messages from the Plug.DJ socket server.
  * If any cases are returned instead of breaking (stopping the emitting to the user code) it MUST be commented just before returning.
  * @param {Object} msg
+ * @private
  */
 function messageHandler(msg) {
-    var type = msg.a, data = msg.p, i;
+    /**
+     * Event type
+     * @type {PlugAPI.events}
+     */
+    var type = msg.a;
+    /**
+     * @type {Object|Number}
+     */
+    var data = msg.p;
+    var i, slug;
     switch (type) {
         case 'ack':
             if (data !== 1) {
-                var slug = room.getRoomMeta().slug;
-                _cookies.cookies = {};
+                slug = room.getRoomMeta().slug;
+                _cookies.clear();
                 that.close();
                 _authCode = null;
                 PerformLogin(true);
@@ -652,6 +754,7 @@ function messageHandler(msg) {
         case PlugAPI.events.CHAT_DELETE:
             for (i in chatHistory) {
                 if (!chatHistory.hasOwnProperty(i)) continue;
+                //noinspection JSUnresolvedVariable
                 if (chatHistory[i].cid == data.c) chatHistory.splice(i, 1);
             }
             break;
@@ -671,16 +774,19 @@ function messageHandler(msg) {
             return;
         case PlugAPI.events.USER_UPDATE:
             room.updateUser(data);
+            //noinspection JSUnresolvedVariable
             that.emit(type, that.getUser(data.i));
             // This is getting emitted with the full user object instead of only the user ID
             return;
         case PlugAPI.events.VOTE:
+            //noinspection JSUnresolvedVariable
             room.setVote(data.i, data.v);
             break;
         case PlugAPI.events.GRAB:
             room.setGrab(data);
             break;
         case PlugAPI.events.ADVANCE:
+            //noinspection JSUnresolvedVariable
             var advanceEvent = {
                 lastPlay: {
                     dj: room.getDJ(),
@@ -708,8 +814,11 @@ function messageHandler(msg) {
             logger.warning('Flood protection: Slowing down the sending of chat messages temporary');
             break;
         case PlugAPI.events.MODERATE_STAFF:
+            //noinspection JSUnresolvedVariable
             for (i in data.u) {
+                //noinspection JSUnresolvedVariable
                 if (!data.u.hasOwnProperty(i)) continue;
+                //noinspection JSUnresolvedVariable
                 room.updateUser({
                     i: data.u[i].i,
                     role: data.u[i].p
@@ -720,17 +829,21 @@ function messageHandler(msg) {
         case PlugAPI.events.MODERATE_REMOVE_DJ:
         case PlugAPI.events.MODERATE_MOVE_DJ:
             /*
-            These will be ignored by PlugAPI.
-            The server will send updates to current song and waitlist.
-            The events are still being sent to the code, so the bot can still react to the events.
+             These will be ignored by PlugAPI.
+             The server will send updates to current song and waitlist.
+             The events are still being sent to the code, so the bot can still react to the events.
              */
             break;
+        case PlugAPI.events.MODERATE_MUTE:
+            room.muteUser(data);
+            break;
         case PlugAPI.events.DJ_LIST_CYCLE:
+            //noinspection JSUnresolvedVariable
             room.setCycle(data.f);
             break;
         case PlugAPI.events.KILL_SESSION:
-            var slug = room.getRoomMeta().slug;
-            _cookies.cookies = {};
+            slug = room.getRoomMeta().slug;
+            _cookies.clear();
             that.close();
             _authCode = null;
             that.connect(slug);
@@ -739,7 +852,9 @@ function messageHandler(msg) {
             room.setEarn(data);
             break;
         case PlugAPI.events.NOTIFY:
+            //noinspection JSUnresolvedVariable
             if (data.action === 'levelUp') {
+                //noinspection JSUnresolvedVariable
                 logger.info('Congratulations, you have leveled up to level', data.value);
             } else {
                 logger.info('Notify', data);
@@ -754,11 +869,15 @@ function messageHandler(msg) {
     }
 }
 
+/**
+ * Perform the login process.
+ * @param ignoreCache Ignore cached cookie
+ * @private
+ */
 function PerformLogin(ignoreCache) {
     var deasync = require('deasync');
     var loggingIn = true, loggedIn = false;
-    if (!ignoreCache && fs.existsSync(_cookies.path)) {
-        _cookies.load();
+    if (!ignoreCache && _cookies.load()) {
         request.get('https://plug.dj/_/users/me', {
             headers: {
                 'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
@@ -821,6 +940,7 @@ function PerformLogin(ignoreCache) {
         }
     }
 }
+
 var PlugAPI = function(authenticationData) {
     if (!authenticationData) {
         logger.error('You must pass the authentication data into the PlugAPI object to connect correctly');
@@ -851,7 +971,6 @@ var PlugAPI = function(authenticationData) {
      * @type {number}
      */
     this.multiLineLimit = 5;
-    this.enablePlugCubedSocket = false;
     /**
      * Should the bot process commands the bot itself is sending?
      * @type {boolean}
@@ -865,15 +984,18 @@ var PlugAPI = function(authenticationData) {
 
     room.registerUserExtensions(this);
 
+    //noinspection JSUnusedLocalSymbols
     /**
      * Pre-command Handler
+     * @param {Object} [obj]
      * @return {boolean} If false, the command is not getting handled.
      */
-    this.preCommandHandler = function() {
+    this.preCommandHandler = function(obj) {
         return true;
     };
 
     logger.info('Running plugAPI v.' + PlugAPIInfo.version + '-dev');
+    //noinspection JSUnresolvedFunction
     logger.warn(chalk.yellow('THIS IS A UNSTABLE VERSION! DO NOT USE FOR PRODUCTION!'));
 };
 
@@ -1066,9 +1188,10 @@ PlugAPI.prototype.emit = function() {
     return this;
 };
 
+//noinspection JSUnusedGlobalSymbols
 /**
  * Set the Logger object, must contain a info, warn, warning and error function
- * @param {Object} newLogger
+ * @param {Logger} newLogger
  * @returns {boolean} True if set
  */
 PlugAPI.prototype.setLogger = function(newLogger) {
@@ -1086,6 +1209,7 @@ PlugAPI.prototype.setLogger = function(newLogger) {
     return false;
 };
 
+//noinspection JSUnusedGlobalSymbols
 /**
  * Join another room
  * @param {String} slug
@@ -1099,16 +1223,14 @@ PlugAPI.prototype.changeRoom = function(slug) {
  */
 PlugAPI.prototype.close = function() {
     connectingRoomSlug = null;
+    //noinspection JSUnresolvedFunction
     ws.removeAllListeners('close');
     ws.close();
     _authCode = null;
     room = new Room();
-    if (this.enablePlugCubedSocket) {
-        p3Socket.removeAllListeners('close');
-        p3Socket.close();
-    }
 };
 
+//noinspection JSUnusedGlobalSymbols
 /**
  * Set the command prefix
  * @param prefix
@@ -1138,7 +1260,7 @@ PlugAPI.prototype.connect = function(roomSlug) {
     }
 
     // Only connect if session cookie is set
-    if (_cookies.cookies['session'] == undefined) {
+    if (!_cookies.contain('session')) {
         setImmediate(function() {
             that.connect(roomSlug);
         });
@@ -1194,6 +1316,7 @@ PlugAPI.prototype.meh = function(callback) {
     }, callback);
 };
 
+//noinspection JSUnusedGlobalSymbols
 /**
  * Get a history over chat messages. (Limit 512 messages)
  * @returns {Array} Chat history
@@ -1222,6 +1345,7 @@ PlugAPI.prototype.getHistory = function(callback) {
     });
 };
 
+//noinspection JSUnusedGlobalSymbols
 /**
  * Change the name of the community
  * @param {String} name
@@ -1240,6 +1364,7 @@ PlugAPI.prototype.changeRoomName = function(name, callback) {
     return true;
 };
 
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.changeRoomDescription = function(description, callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST)) {
         return false;
@@ -1251,6 +1376,8 @@ PlugAPI.prototype.changeRoomDescription = function(description, callback) {
     }, callback);
     return true;
 };
+
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.changeRoomWelcome = function(welcome, callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST)) {
         return false;
@@ -1262,6 +1389,8 @@ PlugAPI.prototype.changeRoomWelcome = function(welcome, callback) {
     }, callback);
     return true;
 };
+
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.changeDJCycle = function(enabled, callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
         return false;
@@ -1279,6 +1408,7 @@ PlugAPI.prototype.getTimeElapsed = function() {
     return Math.min(room.getMedia().duration, DateUtilities.getSecondsElapsed(room.getStartTime()));
 };
 
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.getTimeRemaining = function() {
     if (!room.getRoomMeta().slug || room.getMedia() == null) {
         return -1;
@@ -1286,6 +1416,7 @@ PlugAPI.prototype.getTimeRemaining = function() {
     return room.getMedia().duration - this.getTimeElapsed();
 };
 
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.joinBooth = function(callback) {
     if (!room.getRoomMeta().slug || room.isDJ() || room.isInWaitList() || (room.getBoothMeta().isLocked && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.RESIDENTDJ)) || this.getDJs().length >= 50) {
         return false;
@@ -1294,6 +1425,7 @@ PlugAPI.prototype.joinBooth = function(callback) {
     return true;
 };
 
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.leaveBooth = function(callback) {
     if (!room.getRoomMeta().slug || (!room.isDJ() && !room.isInWaitList())) {
         return false;
@@ -1347,11 +1479,14 @@ PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
     return true;
 };
 
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.moderateUnbanUser = function(uid, callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) return false;
     queueREST('DELETE', endpoints.MODERATE_UNBAN + uid, undefined, callback);
     return true;
 };
+
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.moderateForceSkip = function(callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || room.getDJ() === null) return false;
     queueREST('POST', endpoints.MODERATE_SKIP, {
@@ -1370,10 +1505,12 @@ PlugAPI.prototype.moderateDeleteChat = function(cid, callback) {
     return true;
 };
 
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.moderateLockWaitList = function(locked, clear, callback) {
     return this.moderateLockBooth(locked, clear, callback);
 };
 
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.moderateSetRole = function(uid, role, callback) {
     if (!room.getRoomMeta().slug || isNaN(role)) return false;
     var user = this.getUser(uid);
@@ -1440,6 +1577,7 @@ PlugAPI.prototype.getStaff = function() {
     return room.getStaff();
 };
 
+//noinspection JSUnusedGlobalSymbols
 /**
  * Get all staff for the community, also offline.
  * @param {Function} callback
@@ -1507,6 +1645,7 @@ PlugAPI.prototype.getRoomScore = function() {
     return room.getRoomScore();
 };
 
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.setStatus = function(status, callback) {
     if (!room.getRoomMeta().slug || !status || status < 0 || status > 3) return false;
     queueREST('PUT', endpoints.USER_SET_STATUS, {
@@ -1514,13 +1653,8 @@ PlugAPI.prototype.setStatus = function(status, callback) {
     }, callback);
     return true;
 };
-/*
- PlugAPI.prototype.createPlaylist = function(name, callback) {
- if (!room.getRoomMeta().slug || !name) return false;
- queueREST(rpcNames.PLAYLIST_CREATE, name, callback);
- return true;
- };
- */
+
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.addSongToPlaylist = function(playlistId, songId, callback) {
     if (!room.getRoomMeta().slug || !playlistId || !songId) return false;
     queueREST('GET', endpoints.PLAYLIST + '/' + playlistId + '/media/insert', {
@@ -1530,35 +1664,35 @@ PlugAPI.prototype.addSongToPlaylist = function(playlistId, songId, callback) {
     return true;
 };
 
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.getPlaylists = function(callback) {
     if (!room.getRoomMeta().slug) return false;
     queueREST('GET', endpoints.PLAYLIST, undefined, callback);
     return true;
 };
 
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.activatePlaylist = function(playlist_id, callback) {
     if (!room.getRoomMeta().slug || !playlist_id) return false;
     queueREST('PUT', endpoints.PLAYLIST + '/' + playlist_id + '/activate', undefined, callback);
     return true;
 };
+
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.deletePlaylist = function(playlist_id, callback) {
     if (!room.getRoomMeta().slug || !playlist_id) return false;
     queueREST('DELETE', endpoints.PLAYLIST + '/' + playlist_id, undefined, callback);
     return true;
 };
+
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.shufflePlaylist = function(playlist_id, callback) {
     if (!room.getRoomMeta().slug || !playlist_id) return false;
     queueREST('PUT', endpoints.PLAYLIST + '/' + playlist_id + '/shuffle', undefined, callback);
     return true;
 };
-/*PlugAPI.prototype.playlistMoveSong = function(playlist_id, song_id, position, callback) {
- if (!room.getRoomMeta().slug || !playlist_id || !song_id || !position) return false;
- queueREST(endpoints.PLAYLIST +'/' +playlist_id + '/media/move', {
- ids: song_id
- }, callback);
- return true;
- };*/
 
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.setAvatar = function(avatar, callback) {
     if (!room.getRoomMeta().slug || !avatar) return false;
     queueREST('PUT', endpoints.USER_SET_AVATAR, {
@@ -1567,12 +1701,14 @@ PlugAPI.prototype.setAvatar = function(avatar, callback) {
     return true;
 };
 
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.getAvatars = function(callback) {
     if (!room.getRoomMeta().slug) return false;
     queueREST('GET', endpoints.USER_GET_AVATARS, undefined, callback);
     return true;
 };
 
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.getAvatar = function() {
     return room.getUser().avatarID;
 };
@@ -1602,6 +1738,7 @@ PlugAPI.prototype.listen = function(port, address) {
     }).listen(port, address);
 };
 
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.tcpListen = function(port, address) {
     var _this = this;
     net.createServer(function(socket) {
