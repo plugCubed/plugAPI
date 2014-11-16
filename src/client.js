@@ -1903,8 +1903,8 @@ PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
     var user = this.getUser(uid);
     if (user !== null ? room.getPermissions(user).canModBan : this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER)) {
         reason = Number(reason || 1);
-        if (!duration) duration = this.BAN.PERMA;
-        if (duration === this.BAN.PERMA && this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) duration = this.BAN.DAY;
+        if (!duration) duration = PlugAPI.BAN.PERMA;
+        if (duration === PlugAPI.BAN.PERMA && this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) duration = PlugAPI.BAN.DAY;
         queueREST('POST', endpoints.MODERATE_BAN, {
             userID: uid,
             reason: reason,
