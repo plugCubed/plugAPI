@@ -14,6 +14,12 @@ var cookies = {};
 var cookiePath = path.resolve(__dirname, '..', 'cookies.tmp');
 
 /**
+ * Key, defining which user the cookie is for
+ * @type {string}
+ */
+var cookieKey = '';
+
+/**
  * Clear cookies
  */
 exports.clear = function() {
@@ -26,7 +32,7 @@ exports.clear = function() {
  * @returns {boolean}
  */
 exports.contain = function(key) {
-    return cookies[key] != null;
+    return cookies[cookieKey][key] != null;
 };
 
 /**
@@ -64,7 +70,10 @@ exports.fromHeaders = function(headers) {
                 key = cookieKeyValue.shift();
                 value = cookieKeyValue.join('=');
 
-                cookies[key] = value;
+                if (cookies[cookieKey] == undefined) {
+                    cookies[cookieKey] = {};
+                }
+                cookies[cookieKey][key] = value;
             }
         }
     }
@@ -76,18 +85,21 @@ exports.fromHeaders = function(headers) {
  */
 exports.toString = function() {
     var _cookies = [];
-    for (var i in cookies) {
-        if (!cookies.hasOwnProperty(i)) continue;
-        _cookies.push(i + '=' + cookies[i]);
+    for (var i in cookies[cookieKey]) {
+        if (!cookies[cookieKey].hasOwnProperty(i)) continue;
+        _cookies.push(i + '=' + cookies[cookieKey][i]);
     }
     return _cookies.join('; ');
 };
 
 /**
  * Cookie Handler
+ * @param {String} key A key used to figure out, which user the key is for
  * @constructor
  */
-function CookieHandler() {
+function CookieHandler(key) {
+    cookieKey = key;
+
     this.clear = exports.clear;
     this.contain = exports.contain;
     this.load = exports.load;
