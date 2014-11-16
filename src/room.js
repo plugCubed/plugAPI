@@ -677,6 +677,7 @@ Room.prototype.setCycle = function(cycle) {
 };
 
 /**
+ * Get the booth meta
  * @return {booth}
  */
 Room.prototype.getBoothMeta = function() {
@@ -684,12 +685,17 @@ Room.prototype.getBoothMeta = function() {
 };
 
 /**
+ * Get the room meta
  * @return {meta}
  */
 Room.prototype.getRoomMeta = function() {
     return util._extend({}, meta);
 };
 
+/**
+ * Get the room score
+ * @return {{positive: number, listeners: number, grabs: number, negative: number, skipped: number}}
+ */
 Room.prototype.getRoomScore = function() {
     var result = {
         positive: 0,

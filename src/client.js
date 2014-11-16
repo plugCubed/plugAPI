@@ -1060,6 +1060,16 @@ var PlugAPI = function(authenticationData) {
 };
 
 /**
+ * Create a new logger for your own scripts.
+ * @param channel
+ * @returns {Logger}
+ */
+PlugAPI.CreateLogger = function(channel) {
+    if (!channel) channel = 'Unknown';
+    return new Logger(channel);
+};
+
+/**
  * Room ranks
  * @type {{NONE: number, RESIDENTDJ: number, BOUNCER: number, MANAGER: number, COHOST: number, HOST: number}}
  * @const
@@ -1110,6 +1120,18 @@ PlugAPI.BAN = {
 };
 
 /**
+ * Ban Reasons
+ * @type {{SPAMMING_TROLLING: number, VERBAL_ABUSE: number, OFFENSIVE_MEDIA: number, INAPPROPRIATE_GENRE: number, NEGATIVE_ATTITUDE: number}}
+ */
+PlugAPI.BAN_REASON = {
+    SPAMMING_TROLLING: 1,
+    VERBAL_ABUSE: 2,
+    OFFENSIVE_MEDIA: 3,
+    INAPPROPRIATE_GENRE: 4,
+    NEGATIVE_ATTITUDE: 5
+};
+
+/**
  * Mute Lengths
  * Short: 15 minutes
  * Medium: 30 minutes
@@ -1121,6 +1143,18 @@ PlugAPI.MUTE = {
     SHORT: 's',
     MEDIUM: 'm',
     LONG: 'l'
+};
+
+/**
+ * Mute Reasons
+ * @type {{VIOLATING_COMMUNITY_RULES: number, VERBAL_ABUSE: number, SPAMMING_TROLLING: number, OFFENSIVE_LANGUAGE: number, NEGATIVE_ATTITUDE: number}}
+ */
+PlugAPI.MUTE_REASON = {
+    VIOLATING_COMMUNITY_RULES: 1,
+    VERBAL_ABUSE: 2,
+    SPAMMING_TROLLING: 3,
+    OFFENSIVE_LANGUAGE: 4,
+    NEGATIVE_ATTITUDE: 5
 };
 
 /**
@@ -1371,7 +1405,6 @@ PlugAPI.prototype.getAvatar = function() {
     return room.getUser().avatarID;
 };
 
-//noinspection JSUnusedGlobalSymbols
 /**
  * Get all available avatars
  * @param {Function} callback Callback function
@@ -1652,7 +1685,6 @@ PlugAPI.prototype.meh = function(callback) {
     return true;
 };
 
-//noinspection JSUnusedGlobalSymbols
 /**
  * Grab current song
  * @param {Function} [callback] Callback function
@@ -1790,7 +1822,6 @@ PlugAPI.prototype.getActivePlaylist = function() {
     return null;
 };
 
-//noinspection JSUnusedGlobalSymbols
 /**
  * Get playlist by ID
  * @param {Number} [pid] Playlist ID
@@ -1894,16 +1925,26 @@ PlugAPI.prototype.moderateAddDJ = function(uid, callback) {
  * Ban a user from the community
  * @param {Number} uid User ID
  * @param {Number} reason Reason ID
- * @param {PlugAPI.BAN.HOUR|PlugAPI.BAN.DAY|PlugAPI.BAN.PERMA} duration Duration of the ban
+ * @param {String} duration Duration of the ban
  * @param {Function} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
     if (!room.getRoomMeta().slug) return false;
+
+    if (duration != null) {
+        if (PlugAPI.BAN.indexOf(duration) < 0) return false;
+    } else {
+        duration = PlugAPI.BAN.LONG;
+    }
+    if (reason != null) {
+        if (PlugAPI.BAN_REASON.indexOf(reason) < 0) return false;
+    } else {
+        reason = PlugAPI.BAN_REASON.SPAMMING_TROLLING;
+    }
+
     var user = this.getUser(uid);
     if (user !== null ? room.getPermissions(user).canModBan : this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER)) {
-        reason = Number(reason || 1);
-        if (!duration) duration = PlugAPI.BAN.PERMA;
         if (duration === PlugAPI.BAN.PERMA && this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) duration = PlugAPI.BAN.DAY;
         queueREST('POST', endpoints.MODERATE_BAN, {
             userID: uid,
@@ -1992,6 +2033,46 @@ PlugAPI.prototype.moderateMoveDJ = function(uid, index, callback) {
     return true;
 };
 
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Mute user
+ * @param {Number} uid User ID
+ * @param {Number} [reason] Reason ID
+ * @param {String} [duration] Duration ID
+ * @param {Function} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.moderateMuteUser = function(uid, reason, duration, callback) {
+    if (!room.getRoomMeta().slug) return false;
+
+    if (duration != null) {
+        if (PlugAPI.MUTE.indexOf(duration) < 0) return false;
+    } else {
+        duration = PlugAPI.MUTE.LONG;
+    }
+    if (reason != null) {
+        if (PlugAPI.MUTE_REASON.indexOf(reason) < 0) return false;
+    } else {
+        reason = PlugAPI.MUTE_REASON.VIOLATING_COMMUNITY_RULES;
+    }
+
+    var user = this.getUser(uid);
+    if (user !== null ? room.getPermissions(user).canModMute : this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER)) {
+        queueREST('POST', endpoints.MODERATE_MUTE, {
+            userID: uid,
+            reason: reason,
+            duration: duration
+        }, callback);
+    }
+    return true;
+};
+
+/**
+ * Remove a DJ from Waitlist/Booth
+ * @param {Number} uid User ID
+ * @param {Function} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
 PlugAPI.prototype.moderateRemoveDJ = function(uid, callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || (!room.isDJ(uid) && !room.isInWaitList(uid)) || (room.getBoothMeta().isLocked && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER))) {
         return false;
@@ -2001,15 +2082,16 @@ PlugAPI.prototype.moderateRemoveDJ = function(uid, callback) {
 };
 
 //noinspection JSUnusedGlobalSymbols
-PlugAPI.prototype.moderateUnbanUser = function(uid, callback) {
-    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) return false;
-    queueREST('DELETE', endpoints.MODERATE_UNBAN + uid, undefined, callback);
-    return true;
-};
-
-//noinspection JSUnusedGlobalSymbols
+/**
+ * Set the role of a user
+ * @param {Number} uid User ID
+ * @param {Number} role The new role
+ * @param {Function} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
 PlugAPI.prototype.moderateSetRole = function(uid, role, callback) {
     if (!room.getRoomMeta().slug || isNaN(role)) return false;
+
     var user = this.getUser(uid);
     if (user !== null ? room.getPermissions(user).canModStaff : this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
         queueREST('POST', endpoints.MODERATE_PERMISSIONS, {
@@ -2022,9 +2104,37 @@ PlugAPI.prototype.moderateSetRole = function(uid, role, callback) {
 
 //noinspection JSUnusedGlobalSymbols
 /**
+ * Unban a user
+ * @param {Number} uid User ID
+ * @param {Function} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.moderateUnbanUser = function(uid, callback) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) return false;
+
+    queueREST('DELETE', endpoints.MODERATE_UNBAN + uid, undefined, callback);
+    return true;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Unmute a user
+ * @param {Number} uid User ID
+ * @param {Function} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.moderateUnmuteUser = function(uid, callback) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) return false;
+
+    queueREST('DELETE', endpoints.MODERATE_UNMUTE + uid, undefined, callback);
+    return true;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
  * Change the name of the community
- * @param {String} name
- * @param {Function} [callback]
+ * @param {String} name New community name
+ * @param {Function} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.changeRoomName = function(name, callback) {
@@ -2040,6 +2150,12 @@ PlugAPI.prototype.changeRoomName = function(name, callback) {
 };
 
 //noinspection JSUnusedGlobalSymbols
+/**
+ * Change the description of the community
+ * @param {String} description New community description
+ * @param {Function} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
 PlugAPI.prototype.changeRoomDescription = function(description, callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST)) {
         return false;
@@ -2053,6 +2169,12 @@ PlugAPI.prototype.changeRoomDescription = function(description, callback) {
 };
 
 //noinspection JSUnusedGlobalSymbols
+/**
+ * Change the welcome message of the community
+ * @param {String} welcome New community welcome
+ * @param {Function} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
 PlugAPI.prototype.changeRoomWelcome = function(welcome, callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST)) {
         return false;
@@ -2066,6 +2188,12 @@ PlugAPI.prototype.changeRoomWelcome = function(welcome, callback) {
 };
 
 //noinspection JSUnusedGlobalSymbols
+/**
+ * Change the DJ cycle of the community
+ * @param {Boolean} enabled
+ * @param {Function} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
 PlugAPI.prototype.changeDJCycle = function(enabled, callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
         return false;
@@ -2076,7 +2204,12 @@ PlugAPI.prototype.changeDJCycle = function(enabled, callback) {
     return true;
 };
 
-PlugAPI.prototype.listen = function(port, address) {
+/**
+ * Open a HTTP server
+ * @param {Number} port
+ * @param {String} [hostname]
+ */
+PlugAPI.prototype.listen = function(port, hostname) {
     var _this = this;
     http.createServer(function(req, res) {
         var dataStr = '';
@@ -2087,11 +2220,16 @@ PlugAPI.prototype.listen = function(port, address) {
             req._POST = querystring.parse(dataStr);
             _this.emit('httpRequest', req, res);
         });
-    }).listen(port, address);
+    }).listen(port, hostname);
 };
 
 //noinspection JSUnusedGlobalSymbols
-PlugAPI.prototype.tcpListen = function(port, address) {
+/**
+ * Open a TCP server
+ * @param {Number} port
+ * @param {String} [hostname]
+ */
+PlugAPI.prototype.tcpListen = function(port, hostname) {
     var _this = this;
     net.createServer(function(socket) {
         socket.on('connect', function() {
@@ -2106,17 +2244,7 @@ PlugAPI.prototype.tcpListen = function(port, address) {
         socket.on('end', function() {
             _this.emit('tcpEnd', socket);
         });
-    }).listen(port, address);
+    }).listen(port, hostname);
 };
 
 module.exports = PlugAPI;
-
-/**
- * Create a new logger for your own scripts.
- * @param channel
- * @returns {Logger}
- */
-exports.CreateLogger = function(channel) {
-    if (!channel) channel = 'Unknown';
-    return new Logger(channel);
-};
