@@ -33,13 +33,6 @@ chalk = require('chalk');
 
 // plugAPI
 /**
- * Room class
- * @type {Room|exports}
- * @private
- */
-var Room = require('./room');
-
-/**
  * CookieHandler class
  * @type {CookieHandler|exports}
  * @private
@@ -52,6 +45,20 @@ var CookieHandler = require('./cookie');
  * @private
  */
 var Logger = require('./logger');
+
+/**
+ * Event Object Types
+ * @type {exports}
+ * @private
+ */
+var EventObjectTypes = require('./eventObjectTypes');
+
+/**
+ * Room class
+ * @type {Room|exports}
+ * @private
+ */
+var Room = require('./room');
 
 /**
  * Package.json of plugAPI
@@ -747,9 +754,11 @@ function messageHandler(msg) {
      */
     var type = msg.a;
     /**
-     * @type {Object|Number}
+     * Data for the event
+     * Will lookup in EventObjectTypes for possible converter function
+     * @type {*}
      */
-    var data = msg.p;
+    var data = EventObjectTypes[msg.a] != null ? EventObjectTypes[msg.a](msg.p) : msg.p;
     var i, slug;
     switch (type) {
         case 'ack':
@@ -769,6 +778,19 @@ function messageHandler(msg) {
             });
             // This event should not be emitted to the user code.
             return;
+        case PlugAPI.events.ADVANCE:
+            data['lastPlay'] = {
+                dj: room.getDJ(),
+                media: room.getMedia(),
+                score: room.getRoomScore()
+            };
+
+            room.advance(data);
+
+            // Override parts of the event data with actual User objects
+            data.currentDJ = room.getDJ();
+            data.djs = room.getDJs();
+            break;
         case PlugAPI.events.CHAT:
             chatHistory.push(data);
 
@@ -814,24 +836,6 @@ function messageHandler(msg) {
         case PlugAPI.events.GRAB:
             room.setGrab(data);
             break;
-        case PlugAPI.events.ADVANCE:
-            //noinspection JSUnresolvedVariable
-            var advanceEvent = {
-                lastPlay: {
-                    dj: room.getDJ(),
-                    media: room.getMedia(),
-                    score: room.getRoomScore()
-                },
-                media: data.m,
-                startTime: data.t,
-                historyID: data.h
-            };
-            room.advance(data);
-            advanceEvent.currentDJ = room.getDJ();
-            advanceEvent.djs = room.getDJs();
-            that.emit(type, advanceEvent);
-            // This is getting emitted with an advance object containing more information than the incoming data
-            return;
         case PlugAPI.events.DJ_LIST_UPDATE:
             room.setDJs(data);
             break;

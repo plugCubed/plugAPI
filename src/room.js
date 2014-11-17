@@ -410,6 +410,9 @@ Room.prototype.setMedia = function(mediaInfo, mediaStartTime) {
     playback.startTime = mediaStartTime;
 };
 
+/**
+ * @param {AdvanceEventObject} data
+ */
 Room.prototype.advance = function(data) {
     if (songHistory.length < 1) {
         setImmediate(this.advance, data);
@@ -418,21 +421,16 @@ Room.prototype.advance = function(data) {
 
     songHistory[0].room = this.getRoomScore();
 
-    //noinspection JSUnresolvedVariable
-    this.setMedia(data.m, data.t);
-    //noinspection JSUnresolvedVariable
-    this.setDJs(data.d);
+    this.setMedia(data.media, data.startTime);
+    this.setDJs(data.djs);
 
-    //noinspection JSUnresolvedVariable
-    booth.currentDJ = data.c;
-    //noinspection JSUnresolvedVariable
-    playback.historyID = data.h;
-    playback.playlistID = data.p;
+    booth.currentDJ = data.currentDJ;
+    playback.historyID = data.historyID;
+    playback.playlistID = data.playlistID;
 
-    //noinspection JSUnresolvedVariable
     var historyObj = {
-        id: data.h,
-        media: data.m,
+        id: data.historyID,
+        media: data.media,
         room: {
             name: meta.name,
             slug: meta.slug
@@ -444,10 +442,10 @@ Room.prototype.advance = function(data) {
             negative: 0,
             skipped: 0
         },
-        timestamp: data.t,
+        timestamp: data.startTime,
         user: {
-            id: data.c,
-            username: this.getUser(data.c) === null ? '' : this.getUser(data.c).username
+            id: data.currentDJ,
+            username: this.getUser(data.currentDJ) === null ? '' : this.getUser(data.currentDJ).username
         }
     };
 
