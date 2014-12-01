@@ -479,7 +479,7 @@ function joinRoom(roomSlug, callback) {
  * @private
  */
 function receivedChatMessage(messageData) {
-    var i, cmd, obj, lastIndex, allUsers, random;
+    var i, cmd, lastIndex, allUsers, random;
     if (!initialized) return;
 
     var mutedUser = room.isMuted(messageData.from.id);
@@ -505,7 +505,7 @@ function receivedChatMessage(messageData) {
                 }
             }
             if (found !== null) {
-                messageData.args = messageData.args.substr(0, lastIndex) + '%MENTION-' + random + '-' + obj.mentions.length + '%' + obj.args.substr(lastIndex + found.username.length + 1);
+                messageData.args = messageData.args.substr(0, lastIndex) + '%MENTION-' + random + '-' + messageData.mentions.length + '%' + messageData.args.substr(lastIndex + found.username.length + 1);
                 messageData.mentions.push(found);
             }
             lastIndex = messageData.args.indexOf('@', lastIndex + 1);
@@ -573,20 +573,20 @@ function receivedChatMessage(messageData) {
             return isFrom;
         };
         if (!mutedUser) {
-            that.emit(prefixChatEventType + PlugAPI.events.CHAT_COMMAND, obj);
-            that.emit(prefixChatEventType + PlugAPI.events.CHAT_COMMAND + ':' + cmd, obj);
+            that.emit(prefixChatEventType + PlugAPI.events.CHAT_COMMAND, messageData);
+            that.emit(prefixChatEventType + PlugAPI.events.CHAT_COMMAND + ':' + cmd, messageData);
             if (that.deleteCommands) {
                 that.moderateDeleteChat(messageData.cid);
             }
         }
     } else if (messageData.type == 'emote') {
-        that.emit(prefixChatEventType + PlugAPI.events.CHAT + ':emote', obj);
+        that.emit(prefixChatEventType + PlugAPI.events.CHAT + ':emote', messageData);
     }
 
-    that.emit(prefixChatEventType + PlugAPI.events.CHAT, obj);
-    that.emit(prefixChatEventType + PlugAPI.events.CHAT + ':' + obj.raw.type, obj);
+    that.emit(prefixChatEventType + PlugAPI.events.CHAT, messageData);
+    that.emit(prefixChatEventType + PlugAPI.events.CHAT + ':' + messageData.raw.type, messageData);
     if (room.getUser() !== null && messageData.message.indexOf('@' + room.getUser().username) > -1) {
-        that.emit(prefixChatEventType + PlugAPI.events.CHAT + ':mention', obj);
+        that.emit(prefixChatEventType + PlugAPI.events.CHAT + ':mention', messageData);
     }
 }
 
