@@ -345,7 +345,7 @@ function queueTicker() {
     if (canSend && obj) {
         serverRequests.sent++;
         if (obj.type == 'rest') {
-            sendREST(obj.opts, obj.callbacks.success, obj.callbacks.failure);
+            sendREST(obj.opts, obj.callback);
         } else if (obj.type == 'connect') {
             if (obj.server == 'socket') {
                 connectSocket(obj.room);
@@ -364,26 +364,27 @@ function queueTicker() {
 }
 
 /**
+ * @callback RESTCallback
+ * @param {null|String} err Error message on error; otherwise null
+ * @param {null|*} data Data on success; otherwise null
+ */
+
+/**
  * Queue REST request
  * @param {"POST"|"PUT"|"GET"|"DELETE"} method REST method
  * @param {String} endpoint Endpoint on server
  * @param {Object|Undefined} [data] Data
- * @param {Function|Undefined} [successCallback] Callback function on success
- * @param {Function|Undefined} [failureCallback] Callback function on failure
+ * @param {RESTCallback|Undefined} [callback] Callback function
  * @param {Boolean} [skipQueue] Skip queue and send the request immediately
  * @private
  */
-function queueREST(method, endpoint, data, successCallback, failureCallback, skipQueue) {
+function queueREST(method, endpoint, data, callback, skipQueue) {
     if (['POST', 'PUT', 'GET', 'DELETE'].indexOf(method) < 0) {
         logger.error(method, 'needs update');
         return;
     }
 
-    successCallback = typeof successCallback === 'function' ? __bind(successCallback, that) : function() {
-    };
-    failureCallback = typeof failureCallback === 'function' ? __bind(failureCallback, that) : function() {
-        // Retry
-        queueREST(method, endpoint, data, successCallback, failureCallback, skipQueue);
+    callback = typeof callback === 'function' ? __bind(callback, that) : function() {
     };
 
     var opts = {
@@ -402,15 +403,12 @@ function queueREST(method, endpoint, data, successCallback, failureCallback, ski
     }
 
     if (skipQueue && skipQueue === true) {
-        sendREST(opts, successCallback, failureCallback);
+        sendREST(opts, callback);
     } else {
         serverRequests.queue.push({
             type: 'rest',
             opts: opts,
-            callbacks: {
-                success: successCallback,
-                failure: failureCallback
-            }
+            callback: callback
         });
         if (!serverRequests.running) {
             queueTicker();
@@ -421,27 +419,26 @@ function queueREST(method, endpoint, data, successCallback, failureCallback, ski
 /**
  * Send a REST request
  * @param {Object} opts
- * @param {Function} successCallback Callback function on success
- * @param {Function} failureCallback Callback function on failure
+ * @param {RESTCallback} callback Callback function
  * @private
  */
-function sendREST(opts, successCallback, failureCallback) {
+function sendREST(opts, callback) {
     request(opts, function(err, res, body) {
         if (err) {
             logger.error('[REST Error]', err);
-            failureCallback(err);
+            callback(err, null);
             return;
         }
         try {
             body = JSON.parse(body);
             if (body.status === 'ok') {
-                successCallback(body.data);
+                callback(null, body.data);
             } else {
-                failureCallback(body.status, body.data);
+                callback(body.status, null);
             }
         } catch (e) {
             logger.error('[REST Error]', e);
-            failureCallback(e);
+            callback(e, null);
         }
     });
 }
@@ -449,26 +446,43 @@ function sendREST(opts, successCallback, failureCallback) {
 /**
  * Queue that the bot should join a room.
  * @param {String} roomSlug Slug of room to join after connection
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @private
  */
 function joinRoom(roomSlug, callback) {
     queueREST('POST', 'rooms/join', {
         slug: roomSlug
-    }, function() {
-        queueREST('GET', 'rooms/state', undefined, function(data) {
-            connectingRoomSlug = null;
-            initRoom(data[0], function() {
-                if (typeof callback === 'function') {
-                    callback(data);
-                }
-            });
+    }, function(err) {
+        if (err) {
+            logger.error('Error while joining:', err ? err : 'Unknown error');
+            setTimeout(function() {
+                joinRoom(roomSlug, callback);
+            }, 1e3);
+            return;
+        }
+        getRoomState(callback);
+    });
+}
+
+/**
+ * Get room state.
+ * @param {RESTCallback} callback
+ */
+function getRoomState(callback) {
+    queueREST('GET', 'rooms/state', undefined, function(err, data) {
+        if (err) {
+            logger.error('Error getting room state:', err ? err : 'Unknown error');
+            setTimeout(function() {
+                getRoomState(callback);
+            }, 1e3);
+            return;
+        }
+        connectingRoomSlug = null;
+        initRoom(data[0], function() {
+            if (typeof callback === 'function') {
+                callback(null, data);
+            }
         });
-    }, function(status) {
-        logger.error('Error while joining:', status ? status : 'Unknown error');
-        setTimeout(function() {
-            joinRoom(roomSlug, callback);
-        }, 1e3);
     });
 }
 
@@ -482,10 +496,11 @@ function receivedChatMessage(messageData) {
     var i, cmd, lastIndex, allUsers, random;
     if (!initialized) return;
 
-    var mutedUser = room.isMuted(messageData.from.id);
+    var disconnectedUser = messageData.from == null;
+    var mutedUser = !disconnectedUser && room.isMuted(messageData.from.id);
     var prefixChatEventType = (mutedUser && !that.mutedTriggerNormalEvents ? 'muted:' : '');
 
-    if ((messageData.raw.type == 'message') && messageData.message.indexOf(commandPrefix) === 0 && (that.processOwnMessages || messageData.from.id !== room.getSelf().id)) {
+    if (!disconnectedUser && (messageData.raw.type == 'message') && messageData.message.indexOf(commandPrefix) === 0 && (that.processOwnMessages || messageData.from.id !== room.getSelf().id)) {
         cmd = messageData.message.substr(commandPrefix.length).split(' ')[0];
 
         messageData.command = cmd;
@@ -543,16 +558,16 @@ function receivedChatMessage(messageData) {
 
             return that.sendChat('@' + this.from.username + ' ' + message, timeout);
         };
-        messageData.havePermission = function(permission, successCallback, failureCallback) {
+        messageData.havePermission = function(permission, callback) {
             if (permission === undefined) permission = 0;
             if (that.havePermission(this.from.id, permission)) {
-                if (typeof successCallback === 'function') {
-                    successCallback();
+                if (typeof callback === 'function') {
+                    callback(true);
                 }
                 return true;
             }
-            if (typeof failureCallback === 'function') {
-                failureCallback();
+            if (typeof callback === 'function') {
+                callback(false);
             }
             return false;
         };
@@ -776,8 +791,8 @@ function messageHandler(msg) {
                 // This event should not be emitted to the user code.
                 return;
             }
-            queueREST('GET', 'users/me', null, function(a) {
-                room.setSelf(a[0]);
+            queueREST('GET', 'users/me', null, function(err, data) {
+                room.setSelf(data[0]);
                 joinRoom(connectingRoomSlug);
             });
             // This event should not be emitted to the user code.
@@ -1415,7 +1430,7 @@ PlugAPI.prototype.getAvatar = function() {
 
 /**
  * Get all available avatars
- * @param {Function} callback Callback function
+ * @param {RESTCallback} callback Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.getAvatars = function(callback) {
@@ -1429,7 +1444,7 @@ PlugAPI.prototype.getAvatars = function(callback) {
  * Set avatar
  * Be sure you only use avatars that are available {@link PlugAPI.prototype.getAvatars}
  * @param {String} avatar Avatar ID
- * @param {Function} callback Callback function
+ * @param {RESTCallback} callback Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.setAvatar = function(avatar, callback) {
@@ -1451,7 +1466,7 @@ PlugAPI.prototype.getAdmins = function() {
 //noinspection JSUnusedGlobalSymbols
 /**
  * Get all staff for the community, also offline.
- * @param {Function} callback
+ * @param {RESTCallback} callback
  */
 PlugAPI.prototype.getAllStaff = function(callback) {
     if (!callback || typeof callback !== 'function') {
@@ -1578,7 +1593,7 @@ PlugAPI.prototype.getStatus = function(uid) {
 /**
  * Change status
  * @param {Number} status
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.setStatus = function(status, callback) {
@@ -1668,7 +1683,7 @@ PlugAPI.prototype.setLogger = function(newLogger) {
 //noinspection JSUnusedGlobalSymbols
 /**
  * Woot current song
- * @param {Function} [callback]
+ * @param {RESTCallback} [callback]
  */
 PlugAPI.prototype.woot = function(callback) {
     if (this.getMedia() == null) return false;
@@ -1682,7 +1697,7 @@ PlugAPI.prototype.woot = function(callback) {
 //noinspection JSUnusedGlobalSymbols
 /**
  * Meh current song
- * @param {Function} [callback]
+ * @param {RESTCallback} [callback]
  */
 PlugAPI.prototype.meh = function(callback) {
     if (this.getMedia() == null) return false;
@@ -1695,7 +1710,7 @@ PlugAPI.prototype.meh = function(callback) {
 
 /**
  * Grab current song
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.grab = function(callback) {
@@ -1704,10 +1719,11 @@ PlugAPI.prototype.grab = function(callback) {
     var playlist = that.getActivePlaylist();
     if (playlist == null) return false;
 
-    var callbackWrapper = function(data) {
-        playlist.count++;
+    var callbackWrapper = function(err, data) {
+        if (!err)
+            playlist.count++;
         if (typeof callback == 'function')
-            callback(data);
+            callback(err, data);
     };
 
     queueREST('POST', 'grabs', {
@@ -1721,7 +1737,7 @@ PlugAPI.prototype.grab = function(callback) {
 /**
  * Activate a playlist
  * @param {Number} pid Playlist ID
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.activatePlaylist = function(pid, callback) {
@@ -1730,11 +1746,13 @@ PlugAPI.prototype.activatePlaylist = function(pid, callback) {
     var playlist = this.getPlaylist(pid);
     if (playlist == null) return false;
 
-    var callbackWrapper = function(data) {
-        that.getActivePlaylist().active = false;
-        playlist.active = true;
+    var callbackWrapper = function(err, data) {
+        if (!err) {
+            that.getActivePlaylist().active = false;
+            playlist.active = true;
+        }
         if (typeof callback == 'function')
-            callback(data);
+            callback(err, data);
     };
 
     queueREST('PUT', endpoints.PLAYLIST + '/' + pid + '/activate', undefined, callbackWrapper);
@@ -1746,7 +1764,7 @@ PlugAPI.prototype.activatePlaylist = function(pid, callback) {
  * Add a song to a playlist
  * @param {Number} pid Playlist ID
  * @param sid Song ID
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.addSongToPlaylist = function(pid, sid, callback) {
@@ -1755,10 +1773,11 @@ PlugAPI.prototype.addSongToPlaylist = function(pid, sid, callback) {
     var playlist = that.getPlaylist(pid);
     if (playlist == null) return false;
 
-    var callbackWrapper = function(data) {
-        playlist.count++;
+    var callbackWrapper = function(err, data) {
+        if (!err)
+            playlist.count++;
         if (typeof callback == 'function')
-            callback(data);
+            callback(err, data);
     };
 
     queueREST('GET', endpoints.PLAYLIST + '/' + pid + '/media/insert', {
@@ -1772,15 +1791,17 @@ PlugAPI.prototype.addSongToPlaylist = function(pid, sid, callback) {
 /**
  * Create a new playlist
  * @param {String} name Name of new playlist
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
-PlugAPI.prototype.createPlaylist = function(name) {
+PlugAPI.prototype.createPlaylist = function(name, callback) {
     if (!room.getRoomMeta().slug || typeof name != 'String' || name.length == 0) return false;
 
-    var callbackWrapper = function(data) {
-        playlists.push(data[0]);
+    var callbackWrapper = function(err, data) {
+        if (!err)
+            playlists.push(data[0]);
         if (typeof callback == 'function')
-            callback(data);
+            callback(err, data);
     };
 
     queueREST('POST', endpoints.PLAYLIST, {name: name}, callbackWrapper);
@@ -1791,7 +1812,7 @@ PlugAPI.prototype.createPlaylist = function(name) {
 /**
  * Delete a playlist
  * @param {Number} pid Playlist ID
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.deletePlaylist = function(pid, callback) {
@@ -1799,16 +1820,18 @@ PlugAPI.prototype.deletePlaylist = function(pid, callback) {
 
     if (this.getPlaylist(pid) == null) return false;
 
-    var callbackWrapper = function(data) {
-        for (var i in playlists) {
-            if (!playlists.hasOwnProperty(i)) continue;
-            if (playlists[i].id == pid) {
-                playlists.splice(i, 1);
-                break;
+    var callbackWrapper = function(err, data) {
+        if (!err) {
+            for (var i in playlists) {
+                if (!playlists.hasOwnProperty(i)) continue;
+                if (playlists[i].id == pid) {
+                    playlists.splice(i, 1);
+                    break;
+                }
             }
         }
         if (typeof callback == 'function')
-            callback(data);
+            callback(err, data);
     };
 
     queueREST('DELETE', endpoints.PLAYLIST + '/' + pid, undefined, callbackWrapper);
@@ -1858,7 +1881,7 @@ PlugAPI.prototype.getPlaylists = function() {
 /**
  * Get all medias in playlist
  * @param {Number} pid Playlist ID
- * @param {Function} callback Callback Function
+ * @param {RESTCallback} callback Callback function
  */
 PlugAPI.prototype.getPlaylistMedias = function(pid, callback) {
     if (this.getPlaylist(pid) == null) return false;
@@ -1873,8 +1896,9 @@ PlugAPI.prototype.getPlaylistMedias = function(pid, callback) {
  * @param {Number} pid Playlist ID
  * @param {Number|Number[]} mid Media ID(s)
  * @param {Number} before_mid Move them before this media ID
+ * @param {RESTCallback} [callback] Callback function
  */
-PlugAPI.prototype.playlistMoveMedia = function(pid, mid, before_mid) {
+PlugAPI.prototype.playlistMoveMedia = function(pid, mid, before_mid, callback) {
     if (!room.getRoomMeta().slug || !pid || !mid || (!util.isArray(mid) || (util.isArray(mid) && mid.length > 0)) || !before_mid) return false;
 
     if (this.getPlaylist(pid) == null) return false;
@@ -1893,7 +1917,7 @@ PlugAPI.prototype.playlistMoveMedia = function(pid, mid, before_mid) {
 /**
  * Shuffle playlist
  * @param {Number} pid Playlist ID
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.shufflePlaylist = function(pid, callback) {
@@ -1915,7 +1939,7 @@ PlugAPI.prototype.shufflePlaylist = function(pid, callback) {
 /**
  * Add a DJ to Waitlist/Booth
  * @param {Number} uid User ID
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.moderateAddDJ = function(uid, callback) {
@@ -1934,7 +1958,7 @@ PlugAPI.prototype.moderateAddDJ = function(uid, callback) {
  * @param {Number} uid User ID
  * @param {Number} reason Reason ID
  * @param {String} duration Duration of the ban
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
@@ -1968,14 +1992,14 @@ PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
 /**
  * Delete a chat message
  * @param {String} cid Chat ID
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.moderateDeleteChat = function(cid, callback) {
     if (!room.getRoomMeta().slug || typeof cid != 'string') return false;
     var user = this.getUser(cid.split('-')[0]);
     if (user !== null ? room.getPermissions(user).canModChat : this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER)) {
-        queueREST('DELETE', endpoints.CHAT_DELETE + cid, undefined, callback, undefined, true);
+        queueREST('DELETE', endpoints.CHAT_DELETE + cid, undefined, callback, true);
         return true;
     }
     return false;
@@ -1984,7 +2008,7 @@ PlugAPI.prototype.moderateDeleteChat = function(cid, callback) {
 //noinspection JSUnusedGlobalSymbols
 /**
  * Skip current media
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.moderateForceSkip = function(callback) {
@@ -2002,7 +2026,7 @@ PlugAPI.prototype.moderateForceSkip = function(callback) {
  * Alias for {@link PlugAPI.prototype.moderateLockBooth}
  * @param {Boolean} locked Lock the waitlist/booth
  * @param {Boolean} clear Clear the waitlist
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.moderateLockWaitList = function(locked, clear, callback) {
@@ -2013,7 +2037,7 @@ PlugAPI.prototype.moderateLockWaitList = function(locked, clear, callback) {
  * Lock/Clear the waitlist/booth
  * @param {Boolean} locked Lock the waitlist/booth
  * @param {Boolean} clear Clear the waitlist
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.moderateLockBooth = function(locked, clear, callback) {
@@ -2029,7 +2053,7 @@ PlugAPI.prototype.moderateLockBooth = function(locked, clear, callback) {
  * Move a DJ in the waitlist
  * @param {Number} uid User ID
  * @param {Number} index New position in the waitlist
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.moderateMoveDJ = function(uid, index, callback) {
@@ -2049,7 +2073,7 @@ PlugAPI.prototype.moderateMoveDJ = function(uid, index, callback) {
  * @param {Number} uid User ID
  * @param {Number} [reason] Reason ID
  * @param {String} [duration] Duration ID
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.moderateMuteUser = function(uid, reason, duration, callback) {
@@ -2080,7 +2104,7 @@ PlugAPI.prototype.moderateMuteUser = function(uid, reason, duration, callback) {
 /**
  * Remove a DJ from Waitlist/Booth
  * @param {Number} uid User ID
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.moderateRemoveDJ = function(uid, callback) {
@@ -2096,7 +2120,7 @@ PlugAPI.prototype.moderateRemoveDJ = function(uid, callback) {
  * Set the role of a user
  * @param {Number} uid User ID
  * @param {Number} role The new role
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.moderateSetRole = function(uid, role, callback) {
@@ -2116,7 +2140,7 @@ PlugAPI.prototype.moderateSetRole = function(uid, role, callback) {
 /**
  * Unban a user
  * @param {Number} uid User ID
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.moderateUnbanUser = function(uid, callback) {
@@ -2130,7 +2154,7 @@ PlugAPI.prototype.moderateUnbanUser = function(uid, callback) {
 /**
  * Unmute a user
  * @param {Number} uid User ID
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.moderateUnmuteUser = function(uid, callback) {
@@ -2144,7 +2168,7 @@ PlugAPI.prototype.moderateUnmuteUser = function(uid, callback) {
 /**
  * Change the name of the community
  * @param {String} name New community name
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.changeRoomName = function(name, callback) {
@@ -2163,7 +2187,7 @@ PlugAPI.prototype.changeRoomName = function(name, callback) {
 /**
  * Change the description of the community
  * @param {String} description New community description
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.changeRoomDescription = function(description, callback) {
@@ -2182,7 +2206,7 @@ PlugAPI.prototype.changeRoomDescription = function(description, callback) {
 /**
  * Change the welcome message of the community
  * @param {String} welcome New community welcome
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.changeRoomWelcome = function(welcome, callback) {
@@ -2201,7 +2225,7 @@ PlugAPI.prototype.changeRoomWelcome = function(welcome, callback) {
 /**
  * Change the DJ cycle of the community
  * @param {Boolean} enabled
- * @param {Function} [callback] Callback function
+ * @param {RESTCallback} [callback] Callback function
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.changeDJCycle = function(enabled, callback) {
