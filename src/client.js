@@ -8,7 +8,7 @@ path = require('path');
 fs = require('fs');
 
 // Third-party modules
-var EventEmitter2, EventEmitter, request, WebSocket, encoder, chalk;
+var EventEmitter2, EventEmitter, request, WebSocket, chalk;
 EventEmitter2 = require('eventemitter2').EventEmitter2;
 EventEmitter = new EventEmitter2({
     wildcard: true,
@@ -28,7 +28,6 @@ WebSocket.prototype.sendEvent = function(type, data) {
         t: DateUtilities.getServerEpoch()
     });
 };
-encoder = require('node-html-encoder').Encoder('entity');
 chalk = require('chalk');
 
 // plugAPI
@@ -237,6 +236,20 @@ function __bind(fn, me) {
 
     sendNextMessage();
 })();
+
+/**
+ * Check if an object contains a value
+ * @param {Object} obj The object
+ * @param {*} value The value
+ * @param {Boolean} [strict]
+ */
+function objectContainsValue(obj, value, strict) {
+    for (var i in obj) {
+        if (!obj.hasOwnProperty(i)) continue;
+        if (!strict && obj[i] == value || strict && obj[i] === value) return true;
+    }
+    return false;
+}
 
 /**
  * Queue chat message
@@ -469,31 +482,21 @@ function receivedChatMessage(messageData) {
     var i, cmd, obj, lastIndex, allUsers, random;
     if (!initialized) return;
 
-    var mutedUser = room.isMuted(messageData.uid);
+    var mutedUser = room.isMuted(messageData.from.id);
     var prefixChatEventType = (mutedUser && !that.mutedTriggerNormalEvents ? 'muted:' : '');
 
-    messageData.message = encoder.htmlDecode(messageData.message);
-
-    obj = {
-        raw: messageData,
-        id: messageData.cid,
-        from: room.getUser(messageData.uid),
-        message: messageData.message,
-        mentions: []
-    };
-
-    if ((messageData.type == 'message') && messageData.message.indexOf(commandPrefix) === 0 && (that.processOwnMessages || messageData.uid !== room.getSelf().id)) {
+    if ((messageData.raw.type == 'message') && messageData.message.indexOf(commandPrefix) === 0 && (that.processOwnMessages || messageData.from.id !== room.getSelf().id)) {
         cmd = messageData.message.substr(commandPrefix.length).split(' ')[0];
 
-        obj.command = cmd;
-        obj.args = messageData.message.substr(commandPrefix.length + cmd.length + 1);
+        messageData.command = cmd;
+        messageData.args = messageData.message.substr(commandPrefix.length + cmd.length + 1);
 
         // Mentions => Mention placeholder
-        lastIndex = obj.args.indexOf('@');
+        lastIndex = messageData.args.indexOf('@');
         allUsers = room.getUsers();
         random = Math.ceil(Math.random() * 1E10);
         while (lastIndex > -1) {
-            var test = obj.args.substr(lastIndex), found = null;
+            var test = messageData.args.substr(lastIndex), found = null;
             for (i in allUsers) {
                 if (allUsers.hasOwnProperty(i) && test.indexOf(allUsers[i].username) === 1) {
                     if (found === null || allUsers[i].username.length > found.username.length) {
@@ -502,36 +505,36 @@ function receivedChatMessage(messageData) {
                 }
             }
             if (found !== null) {
-                obj.args = obj.args.substr(0, lastIndex) + '%MENTION-' + random + '-' + obj.mentions.length + '%' + obj.args.substr(lastIndex + found.username.length + 1);
-                obj.mentions.push(found);
+                messageData.args = messageData.args.substr(0, lastIndex) + '%MENTION-' + random + '-' + obj.mentions.length + '%' + obj.args.substr(lastIndex + found.username.length + 1);
+                messageData.mentions.push(found);
             }
-            lastIndex = obj.args.indexOf('@', lastIndex + 1);
+            lastIndex = messageData.args.indexOf('@', lastIndex + 1);
         }
 
         // Arguments
-        obj.args = obj.args.split(' ');
-        for (i in obj.args) {
-            if (!obj.args.hasOwnProperty(i)) continue;
-            if (!isNaN(obj.args[i])) obj.args[i] = ~~obj.args[i];
+        messageData.args = messageData.args.split(' ');
+        for (i in messageData.args) {
+            if (!messageData.args.hasOwnProperty(i)) continue;
+            if (!isNaN(messageData.args[i])) messageData.args[i] = ~~messageData.args[i];
         }
 
         // Mention placeholder => User object
-        for (i in obj.mentions) {
-            if (obj.mentions.hasOwnProperty(i)) {
-                obj.args[obj.args.indexOf('%MENTION-' + random + '-' + i + '%')] = obj.mentions[i];
+        for (i in messageData.mentions) {
+            if (messageData.mentions.hasOwnProperty(i)) {
+                messageData.args[messageData.args.indexOf('%MENTION-' + random + '-' + i + '%')] = messageData.mentions[i];
             }
         }
 
         // Pre command handler
-        if (typeof that.preCommandHandler === 'function' && that.preCommandHandler(obj) === false) return;
+        if (typeof that.preCommandHandler === 'function' && that.preCommandHandler(messageData) === false) return;
 
         // Functions
-        obj.respond = function() {
+        messageData.respond = function() {
             var message = Array.prototype.slice.call(arguments).join(' ');
 
             return that.sendChat('@' + this.from.username + ' ' + message);
         };
-        obj.respondTimeout = function() {
+        messageData.respondTimeout = function() {
             var args, timeout, message;
 
             args = Array.prototype.slice.call(arguments);
@@ -540,7 +543,7 @@ function receivedChatMessage(messageData) {
 
             return that.sendChat('@' + this.from.username + ' ' + message, timeout);
         };
-        obj.havePermission = function(permission, successCallback, failureCallback) {
+        messageData.havePermission = function(permission, successCallback, failureCallback) {
             if (permission === undefined) permission = 0;
             if (that.havePermission(this.from.id, permission)) {
                 if (typeof successCallback === 'function') {
@@ -553,7 +556,7 @@ function receivedChatMessage(messageData) {
             }
             return false;
         };
-        obj.isFrom = function(ids, success, failure) {
+        messageData.isFrom = function(ids, success, failure) {
             if (typeof ids === 'string') ids = [ids];
             if (ids === undefined || !util.isArray(ids)) {
                 if (typeof failure === 'function') {
@@ -758,7 +761,10 @@ function messageHandler(msg) {
      * Will lookup in EventObjectTypes for possible converter function
      * @type {*}
      */
-    var data = EventObjectTypes[msg.a] != null ? EventObjectTypes[msg.a](msg.p) : msg.p;
+    var data = EventObjectTypes[msg.a] != null ? EventObjectTypes[msg.a](msg.p, room) : msg.p;
+
+    fs.writeFileSync('./messages/' + type + '.json', JSON.stringify(data, null, 4));
+
     var i, slug;
     switch (type) {
         case 'ack':
@@ -1937,19 +1943,21 @@ PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
     if (!room.getRoomMeta().slug) return false;
 
     if (duration != null) {
-        if (PlugAPI.BAN.indexOf(duration) < 0) return false;
+        if (!objectContainsValue(PlugAPI.BAN, duration)) return false;
     } else {
         duration = PlugAPI.BAN.LONG;
     }
     if (reason != null) {
-        if (PlugAPI.BAN_REASON.indexOf(reason) < 0) return false;
+        if (!objectContainsValue(PlugAPI.BAN_REASON, reason)) return false;
     } else {
         reason = PlugAPI.BAN_REASON.SPAMMING_TROLLING;
     }
 
     var user = this.getUser(uid);
     if (user !== null ? room.getPermissions(user).canModBan : this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER)) {
-        if (duration === PlugAPI.BAN.PERMA && this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) duration = PlugAPI.BAN.DAY;
+        if (duration === PlugAPI.BAN.PERMA && this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
+            duration = PlugAPI.BAN.DAY;
+        }
         queueREST('POST', endpoints.MODERATE_BAN, {
             userID: uid,
             reason: reason,
@@ -2050,12 +2058,12 @@ PlugAPI.prototype.moderateMuteUser = function(uid, reason, duration, callback) {
     if (!room.getRoomMeta().slug) return false;
 
     if (duration != null) {
-        if (PlugAPI.MUTE.indexOf(duration) < 0) return false;
+        if (!objectContainsValue(PlugAPI.MUTE, duration)) return false;
     } else {
         duration = PlugAPI.MUTE.LONG;
     }
     if (reason != null) {
-        if (PlugAPI.MUTE_REASON.indexOf(reason) < 0) return false;
+        if (!objectContainsValue(PlugAPI.MUTE_REASON, reason)) return false;
     } else {
         reason = PlugAPI.MUTE_REASON.VIOLATING_COMMUNITY_RULES;
     }
