@@ -763,8 +763,6 @@ function messageHandler(msg) {
      */
     var data = EventObjectTypes[msg.a] != null ? EventObjectTypes[msg.a](msg.p, room) : msg.p;
 
-    fs.writeFileSync('./messages/' + type + '.json', JSON.stringify(data, null, 4));
-
     var i, slug;
     switch (type) {
         case 'ack':
@@ -1974,7 +1972,7 @@ PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.moderateDeleteChat = function(cid, callback) {
-    if (!room.getRoomMeta().slug) return false;
+    if (!room.getRoomMeta().slug || typeof cid != 'string') return false;
     var user = this.getUser(cid.split('-')[0]);
     if (user !== null ? room.getPermissions(user).canModChat : this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER)) {
         queueREST('DELETE', endpoints.CHAT_DELETE + cid, undefined, callback, undefined, true);
