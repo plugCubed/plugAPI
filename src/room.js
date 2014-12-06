@@ -666,8 +666,9 @@ Room.prototype.getHistory = function() {
     return songHistory;
 };
 
-Room.prototype.setHistory = function(data) {
-    songHistory = data;
+Room.prototype.setHistory = function(err, data) {
+    if (!err)
+        songHistory = data;
 };
 
 Room.prototype.setCycle = function(cycle) {
