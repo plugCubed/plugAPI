@@ -926,6 +926,96 @@ function messageHandler(msg) {
 }
 
 /**
+ * Fetch the CSRF token from plug.dj. Will modify _cookies.
+ * @param callback Callback(error, token)
+ */
+function FetchCSRFToken(callback) {
+    request.get({
+        url: 'https://plug.dj/',
+        headers: {
+            'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
+            Cookie: _cookies.toString()
+        }
+    }, function(err, res, body) {
+        var csrfToken;
+
+        if(!err) {
+            _cookies.fromHeaders(res.headers);
+            csrfToken = body.split('_csrf')[1].split('"')[1];
+            if(!csrfToken) {
+                err = new Error('Error parsing CSRF token');
+            }
+        }
+
+        if(callback) {
+            callback(err, csrfToken);
+        }
+    });
+}
+
+/**
+ * Attempt to login. Modifies _cookies.
+ * @param email E-mail to login with
+ * @param password Password to login with
+ * @param csrf CSRF token
+ * @param callback Callback(error)
+ */
+function PostLogin(email, password, csrf, callback) {
+    request({
+        method: 'POST',
+        uri: 'https://plug.dj/_/auth/login',
+        headers: {
+            'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
+            Cookie: _cookies.toString()
+        },
+        json: {
+            csrf: csrf,
+            email: email,
+            password: password
+        }
+    }, function(err, res, data) {
+        if(!err) {
+            if(data.status === 'ok') {
+                _cookies.fromHeaders(res.headers);
+                _cookies.save();
+            } else {
+                logger.error('LOGIN ERROR: ' + data.status);
+                err = new Error('Unexpected status: ' + data.statusCode);
+            }
+        }
+
+        if(callback) {
+            callback(err);
+        }
+    });
+}
+
+/**
+ * Perform the login process asynchronously. This fetches a CSRF token before sending
+ * a login POST request.
+ * @param ignoreCache Unused for now?
+ * @param callback Callback(error)
+ */
+function PerformLoginAsync(ignoreCache, callback) {
+    // Should probably pass auth as a param to PerformLogin instead of using global
+    FetchCSRFToken(function(error, csrf) {
+        var auth = authenticationInfo;
+
+        if(!error) {
+            PostLogin(auth.email, auth.password, csrf, function(error) {
+                if(callback) {
+                    callback(error);
+                }
+            });
+        } else {
+            if(callback) {
+                callback(error);
+            }
+        }
+    });
+}
+
+/**
  * Perform the login process.
  * @param ignoreCache Ignore cached cookie
  * @private
@@ -997,7 +1087,12 @@ function PerformLogin(ignoreCache) {
     }
 }
 
-var PlugAPI = function(authenticationData) {
+var PlugAPI = function(authenticationData, callback) {
+    // callback is optional - if given, perform stuff async. Otherwise, sync.
+    if(!(callback instanceof Function)) {
+        callback = undefined;
+    }
+
     if (!authenticationData) {
         logger.error('You must pass the authentication data into the PlugAPI object to connect correctly');
         process.exit(1);
@@ -1035,51 +1130,72 @@ var PlugAPI = function(authenticationData) {
     })(require('crypto'));
     _cookies = new CookieHandler(cookieHash);
     authenticationInfo = authenticationData;
-    PerformLogin();
 
-    that = this;
+    var _this = this,
+        // This function will need to be done after performing
+        // login, either sync or async
+        todo = (function() {
+            that = _this;
 
-    /**
-     * Should the bot split messages up if hitting message length limit?
-     * @type {Boolean}
-     */
-    this.multiLine = false;
-    /**
-     * Max splits
-     * @type {Number}
-     */
-    this.multiLineLimit = 5;
-    /**
-     * Should the bot process commands the bot itself is sending?
-     * @type {Boolean}
-     */
-    this.processOwnMessages = false;
-    /**
-     * Should the bot delete incomming commands?
-     * @type {Boolean}
-     */
-    this.deleteCommands = true;
-    /**
-     * Should muted users trigger normal events?
-     * @type {Boolean}
-     */
-    this.mutedTriggerNormalEvents = false;
+            /**
+            * Should the bot split messages up if hitting message length limit?
+            * @type {Boolean}
+            */
+            _this.multiLine = false;
+            /**
+            * Max splits
+            * @type {Number}
+            */
+            _this.multiLineLimit = 5;
+            /**
+            * Should the bot process commands the bot itself is sending?
+            * @type {Boolean}
+            */
+            _this.processOwnMessages = false;
+            /**
+            * Should the bot delete incomming commands?
+            * @type {Boolean}
+            */
+            _this.deleteCommands = true;
+            /**
+            * Should muted users trigger normal events?
+            * @type {Boolean}
+            */
+            _this.mutedTriggerNormalEvents = false;
 
-    room.registerUserExtensions(this);
+            room.registerUserExtensions(this);
 
-    //noinspection JSUnusedLocalSymbols
-    /**
-     * Pre-command Handler
-     * @param {Object} [obj]
-     * @returns {Boolean} If false, the command is not getting handled.
-     */
-    this.preCommandHandler = function(obj) {
-        return true;
-    };
+            //noinspection JSUnusedLocalSymbols
+            /**
+            * Pre-command Handler
+            * @param {Object} [obj]
+            * @returns {Boolean} If false, the command is not getting handled.
+            */
+            _this.preCommandHandler = function(obj) {
+                return true;
+            };
 
-    logger.info('Running plugAPI v.' + PlugAPIInfo.version + '-dev');
-    //noinspection JSUnresolvedFunction
-    logger.warn(chalk.yellow('THIS IS A UNSTABLE VERSION! DO NOT USE FOR PRODUCTION!'));
+            logger.info('Running plugAPI v.' + PlugAPIInfo.version + '-dev');
+            //noinspection JSUnresolvedFunction
+            logger.warn(chalk.yellow('THIS IS A UNSTABLE VERSION! DO NOT USE FOR PRODUCTION!'));
+        });
+
+
+    if(callback) {
+        // If we have a callback, do stuff async and don't return anything
+        PerformLoginAsync(null, function(error) {
+            if(!error) {
+              todo();
+            }
+
+            if(callback) {
+                callback(error, _this);
+            }
+        });
+    } else {
+        PerformLogin();
+        todo();
+    }
 };
 
 /**
