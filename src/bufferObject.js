@@ -18,7 +18,8 @@ function BufferObject(data, getUpdate, maxAge) {
         get: function(callback) {
             if (this.data != null) {
                 if (maxAge < 0 || this.lastUpdate >= Date.now() - maxAge) {
-                    callback(this.data);
+                    if (typeof callback == 'function')
+                        callback(this.data);
                     return;
                 }
             }
@@ -30,7 +31,8 @@ function BufferObject(data, getUpdate, maxAge) {
                     return;
                 }
                 that.set(data);
-                callback(data);
+                if (typeof callback == 'function')
+                    callback(data);
             });
         },
         push: function(data) {
