@@ -32,6 +32,13 @@ chalk = require('chalk');
 
 // plugAPI
 /**
+ * BufferObject class
+ * @type {BufferObject|exports}
+ * @private
+ */
+var BufferObject = require('./bufferObject');
+
+/**
  * CookieHandler class
  * @type {CookieHandler|exports}
  * @private
@@ -68,11 +75,12 @@ var PlugAPIInfo = require('../package.json');
 
 /**
  * REST Endpoints
- * @type {{CHAT_DELETE: string, MODERATE_ADD_DJ: string, MODERATE_BAN: string, MODERATE_BOOTH: string, MODERATE_MOVE_DJ: string, MODERATE_MUTE: string, MODERATE_PERMISSIONS: string, MODERATE_REMOVE_DJ: string, MODERATE_SKIP: string, MODERATE_UNBAN: string, MODERATE_UNMUTE: string, PLAYLIST: string, ROOM_CYCLE_BOOTH: string, ROOM_INFO: string, ROOM_LOCK_BOOTH: string, USER_SET_AVATAR: string, USER_SET_STATUS: string, USER_GET_AVATARS: string}}
+ * @type {{CHAT_DELETE: string, HISTORY: string, MODERATE_ADD_DJ: string, MODERATE_BAN: string, MODERATE_BOOTH: string, MODERATE_MOVE_DJ: string, MODERATE_MUTE: string, MODERATE_PERMISSIONS: string, MODERATE_REMOVE_DJ: string, MODERATE_SKIP: string, MODERATE_UNBAN: string, MODERATE_UNMUTE: string, PLAYLIST: string, ROOM_CYCLE_BOOTH: string, ROOM_INFO: string, ROOM_LOCK_BOOTH: string, USER_SET_AVATAR: string, USER_SET_STATUS: string, USER_GET_AVATARS: string}}
  * @private
  */
 var endpoints = {
     CHAT_DELETE: 'chat/',
+    HISTORY: 'rooms/history',
     MODERATE_ADD_DJ: 'booth/add',
     MODERATE_BAN: 'bans/add',
     MODERATE_BOOTH: 'booth',
@@ -87,9 +95,10 @@ var endpoints = {
     ROOM_CYCLE_BOOTH: 'booth/cycle',
     ROOM_INFO: 'rooms/update',
     ROOM_LOCK_BOOTH: 'booth/lock',
+    USER_INFO: 'users/me',
+    USER_GET_AVATARS: 'store/inventory/avatars',
     USER_SET_AVATAR: 'users/avatar',
-    USER_SET_STATUS: 'users/status',
-    USER_GET_AVATARS: "store/inventory/avatars"
+    USER_SET_STATUS: 'users/status'
 };
 
 /**
@@ -190,10 +199,12 @@ var chatQueue = [];
 
 /**
  * Playlist data for the user
- * @type {Array}
+ * @type {BufferObject}
  * @private
  */
-var playlists = [];
+var playlists = new BufferObject(null, function(callback) {
+    queueREST('GET', endpoints.PLAYLIST, undefined, callback);
+}, 6e5);
 
 /**
  * Authentication information (e-mail and password)
@@ -750,13 +761,10 @@ function initRoom(data, callback) {
         startTime: room.getStartTime(),
         historyID: room.getHistoryID()
     });
-    queueREST('GET', 'rooms/history', undefined, __bind(room.setHistory, room));
+    queueREST('GET', endpoints.HISTORY, undefined, __bind(room.setHistory, room));
     that.emit(PlugAPI.events.ROOM_JOIN, data.meta.name);
-    queueREST('GET', endpoints.PLAYLIST, undefined, function(playlistsData) {
-        playlists = playlistsData;
-        initialized = true;
-        callback();
-    });
+    initialized = true;
+    callback();
 }
 
 /**
@@ -791,13 +799,14 @@ function messageHandler(msg) {
                 // This event should not be emitted to the user code.
                 return;
             }
-            queueREST('GET', 'users/me', null, function(err, data) {
+            queueREST('GET', endpoints.USER_INFO, null, function(err, data) {
                 room.setSelf(data[0]);
                 joinRoom(connectingRoomSlug);
             });
             // This event should not be emitted to the user code.
             return;
         case PlugAPI.events.ADVANCE:
+            // Add informations about lastPlay to the data
             data['lastPlay'] = {
                 dj: room.getDJ(),
                 media: room.getMedia(),
@@ -823,7 +832,6 @@ function messageHandler(msg) {
         case PlugAPI.events.CHAT_DELETE:
             for (i in chatHistory) {
                 if (!chatHistory.hasOwnProperty(i)) continue;
-                //noinspection JSUnresolvedVariable
                 if (chatHistory[i].cid == data.c) chatHistory.splice(i, 1);
             }
             break;
@@ -831,9 +839,11 @@ function messageHandler(msg) {
             room.addUser(data);
             break;
         case PlugAPI.events.USER_LEAVE:
+            /**
+             * @type {User|null|{id: *}}
+             */
             var userData = room.getUser(data);
             if (userData == null) {
-                //noinspection JSValidateTypes
                 userData = {
                     id: data
                 };
@@ -908,9 +918,7 @@ function messageHandler(msg) {
             room.setEarn(data);
             break;
         case PlugAPI.events.NOTIFY:
-            //noinspection JSUnresolvedVariable
             if (data.action === 'levelUp') {
-                //noinspection JSUnresolvedVariable
                 logger.info('Congratulations, you have leveled up to level', data.value);
             } else {
                 logger.info('Notify', data);
@@ -1822,10 +1830,11 @@ PlugAPI.prototype.deletePlaylist = function(pid, callback) {
 
     var callbackWrapper = function(err, data) {
         if (!err) {
-            for (var i in playlists) {
-                if (!playlists.hasOwnProperty(i)) continue;
-                if (playlists[i].id == pid) {
-                    playlists.splice(i, 1);
+            var playlistsData = playlists.get();
+            for (var i in playlistsData) {
+                if (!playlistsData.hasOwnProperty(i)) continue;
+                if (playlistsData[i].id == pid) {
+                    playlists.removeAt(i);
                     break;
                 }
             }
@@ -1844,10 +1853,11 @@ PlugAPI.prototype.deletePlaylist = function(pid, callback) {
  * @returns {Object|null}
  */
 PlugAPI.prototype.getActivePlaylist = function() {
-    for (var i in playlists) {
-        if (!playlists.hasOwnProperty(i)) continue;
-        if (playlists[i].active) {
-            return playlists[i];
+    var playlistsData = playlists.get();
+    for (var i in playlistsData) {
+        if (!playlistsData.hasOwnProperty(i)) continue;
+        if (playlistsData[i].active) {
+            return playlistsData[i];
         }
     }
     return null;
@@ -1859,10 +1869,11 @@ PlugAPI.prototype.getActivePlaylist = function() {
  * @returns {Object|null}
  */
 PlugAPI.prototype.getPlaylist = function(pid) {
-    for (var i in playlists) {
-        if (!playlists.hasOwnProperty(i)) continue;
-        if (playlists[i].id == pid) {
-            return playlists[i];
+    var playlistsData = playlists.get();
+    for (var i in playlistsData) {
+        if (!playlistsData.hasOwnProperty(i)) continue;
+        if (playlistsData[i].id == pid) {
+            return playlistsData[i];
         }
     }
     return null;
@@ -1871,10 +1882,11 @@ PlugAPI.prototype.getPlaylist = function(pid) {
 //noinspection JSUnusedGlobalSymbols
 /**
  * Get playlists
+ * @params {Function} callback Callback function (without err)
  * @returns {Array}
  */
-PlugAPI.prototype.getPlaylists = function() {
-    return playlists;
+PlugAPI.prototype.getPlaylists = function(callback) {
+    return playlists.get(callback);
 };
 
 //noinspection JSUnusedGlobalSymbols
@@ -1923,14 +1935,7 @@ PlugAPI.prototype.playlistMoveMedia = function(pid, mid, before_mid, callback) {
 PlugAPI.prototype.shufflePlaylist = function(pid, callback) {
     if (!room.getRoomMeta().slug || !pid) return false;
 
-    var found = false;
-    for (var i in playlists) {
-        if (!playlists.hasOwnProperty(i)) continue;
-        if (playlists[i].id == pid) {
-            found = true;
-        }
-    }
-    if (!found) return false;
+    if (this.getPlaylist(pid) == null) return false;
 
     queueREST('PUT', endpoints.PLAYLIST + '/' + pid + '/shuffle', undefined, callback);
     return true;
@@ -1946,6 +1951,7 @@ PlugAPI.prototype.moderateAddDJ = function(uid, callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || room.isDJ(uid) || room.isInWaitList(uid) || (room.getBoothMeta().isLocked && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER))) {
         return false;
     }
+
     queueREST('POST', endpoints.MODERATE_ADD_DJ, {
         id: uid
     }, callback);
