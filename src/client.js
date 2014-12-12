@@ -794,7 +794,7 @@ function messageHandler(msg) {
                 _cookies.clear();
                 that.close();
                 _authCode = null;
-                PerformLogin(true);
+                PerformLogin(null, true);
                 that.connect(slug);
                 // This event should not be emitted to the user code.
                 return;
@@ -938,8 +938,10 @@ function messageHandler(msg) {
  * @param ignoreCache Ignore cached cookie
  * @private
  */
-function PerformLogin(ignoreCache) {
-    var deasync = require('deasync');
+function PerformLogin(callback, ignoreCache) {
+    if (typeof callback != 'function')
+        var deasync = require('deasync');
+
     var loggingIn = true, loggedIn = false;
     if (!ignoreCache && _cookies.load()) {
         request.get('https://plug.dj/_/users/me', {
@@ -950,12 +952,17 @@ function PerformLogin(ignoreCache) {
         }, function(err, res) {
             if (res.statusCode === 200) {
                 loggedIn = true;
+                if (typeof callback == 'function')
+                    callback();
             }
             loggingIn = false;
         });
-        // Wait until the session is set
-        while (loggingIn) {
-            deasync.sleep(100);
+
+        if (typeof callback != 'function') {
+            // Wait until the session is set
+            while (loggingIn) {
+                deasync.sleep(100);
+            }
         }
     }
     if (!loggedIn) {
@@ -994,18 +1001,22 @@ function PerformLogin(ignoreCache) {
                     _cookies.save();
                     loggedIn = true;
                     loggingIn = false;
+                    if (typeof callback == 'function')
+                        callback();
                 }
             });
         });
 
-        // Wait until the session is set
-        while (loggingIn) {
-            deasync.sleep(100);
+        if (typeof callback != 'function') {
+            // Wait until the session is set
+            while (loggingIn) {
+                deasync.sleep(100);
+            }
         }
     }
 }
 
-var PlugAPI = function(authenticationData) {
+var PlugAPI = function(authenticationData, callback) {
     if (!authenticationData) {
         logger.error('You must pass the authentication data into the PlugAPI object to connect correctly');
         process.exit(1);
@@ -1043,7 +1054,7 @@ var PlugAPI = function(authenticationData) {
     })(require('crypto'));
     _cookies = new CookieHandler(cookieHash);
     authenticationInfo = authenticationData;
-    PerformLogin();
+    PerformLogin(callback);
 
     that = this;
 
