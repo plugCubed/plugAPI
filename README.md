@@ -14,8 +14,9 @@ Run the following:
 
 ```npm install plugapi --production```
 
-To connect, do this!
+You can choose to instantiate the instance both sync or async.
 
+**Sync**
 ```javascript
 var PlugAPI = require('plugapi');
 
@@ -27,6 +28,22 @@ bot.connect('roomslug'); // The part after https://plug.dj
 
 bot.on('roomJoin', function(room) {
     console.log("Joined " + room);
+});
+```
+
+**Async**
+```javascript
+var PlugAPI = require('plugapi');
+
+new PlugAPI({
+    "email": "",
+    "password": ""
+}, function(bot) {
+    bot.connect('roomslug'); // The part after https://plug.dj
+    
+    bot.on('roomJoin', function(room) {
+        console.log("Joined " + room);
+    });
 });
 ```
 

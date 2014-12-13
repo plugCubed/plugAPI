@@ -934,88 +934,131 @@ function messageHandler(msg) {
 }
 
 /**
- * Perform the login process.
- * @param ignoreCache Ignore cached cookie
+ * Perform the login process using cookie.
+ * @param {Function} callback
  * @private
  */
-function PerformLogin(callback, ignoreCache) {
-    if (typeof callback != 'function')
+function PerformLoginCookie(callback) {
+    if (typeof callback != 'function') {
         var deasync = require('deasync');
-
-    var loggingIn = true, loggedIn = false;
-    if (!ignoreCache && _cookies.load()) {
-        request.get('https://plug.dj/_/users/me', {
-            headers: {
-                'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
-                Cookie: _cookies.toString()
-            }
-        }, function(err, res) {
-            if (res.statusCode === 200) {
-                loggedIn = true;
-                if (typeof callback == 'function')
-                    callback();
-            }
-            loggingIn = false;
-        });
-
-        if (typeof callback != 'function') {
-            // Wait until the session is set
-            while (loggingIn) {
-                deasync.sleep(100);
-            }
-        }
     }
-    if (!loggedIn) {
-        loggingIn = true;
 
-        request.get('https://plug.dj/', {
-            headers: {
-                'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
-                Cookie: _cookies.toString()
+    /**
+     * Is the login process running.
+     * Used for sync
+     * @type {boolean}
+     */
+    var loggingIn = true;
+
+    request.get('https://plug.dj/_/users/me', {
+        headers: {
+            'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
+            Cookie: _cookies.toString()
+        }
+    }, function(err, res) {
+        if (res.statusCode === 200) {
+            if (typeof callback == 'function') {
+                callback(that);
+                return;
             }
-        }, function(err, res, body) {
-            var csrfToken;
+        } else {
+            PerformLoginCredentials(callback);
+        }
+        loggingIn = false;
+    });
 
-            _cookies.fromHeaders(res.headers);
-
-            csrfToken = body.split('_csrf')[1].split('"')[1];
-
-            request({
-                method: 'POST',
-                uri: 'https://plug.dj/_/auth/login',
-                headers: {
-                    'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
-                    Cookie: _cookies.toString()
-                },
-                json: {
-                    csrf: csrfToken,
-                    email: authenticationInfo.email,
-                    password: authenticationInfo.password
-                }
-            }, function(err, res, data) {
-                if (data.status !== 'ok') {
-                    logger.error('LOGIN ERROR: ' + data.status);
-                    process.exit(1);
-                } else {
-                    _cookies.fromHeaders(res.headers);
-                    _cookies.save();
-                    loggedIn = true;
-                    loggingIn = false;
-                    if (typeof callback == 'function')
-                        callback();
-                }
-            });
-        });
-
-        if (typeof callback != 'function') {
-            // Wait until the session is set
-            while (loggingIn) {
-                deasync.sleep(100);
-            }
+    if (typeof callback != 'function') {
+        // Wait until the session is set
+        while (loggingIn) {
+            deasync.sleep(100);
         }
     }
 }
 
+/**
+ * Perform the login process using credentials.
+ * @param {Function} callback Callback
+ * @private
+ */
+function PerformLoginCredentials(callback) {
+    if (typeof callback != 'function') {
+        var deasync = require('deasync');
+    }
+
+    /**
+     * Is the login process running.
+     * Used for sync
+     * @type {boolean}
+     */
+    var loggingIn = true;
+
+    request.get('https://plug.dj/', {
+        headers: {
+            'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
+            Cookie: _cookies.toString()
+        }
+    }, function(err, res, body) {
+        var csrfToken;
+
+        _cookies.fromHeaders(res.headers);
+
+        csrfToken = body.split('_csrf')[1].split('"')[1];
+
+        request({
+            method: 'POST',
+            uri: 'https://plug.dj/_/auth/login',
+            headers: {
+                'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
+                Cookie: _cookies.toString()
+            },
+            json: {
+                csrf: csrfToken,
+                email: authenticationInfo.email,
+                password: authenticationInfo.password
+            }
+        }, function(err, res, data) {
+            if (data.status !== 'ok') {
+                logger.error('LOGIN ERROR: ' + data.status);
+                process.exit(1);
+            } else {
+                _cookies.fromHeaders(res.headers);
+                _cookies.save();
+                loggingIn = false;
+                if (typeof callback == 'function') {
+                    callback(that);
+                }
+            }
+        });
+    });
+
+    if (typeof callback != 'function') {
+        // Wait until the session is set
+        while (loggingIn) {
+            deasync.sleep(100);
+        }
+    }
+}
+
+/**
+ * Perform the login process.
+ * @param callback Callback
+ * @param ignoreCache Ignore cached cookie
+ * @private
+ */
+function PerformLogin(callback, ignoreCache) {
+    if (!ignoreCache && _cookies.load()) {
+        PerformLoginCookie(callback);
+    } else {
+        PerformLoginCredentials(callback);
+    }
+}
+
+/**
+ * Create instance of PlugAPI
+ * @param {{email: String, password: String}} authenticationData
+ * @param {Function} [callback]
+ * @constructor
+ */
 var PlugAPI = function(authenticationData, callback) {
     if (!authenticationData) {
         logger.error('You must pass the authentication data into the PlugAPI object to connect correctly');
@@ -1030,6 +1073,8 @@ var PlugAPI = function(authenticationData, callback) {
             process.exit(1);
         }
     }
+
+    that = this;
 
     var cookieHash = '';
     (function(crypto) {
@@ -1055,8 +1100,6 @@ var PlugAPI = function(authenticationData, callback) {
     _cookies = new CookieHandler(cookieHash);
     authenticationInfo = authenticationData;
     PerformLogin(callback);
-
-    that = this;
 
     /**
      * Should the bot split messages up if hitting message length limit?
@@ -1986,7 +2029,7 @@ PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
     } else {
         duration = PlugAPI.BAN.LONG;
     }
-    
+
     if (reason != null) {
         if (!objectContainsValue(PlugAPI.BAN_REASON, reason)) return false;
     } else {
