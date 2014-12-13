@@ -1986,6 +1986,7 @@ PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
     } else {
         duration = PlugAPI.BAN.LONG;
     }
+    
     if (reason != null) {
         if (!objectContainsValue(PlugAPI.BAN_REASON, reason)) return false;
     } else {
@@ -1997,6 +1998,7 @@ PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
         if (duration === PlugAPI.BAN.PERMA && this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
             duration = PlugAPI.BAN.DAY;
         }
+
         queueREST('POST', endpoints.MODERATE_BAN, {
             userID: uid,
             reason: reason,
@@ -2013,7 +2015,10 @@ PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.moderateDeleteChat = function(cid, callback) {
-    if (!room.getRoomMeta().slug || typeof cid != 'string') return false;
+    if (!room.getRoomMeta().slug || typeof cid != 'string') {
+        return false;
+    }
+
     var user = this.getUser(cid.split('-')[0]);
     if (user !== null ? room.getPermissions(user).canModChat : this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER)) {
         queueREST('DELETE', endpoints.CHAT_DELETE + cid, undefined, callback, true);
@@ -2029,7 +2034,10 @@ PlugAPI.prototype.moderateDeleteChat = function(cid, callback) {
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.moderateForceSkip = function(callback) {
-    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || room.getDJ() === null) return false;
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || room.getDJ() === null) {
+        return false;
+    }
+
     queueREST('POST', endpoints.MODERATE_SKIP, {
         userID: room.getDJ().id,
         historyID: room.getHistoryID()
@@ -2058,7 +2066,10 @@ PlugAPI.prototype.moderateLockWaitList = function(locked, clear, callback) {
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.moderateLockBooth = function(locked, clear, callback) {
-    if (!room.getRoomMeta().slug || this.getUser() === null || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER) || (locked === room.getBoothMeta().isLocked && !clear)) return false;
+    if (!room.getRoomMeta().slug || this.getUser() === null || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER) || (locked === room.getBoothMeta().isLocked && !clear)) {
+        return false;
+    }
+
     queueREST('PUT', endpoints.ROOM_LOCK_BOOTH, {
         isLocked: locked,
         removeAllDJs: clear
@@ -2077,6 +2088,7 @@ PlugAPI.prototype.moderateMoveDJ = function(uid, index, callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER) || !room.isInWaitList(uid) || isNaN(index)) {
         return false;
     }
+
     queueREST('POST', endpoints.MODERATE_MOVE_DJ, {
         userID: uid,
         position: index > 50 ? 49 : index < 1 ? 1 : --index
@@ -2101,6 +2113,7 @@ PlugAPI.prototype.moderateMuteUser = function(uid, reason, duration, callback) {
     } else {
         duration = PlugAPI.MUTE.LONG;
     }
+
     if (reason != null) {
         if (!objectContainsValue(PlugAPI.MUTE_REASON, reason)) return false;
     } else {
@@ -2128,6 +2141,7 @@ PlugAPI.prototype.moderateRemoveDJ = function(uid, callback) {
     if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || (!room.isDJ(uid) && !room.isInWaitList(uid)) || (room.getBoothMeta().isLocked && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER))) {
         return false;
     }
+
     queueREST('DELETE', endpoints.MODERATE_REMOVE_DJ + uid, undefined, callback);
     return true;
 };
@@ -2141,7 +2155,9 @@ PlugAPI.prototype.moderateRemoveDJ = function(uid, callback) {
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.moderateSetRole = function(uid, role, callback) {
-    if (!room.getRoomMeta().slug || isNaN(role)) return false;
+    if (!room.getRoomMeta().slug || isNaN(role) || role < 0 || role > 5) {
+        return false;
+    }
 
     var user = this.getUser(uid);
     if (user !== null ? room.getPermissions(user).canModStaff : this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
@@ -2161,7 +2177,9 @@ PlugAPI.prototype.moderateSetRole = function(uid, role, callback) {
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.moderateUnbanUser = function(uid, callback) {
-    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) return false;
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
+        return false;
+    }
 
     queueREST('DELETE', endpoints.MODERATE_UNBAN + uid, undefined, callback);
     return true;
@@ -2175,7 +2193,9 @@ PlugAPI.prototype.moderateUnbanUser = function(uid, callback) {
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.moderateUnmuteUser = function(uid, callback) {
-    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) return false;
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
+        return false;
+    }
 
     queueREST('DELETE', endpoints.MODERATE_UNMUTE + uid, undefined, callback);
     return true;
@@ -2189,9 +2209,10 @@ PlugAPI.prototype.moderateUnmuteUser = function(uid, callback) {
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.changeRoomName = function(name, callback) {
-    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST)) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST) || room.getRoomMeta().name == name) {
         return false;
     }
+
     queueREST('POST', endpoints.ROOM_INFO, {
         name: name,
         description: undefined,
@@ -2208,9 +2229,10 @@ PlugAPI.prototype.changeRoomName = function(name, callback) {
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.changeRoomDescription = function(description, callback) {
-    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST)) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST) || room.getRoomMeta().description == description) {
         return false;
     }
+
     queueREST('POST', endpoints.ROOM_INFO, {
         name: undefined,
         description: description,
@@ -2227,9 +2249,10 @@ PlugAPI.prototype.changeRoomDescription = function(description, callback) {
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.changeRoomWelcome = function(welcome, callback) {
-    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST)) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST) || room.getRoomMeta().welcome == welcome) {
         return false;
     }
+
     queueREST('POST', endpoints.ROOM_INFO, {
         name: undefined,
         description: undefined,
@@ -2246,9 +2269,10 @@ PlugAPI.prototype.changeRoomWelcome = function(welcome, callback) {
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.changeDJCycle = function(enabled, callback) {
-    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER) || room.getBoothMeta().shouldCycle == enabled) {
         return false;
     }
+
     queueREST('PUT', endpoints.ROOM_CYCLE_BOOTH, {
         shouldCycle: enabled
     }, callback);
