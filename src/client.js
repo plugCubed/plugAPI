@@ -1139,9 +1139,7 @@ var PlugAPI = function(authenticationData, callback) {
         return true;
     };
 
-    logger.info('Running plugAPI v.' + PlugAPIInfo.version + '-dev');
-    //noinspection JSUnresolvedFunction
-    logger.warn(chalk.yellow('THIS IS A UNSTABLE VERSION! DO NOT USE FOR PRODUCTION!'));
+    logger.info('Running plugAPI v.' + PlugAPIInfo.version);
 };
 
 /**

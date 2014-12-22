@@ -36,16 +36,27 @@ User.prototype.toString = function() {
 
 var cacheUsers = {};
 
-var booth, fx, grabs, meta, mutes, playback, self, role, users, votes;
-booth = {
+/**
+ * @type {{currentDJ: number, isLocked: boolean, shouldCycle: boolean, waitingDJs: Array}}
+ */
+var booth = {
     currentDJ: -1,
     isLocked: false,
     shouldCycle: true,
     waitingDJs: []
 };
-fx = [];
-grabs = {};
-meta = {
+/**
+ * @type {Array}
+ */
+var fx = [];
+/**
+ * @type {{}}
+ */
+var grabs = {};
+/**
+ * @type {{description: string, favorite: boolean, hostID: number, hostName: string, id: number, name: string, population: number, slug: string, welcome: string}}
+ */
+var meta = {
     description: '',
     favorite: false,
     hostID: -1,
@@ -56,8 +67,14 @@ meta = {
     slug: '',
     welcome: ''
 };
-mutes = {};
-playback = {
+/**
+ * @type {{}}
+ */
+var mutes = {};
+/**
+ * @type {{historyID: string, media: {author: string, cid: string, duration: number, format: number, id: number, image: string, title: string}, playlistID: number, startTime: string}}
+ */
+var playback = {
     historyID: '',
     media: {
         author: '',
@@ -71,10 +88,22 @@ playback = {
     playlistID: -1,
     startTime: ''
 };
-self = {};
-role = 0;
-users = [];
-votes = {};
+/**
+ * @type {{}}
+ */
+var mySelf = {};
+/**
+ * @type {number}
+ */
+var role = 0;
+/**
+ * @type {Array}
+ */
+var users = [];
+/**
+ * @type {{}}
+ */
+var votes = {};
 
 
 setInterval(function() {
@@ -219,7 +248,7 @@ Room.prototype.haveGlobalPermission = function(uid, permission) {
  * @returns {Boolean}
  */
 Room.prototype.isAmbassador = function(uid) {
-    if (!uid) uid = self.id;
+    if (!uid) uid = mySelf.id;
     return this.haveGlobalPermission(uid, 2) && !this.isAdmin(uid);
 };
 
@@ -230,7 +259,7 @@ Room.prototype.isAmbassador = function(uid) {
  * @returns {Boolean}
  */
 Room.prototype.isAdmin = function(uid) {
-    if (!uid) uid = self.id;
+    if (!uid) uid = mySelf.id;
     return this.haveGlobalPermission(uid, 5);
 };
 
@@ -243,7 +272,7 @@ Room.prototype.isAdmin = function(uid) {
  * @returns {Boolean}
  */
 Room.prototype.isStaff = function(uid) {
-    if (!uid) uid = self.id;
+    if (!uid) uid = mySelf.id;
     return this.haveRoomPermission(uid, 1);
 };
 
@@ -253,7 +282,7 @@ Room.prototype.isStaff = function(uid) {
  * @return {boolean}
  */
 Room.prototype.isDJ = function(uid) {
-    if (!uid) uid = self.id;
+    if (!uid) uid = mySelf.id;
     return booth.currentDJ === uid;
 };
 
@@ -263,7 +292,7 @@ Room.prototype.isDJ = function(uid) {
  * @return {boolean}
  */
 Room.prototype.isInWaitList = function(uid) {
-    if (!uid) uid = self.id;
+    if (!uid) uid = mySelf.id;
     return this.getWaitListPosition(uid) > 0;
 };
 
@@ -316,7 +345,7 @@ Room.prototype.reset = function() {
  */
 Room.prototype.addUser = function(user) {
     // Don't add yourself
-    if (user.id === self.id) return;
+    if (user.id === mySelf.id) return;
 
     // Only add if the user doesn't exist
     if (this.getUser(user.id) === null) users.push(user);
@@ -364,11 +393,11 @@ Room.prototype.isMuted = function(uid) {
 };
 
 /**
- * Set self object
+ * Set mySelf object
  * @param {Object} data Self data
  */
 Room.prototype.setSelf = function(data) {
-    self = data;
+    mySelf = data;
 };
 
 /**
@@ -386,7 +415,7 @@ Room.prototype.setRoomData = function(data) {
     mutes = data.mutes;
     //noinspection JSUnresolvedVariable
     playback = data.playback;
-    self.role = data.role;
+    mySelf.role = data.role;
     //noinspection JSUnresolvedVariable
     users = data.users;
     //noinspection JSUnresolvedVariable
@@ -488,9 +517,9 @@ Room.prototype.setVote = function(uid, vote) {
 };
 
 Room.prototype.setEarn = function(data) {
-    self.xp = data.xp;
-    self.ep = data.ep;
-    self.level = data.level;
+    mySelf.xp = data.xp;
+    mySelf.ep = data.ep;
+    mySelf.level = data.level;
 };
 
 /**
@@ -498,7 +527,7 @@ Room.prototype.setEarn = function(data) {
  * @returns {User}
  */
 Room.prototype.getSelf = function() {
-    return self != null ? new User(self) : null;
+    return mySelf != null ? new User(mySelf) : null;
 };
 
 /**
@@ -507,7 +536,7 @@ Room.prototype.getSelf = function() {
  * @returns {User|null}
  */
 Room.prototype.getUser = function(uid) {
-    if (!uid || uid === self.id) return this.getSelf();
+    if (!uid || uid === mySelf.id) return this.getSelf();
     for (var i in users) {
         if (!users.hasOwnProperty(i)) continue;
         if (users[i].id === uid) return new User(users[i]);
@@ -520,7 +549,7 @@ Room.prototype.getUser = function(uid) {
  * @returns {User[]}
  */
 Room.prototype.getUsers = function() {
-    return this.usersToArray([self.id].concat((function() {
+    return this.usersToArray([mySelf.id].concat((function() {
         var ids = [];
         for (var i in users) {
             if (!users.hasOwnProperty(i)) continue;
@@ -584,7 +613,7 @@ Room.prototype.getWaitListPosition = function(uid) {
  */
 Room.prototype.getAdmins = function() {
     var admins = [], _ref;
-    _ref = [self].concat(users);
+    _ref = [mySelf].concat(users);
     for (var i in _ref) {
         if (!_ref.hasOwnProperty(i)) continue;
         var user = _ref[i];
@@ -601,7 +630,7 @@ Room.prototype.getAdmins = function() {
  */
 Room.prototype.getAmbassadors = function() {
     var ambassadors = [], _ref;
-    _ref = [self].concat(users);
+    _ref = [mySelf].concat(users);
     for (var i in _ref) {
         if (!_ref.hasOwnProperty(i)) continue;
         var user = _ref[i];
@@ -618,7 +647,7 @@ Room.prototype.getAmbassadors = function() {
  */
 Room.prototype.getAudience = function() {
     var audience = [], _ref;
-    _ref = [self].concat(users);
+    _ref = [mySelf].concat(users);
     for (var i in _ref) {
         if (!_ref.hasOwnProperty(i)) continue;
         var uid = _ref[i].id;
@@ -631,7 +660,7 @@ Room.prototype.getAudience = function() {
 
 Room.prototype.getStaff = function() {
     var staff = [], _ref;
-    _ref = [self].concat(users);
+    _ref = [mySelf].concat(users);
     for (var i in _ref) {
         if (!_ref.hasOwnProperty(i)) continue;
         var user = _ref[i];
