@@ -1,29 +1,49 @@
-plugapi
+plugAPI
 =======
 
 [![NPM](https://nodei.co/npm/plugapi.png?downloads=true)](https://nodei.co/npm/plugapi/)
 
 A generic API for creating plug.dj bots.
 
-Originally by [Chris Vickery](https://github.com/chrisinajar), now maintained by [TAT](https://github.com/TATDK).
+Originally by [Chris Vickery](https://github.com/chrisinajar), now maintained by [TAT](https://github.com/TATDK) and [The plug³ Team](https://github.com/plugCubed).
+
+**NOTE:** Currently not supporting facebook login.
 
 ## How to use
 Run the following:
 
 ```npm install plugapi --production```
 
-To connect, do this!
+You can choose to instantiate the instance both sync or async.
 
+**Sync**
 ```javascript
-var PlugAPI = require('plugapi'),
-    AUTH = 'xxxxxxxxxxxxxxxxxxxxxxxxxxx=?_expires=xxxxxxxxxxxxxxxxxx==&user_id=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx=', // Put your auth token here, it's the cookie value for usr
-    ROOM = '';
+var PlugAPI = require('plugapi');
 
-var bot = new PlugAPI(AUTH);
-bot.connect(ROOM);
+var bot = new PlugAPI({
+    "email": "",
+    "password": ""
+});
+bot.connect('roomslug'); // The part after https://plug.dj
 
 bot.on('roomJoin', function(room) {
     console.log("Joined " + room);
+});
+```
+
+**Async**
+```javascript
+var PlugAPI = require('plugapi');
+
+new PlugAPI({
+    "email": "",
+    "password": ""
+}, function(bot) {
+    bot.connect('roomslug'); // The part after https://plug.dj
+    
+    bot.on('roomJoin', function(room) {
+        console.log("Joined " + room);
+    });
 });
 ```
 
@@ -32,8 +52,10 @@ Here are some bots using this API.
 
 | Botname                                              | Room                                                            |
 | ---------------------------------------------------- | --------------------------------------------------------------- |
+| AuntJackie                                           | [I <3 the 80's and 90's](https://plug.dj/i-the-80-s-and-90-s-1) |
+| [BeavisBot](https://github.com/AvatarKava/BeavisBot) | [Mix-N-Mash](https://plug.dj/mix-n-mash-2)                      |
+| FlavorBar                                            | [Flavorz](https://plug.dj/flavorz)                              |
 | FoxBot                                               | [Approaching Nirvana](https://plug.dj/approachingnirvana)       |
-| [BeavisBot](https://github.com/AvatarKava/BeavisBot) | [I <3 the 80's and 90's](https://plug.dj/i-the-80-s-and-90-s-1) |
 
 Have a bot that uses the API? Let me know!
 
