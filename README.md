@@ -54,6 +54,7 @@ Here are some bots using this API.
 | ---------------------------------------------------- | --------------------------------------------------------------- |
 | AuntJackie                                           | [I <3 the 80's and 90's](https://plug.dj/i-the-80-s-and-90-s-1) |
 | [BeavisBot](https://github.com/AvatarKava/BeavisBot) | [Mix-N-Mash](https://plug.dj/mix-n-mash-2)                      |
+| -DnB-                                                | [Drum & Bass](https://plug.dj/drum-bass)                        |
 | FlavorBar                                            | [Flavorz](https://plug.dj/flavorz)                              |
 | FoxBot                                               | [Approaching Nirvana](https://plug.dj/approachingnirvana)       |
 
