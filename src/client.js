@@ -1155,6 +1155,8 @@ PlugAPI.CreateLogger = function(channel) {
     return new Logger(channel);
 };
 
+PlugAPI.Utils = require('./utils');
+
 /**
  * Room ranks
  * @type {{NONE: number, RESIDENTDJ: number, BOUNCER: number, MANAGER: number, COHOST: number, HOST: number}}

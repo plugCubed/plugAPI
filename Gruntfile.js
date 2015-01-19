@@ -68,6 +68,17 @@ module.exports = function(grunt) {
                     create_source_map: './bin/room.js.map',
                     source_map_format: 'V3'
                 }
+            },
+            minifyUtils: {
+                files: {
+                    './bin/utils.js': ['./src/utils.js']
+                },
+                options: {
+                    compilation_level: 'SIMPLE_OPTIMIZATIONS',
+                    banner: '/*' + fs.readFileSync('LICENSE.md') + '*/',
+                    create_source_map: './bin/utils.js.map',
+                    source_map_format: 'V3'
+                }
             }
         },
         execute: {
