@@ -422,6 +422,10 @@ Room.prototype.setRoomData = function(data) {
     votes = data.votes;
 };
 
+Room.prototype.setBoothLocked = function(data){
+    booth.isLocked = data;
+};
+
 Room.prototype.setDJs = function(djs) {
     booth.waitingDJs = djs;
 };

@@ -875,6 +875,9 @@ function messageHandler(msg) {
             }, floodProtectionDelay * 5);
             logger.warning('Flood protection: Slowing down the sending of chat messages temporary');
             break;
+        case PlugAPI.events.DJ_LIST_LOCKED:
+            room.setBoothLocked(msg.p.f);
+            break;
         case PlugAPI.events.MODERATE_STAFF:
             //noinspection JSUnresolvedVariable
             for (i in data.u) {
@@ -1254,6 +1257,7 @@ PlugAPI.events = {
     COMMAND: 'command',
     DJ_LIST_CYCLE: 'djListCycle',
     DJ_LIST_UPDATE: 'djListUpdate',
+    DJ_LIST_LOCKED: 'djListLocked',
     EARN: 'earn',
     FOLLOW_JOIN: 'followJoin',
     FLOOD_CHAT: 'floodChat',
