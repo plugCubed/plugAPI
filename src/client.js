@@ -602,7 +602,7 @@ function receivedChatMessage(messageData) {
             that.emit(prefixChatEventType + PlugAPI.events.CHAT_COMMAND, messageData);
             that.emit(prefixChatEventType + PlugAPI.events.CHAT_COMMAND + ':' + cmd, messageData);
             if (that.deleteCommands) {
-                that.moderateDeleteChat(messageData.cid);
+                that.moderateDeleteChat(messageData.raw.cid);
             }
         }
     } else if (messageData.type == 'emote') {
