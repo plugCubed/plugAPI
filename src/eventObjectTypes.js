@@ -35,7 +35,16 @@ function ChatEventObject(data, room) {
         from: room.getUser(data.uid),
         message: encoder.htmlDecode(data.message),
         mentions: [],
-        muted: room.isMuted(data.uid)
+        muted: room.isMuted(data.uid),
+        type: (function() {
+            if (data.message.indexOf('/me') === 0) {
+                return 'emote';
+            }
+            if (data.message.indexOf('@' + room.getSelf().username) > -1) {
+                return 'mention';
+            }
+            return 'message';
+        })()
     };
 }
 

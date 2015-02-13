@@ -511,7 +511,7 @@ function receivedChatMessage(messageData) {
     var mutedUser = !disconnectedUser && room.isMuted(messageData.from.id);
     var prefixChatEventType = (mutedUser && !that.mutedTriggerNormalEvents ? 'muted:' : '');
 
-    if (!disconnectedUser && (messageData.raw.type == 'message') && messageData.message.indexOf(commandPrefix) === 0 && (that.processOwnMessages || messageData.from.id !== room.getSelf().id)) {
+    if (!disconnectedUser && messageData.message.indexOf(commandPrefix) === 0 && (that.processOwnMessages || messageData.from.id !== room.getSelf().id)) {
         cmd = messageData.message.substr(commandPrefix.length).split(' ')[0];
 
         messageData.command = cmd;

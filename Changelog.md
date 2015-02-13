@@ -1,6 +1,10 @@
 plugAPI Changelog
 =================
 
+3.1.2
+---------
+* **FIXED:** Added type back to chat messages
+
 3.1.1
 ---------
 * **FIXED:** Update for Go DJ web socket
