@@ -8,7 +8,7 @@ path = require('path');
 fs = require('fs');
 
 // Third-party modules
-var EventEmitter2, EventEmitter, request, WebSocket, encoder, chalk;
+var EventEmitter2, EventEmitter, request, WebSocket, chalk;
 EventEmitter2 = require('eventemitter2').EventEmitter2;
 EventEmitter = new EventEmitter2({
     wildcard: true,
@@ -18,7 +18,7 @@ request = require('request');
 WebSocket = require('ws');
 WebSocket.prototype._send = WebSocket.prototype.send;
 WebSocket.prototype.send = function(data, options, cb) {
-    data = '"' + (typeof data === 'string' ? data : JSON.stringify(data)).split('"').join('\\"') + '"';
+    data = (typeof data === 'string' ? data : JSON.stringify(data));
     this._send(data, options, cb);
 };
 WebSocket.prototype.sendEvent = function(type, data) {
@@ -28,16 +28,59 @@ WebSocket.prototype.sendEvent = function(type, data) {
         t: DateUtilities.getServerEpoch()
     });
 };
-encoder = require('node-html-encoder').Encoder('entity');
 chalk = require('chalk');
 
 // plugAPI
-var Room, Logger, PlugAPIInfo, endpoints;
-Room = require('./room');
-Logger = require('./logger');
-PlugAPIInfo = require('../package.json');
-endpoints = {
+/**
+ * BufferObject class
+ * @type {BufferObject|exports}
+ * @private
+ */
+var BufferObject = require('./bufferObject');
+
+/**
+ * CookieHandler class
+ * @type {CookieHandler|exports}
+ * @private
+ */
+var CookieHandler = require('./cookie');
+
+/**
+ * Logger class
+ * @type {Logger|exports}
+ * @private
+ */
+var Logger = require('./logger');
+
+/**
+ * Event Object Types
+ * @type {exports}
+ * @private
+ */
+var EventObjectTypes = require('./eventObjectTypes');
+
+/**
+ * Room class
+ * @type {Room|exports}
+ * @private
+ */
+var Room = require('./room');
+
+/**
+ * Package.json of plugAPI
+ * @type {exports}
+ * @private
+ */
+var PlugAPIInfo = require('../package.json');
+
+/**
+ * REST Endpoints
+ * @type {{CHAT_DELETE: string, HISTORY: string, MODERATE_ADD_DJ: string, MODERATE_BAN: string, MODERATE_BOOTH: string, MODERATE_MOVE_DJ: string, MODERATE_MUTE: string, MODERATE_PERMISSIONS: string, MODERATE_REMOVE_DJ: string, MODERATE_SKIP: string, MODERATE_UNBAN: string, MODERATE_UNMUTE: string, PLAYLIST: string, ROOM_CYCLE_BOOTH: string, ROOM_INFO: string, ROOM_LOCK_BOOTH: string, USER_SET_AVATAR: string, USER_SET_STATUS: string, USER_GET_AVATARS: string}}
+ * @private
+ */
+var endpoints = {
     CHAT_DELETE: 'chat/',
+    HISTORY: 'rooms/history',
     MODERATE_ADD_DJ: 'booth/add',
     MODERATE_BAN: 'bans/add',
     MODERATE_BOOTH: 'booth',
@@ -52,6 +95,8 @@ endpoints = {
     ROOM_CYCLE_BOOTH: 'booth/cycle',
     ROOM_INFO: 'rooms/update',
     ROOM_LOCK_BOOTH: 'booth/lock',
+    USER_INFO: 'users/me',
+    USER_GET_AVATARS: 'store/inventory/avatars',
     USER_SET_AVATAR: 'users/avatar',
     USER_SET_STATUS: 'users/status'
 };
@@ -59,69 +104,115 @@ endpoints = {
 /**
  * That is this and this is that
  * @type {PlugAPI}
+ * @private
  */
 var that = null;
 
 /**
+ * WebSocket (connection to plug.DJ's socket server)
  * @type {null|WebSocket}
+ * @private
  */
-var ws;
-var p3Socket, initialized, commandPrefix, apiId, _authCode, _cookies, chatHistory, serverRequests, room, connectingRoomSlug, rpcHandlers, logger, floodProtectionDelay, chatQueue;
-ws = null;
-p3Socket = null;
-initialized = false;
-commandPrefix = '!';
-apiId = 0;
-chatHistory = [];
-connectingRoomSlug = null;
-_authCode = '';
-_cookies = {
-    cookies: {},
-    path: path.resolve(__dirname, '..', 'cookies.tmp'),
-    load: function() {
-        this.cookies = JSON.parse(fs.readFileSync(this.path));
-    },
-    save: function() {
-        fs.writeFileSync(this.path, JSON.stringify(this.cookies));
-    },
-    fromHeaders: function(headers) {
-        for (var i in headers) {
-            if (!headers.hasOwnProperty(i)) continue;
-            if (i == 'set-cookie') {
-                for (var j in headers[i]) {
-                    if (!headers[i].hasOwnProperty(j)) continue;
-                    var cookieString, cookieKeyValue, key, value;
+var ws = null;
+/**
+ * Instance of room
+ * @type {Room}
+ * @private
+ */
+var room = new Room();
 
-                    cookieString = headers[i][j];
-                    cookieKeyValue = cookieString.split(';')[0].split('=');
-                    key = cookieKeyValue.shift();
-                    value = cookieKeyValue.join('=');
+/**
+ * Is everything initialized?
+ * @type {Boolean}
+ * @private
+ */
+var initialized = false;
 
-                    this.cookies[key] = value;
-                }
-            }
-        }
-    },
-    toString: function() {
-        var cookies = [];
-        for (var i in this.cookies) {
-            if (!this.cookies.hasOwnProperty(i)) continue;
-            cookies.push(i + '=' + this.cookies[i]);
-        }
-        return cookies.join('; ');
-    }
-};
-serverRequests = {
+/**
+ * Prefix that defines if a message is a command
+ * @type {String}
+ * @private
+ */
+var commandPrefix = '!';
+
+/**
+ * Auth code for plug.DJ
+ * @type {null|String}
+ * @private
+ */
+var _authCode = null;
+
+/**
+ * Cookie handler
+ * @type {CookieHandler}
+ * @private
+ */
+var _cookies = null;
+
+/**
+ * List over chat history
+ * Contains up to 512 messages
+ * @type {Array}
+ * @private
+ */
+var chatHistory = [];
+
+/**
+ * Contains informations about requests sent to server
+ * @type {{queue: Array, sent: Number, limit: Number, running: Boolean}}
+ * @private
+ */
+var serverRequests = {
     queue: [],
     sent: 0,
     limit: 10,
     running: false
 };
-room = new Room();
-rpcHandlers = {};
-logger = new Logger('PlugAPI');
-floodProtectionDelay = 200;
-chatQueue = [];
+
+/**
+ * Slug of room, that the bot is currently connecting to
+ * @type {null|String}
+ * @private
+ */
+var connectingRoomSlug = null;
+
+/**
+ * The logger of plugAPI
+ * @type {Logger}
+ * @private
+ */
+var logger = new Logger('plugAPI');
+
+/**
+ * Current delay between chat messages
+ * @type {number}
+ * @private
+ */
+var floodProtectionDelay = 200;
+
+/**
+ * Queue of outgoing chat messages
+ * @type {Array}
+ * @private
+ */
+var chatQueue = [];
+
+/**
+ * Playlist data for the user
+ * @type {BufferObject}
+ * @private
+ */
+var playlists = new BufferObject(null, function(callback) {
+    queueREST('GET', endpoints.PLAYLIST, undefined, callback);
+}, 6e5);
+
+/**
+ * Authentication information (e-mail and password)
+ * THIS MUST NEVER BE ACCESSIBLE NOR PRINTING OUT TO CONSOLE
+ * @type {Object}
+ * @private
+ */
+var authenticationInfo;
 
 function __bind(fn, me) {
     return function() {
@@ -129,26 +220,19 @@ function __bind(fn, me) {
     };
 }
 
-function intPM(receiver, msg) {
-    p3Socket.send({
-        type: 'PM',
-        value: {
-            id: typeof receiver === 'object' ? receiver.id : receiver,
-            message: msg
-        }
-    });
-}
-
 (function() {
+    /**
+     * Send the next chat message in queue
+     */
     function sendNextMessage() {
         if (chatQueue.length > 0) {
             var nextMessage = chatQueue.shift(), msg = nextMessage.msg, timeout = nextMessage.timeout;
             ws.sendEvent('chat', msg);
             if (timeout !== undefined && !isNaN(timeout) && ~~timeout > 0) {
                 var specificChatDeleter = function(data) {
-                    if (data.uid == room.getSelf().id && data.message.trim() == msg.trim()) {
+                    if (data.raw.uid == room.getSelf().id && data.message.trim() == msg.trim()) {
                         setTimeout(function() {
-                            that.moderateDeleteChat(data.cid);
+                            that.moderateDeleteChat(data.raw.cid);
                         }, ~~timeout * 1E3);
                         that.off('chat', specificChatDeleter);
                     }
@@ -164,6 +248,25 @@ function intPM(receiver, msg) {
     sendNextMessage();
 })();
 
+/**
+ * Check if an object contains a value
+ * @param {Object} obj The object
+ * @param {*} value The value
+ * @param {Boolean} [strict]
+ */
+function objectContainsValue(obj, value, strict) {
+    for (var i in obj) {
+        if (!obj.hasOwnProperty(i)) continue;
+        if (!strict && obj[i] == value || strict && obj[i] === value) return true;
+    }
+    return false;
+}
+
+/**
+ * Queue chat message
+ * @param {String} msg Chat message
+ * @param {Number} [timeout] Timeout before auto deleting message (in seconds)
+ */
 function queueChat(msg, timeout) {
     chatQueue.push({
         msg: msg,
@@ -171,10 +274,11 @@ function queueChat(msg, timeout) {
     });
 }
 
+//noinspection JSUnusedGlobalSymbols
 /**
- DateUtilities
- Copyright (C) 2014 by Plug DJ, Inc.
- Modified by TAT (TAT@plugCubed.net)
+ * DateUtilities
+ * Copyright (C) 2014 by Plug DJ, Inc.
+ * Modified by TAT (TAT@plugCubed.net)
  */
 var DateUtilities = {
     MONTHS: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
@@ -242,13 +346,17 @@ var DateUtilities = {
     }
 };
 
+/**
+ * The ticker that runs through the queue and executes them when it's time
+ * @private
+ */
 function queueTicker() {
     serverRequests.running = true;
     var canSend = serverRequests.sent < serverRequests.limit, obj = serverRequests.queue.pop();
     if (canSend && obj) {
         serverRequests.sent++;
         if (obj.type == 'rest') {
-            sendREST(obj.opts, obj.callbacks.success, obj.callbacks.failure);
+            sendREST(obj.opts, obj.callback);
         } else if (obj.type == 'connect') {
             if (obj.server == 'socket') {
                 connectSocket(obj.room);
@@ -266,17 +374,28 @@ function queueTicker() {
     }
 }
 
-function queueREST(method, endpoint, data, successCallback, failureCallback, skipQueue) {
+/**
+ * @callback RESTCallback
+ * @param {null|String} err Error message on error; otherwise null
+ * @param {null|*} data Data on success; otherwise null
+ */
+
+/**
+ * Queue REST request
+ * @param {"POST"|"PUT"|"GET"|"DELETE"} method REST method
+ * @param {String} endpoint Endpoint on server
+ * @param {Object|Undefined} [data] Data
+ * @param {RESTCallback|Undefined} [callback] Callback function
+ * @param {Boolean} [skipQueue] Skip queue and send the request immediately
+ * @private
+ */
+function queueREST(method, endpoint, data, callback, skipQueue) {
     if (['POST', 'PUT', 'GET', 'DELETE'].indexOf(method) < 0) {
         logger.error(method, 'needs update');
         return;
     }
 
-    successCallback = typeof successCallback === 'function' ? __bind(successCallback, that) : function() {
-    };
-    failureCallback = typeof failureCallback === 'function' ? __bind(failureCallback, that) : function() {
-        // Retry
-        queueREST(method, endpoint, data, successCallback, failureCallback, skipQueue);
+    callback = typeof callback === 'function' ? __bind(callback, that) : function() {
     };
 
     var opts = {
@@ -295,15 +414,12 @@ function queueREST(method, endpoint, data, successCallback, failureCallback, ski
     }
 
     if (skipQueue && skipQueue === true) {
-        sendREST(opts, successCallback, failureCallback);
+        sendREST(opts, callback);
     } else {
         serverRequests.queue.push({
             type: 'rest',
             opts: opts,
-            callbacks: {
-                success: successCallback,
-                failure: failureCallback
-            }
+            callback: callback
         });
         if (!serverRequests.running) {
             queueTicker();
@@ -311,74 +427,102 @@ function queueREST(method, endpoint, data, successCallback, failureCallback, ski
     }
 }
 
-function sendREST(opts, successCallback, failureCallback) {
+/**
+ * Send a REST request
+ * @param {Object} opts
+ * @param {RESTCallback} callback Callback function
+ * @private
+ */
+function sendREST(opts, callback) {
     request(opts, function(err, res, body) {
         if (err) {
             logger.error('[REST Error]', err);
-            failureCallback(err);
+            callback(err, null);
             return;
         }
         try {
             body = JSON.parse(body);
             if (body.status === 'ok') {
-                successCallback(body.data);
+                callback(null, body.data);
             } else {
-                failureCallback(body.status, body.data);
+                callback(body.status, null);
             }
         } catch (e) {
             logger.error('[REST Error]', e);
-            failureCallback(e);
+            callback(e, null);
         }
     });
 }
 
+/**
+ * Queue that the bot should join a room.
+ * @param {String} roomSlug Slug of room to join after connection
+ * @param {RESTCallback} [callback] Callback function
+ * @private
+ */
 function joinRoom(roomSlug, callback) {
     queueREST('POST', 'rooms/join', {
         slug: roomSlug
-    }, function() {
-        queueREST('GET', 'rooms/state', undefined, function(data) {
-            connectingRoomSlug = null;
-            initRoom(data[0], function() {
-                if (typeof callback === 'function') {
-                    callback(data);
-                }
-            });
-        });
-    }, function(status) {
-        logger.error('Error while joining:', status ? status : 'Unknown error');
-        setTimeout(function() {
-            joinRoom(roomSlug, callback);
-        }, 1e3);
+    }, function(err) {
+        if (err) {
+            logger.error('Error while joining:', err ? err : 'Unknown error');
+            setTimeout(function() {
+                joinRoom(roomSlug, callback);
+            }, 1e3);
+            return;
+        }
+        getRoomState(callback);
     });
 }
 
-function receivedChatMessage(m) {
-    var i, isPM, cmd, obj, lastIndex, allUsers, random;
+/**
+ * Get room state.
+ * @param {RESTCallback} callback
+ */
+function getRoomState(callback) {
+    queueREST('GET', 'rooms/state', undefined, function(err, data) {
+        if (err) {
+            logger.error('Error getting room state:', err ? err : 'Unknown error');
+            setTimeout(function() {
+                getRoomState(callback);
+            }, 1e3);
+            return;
+        }
+        connectingRoomSlug = null;
+        initRoom(data[0], function() {
+            if (typeof callback === 'function') {
+                callback(null, data);
+            }
+        });
+    });
+}
+
+/**
+ * Handling incoming messages.
+ * Emitting the correct events depending on commands, mentions, etc.
+ * @param {Object} messageData plug.DJ message event data
+ * @private
+ */
+function receivedChatMessage(messageData) {
+    var i, cmd, lastIndex, allUsers, random;
     if (!initialized) return;
 
-    m.message = encoder.htmlDecode(m.message);
+    var disconnectedUser = messageData.from == null;
+    var mutedUser = !disconnectedUser && room.isMuted(messageData.from.id);
+    var prefixChatEventType = (mutedUser && !that.mutedTriggerNormalEvents ? 'muted:' : '');
 
-    obj = {
-        raw: m,
-        id: m.cid,
-        from: room.getUser(m.uid),
-        message: m.message,
-        mentions: []
-    };
+    if (!disconnectedUser && (messageData.raw.type == 'message') && messageData.message.indexOf(commandPrefix) === 0 && (that.processOwnMessages || messageData.from.id !== room.getSelf().id)) {
+        cmd = messageData.message.substr(commandPrefix.length).split(' ')[0];
 
-    if ((m.type == 'message' || m.type == 'pm') && m.message.indexOf(commandPrefix) === 0 && (that.processOwnMessages || m.uid !== room.getSelf().id)) {
-        isPM = m.type == 'pm';
-        cmd = m.message.substr(commandPrefix.length).split(' ')[0];
-
-        obj.command = cmd;
-        obj.args = m.message.substr(commandPrefix.length + cmd.length + 1);
+        messageData.command = cmd;
+        messageData.args = messageData.message.substr(commandPrefix.length + cmd.length + 1);
 
         // Mentions => Mention placeholder
-        lastIndex = obj.args.indexOf('@');
+        lastIndex = messageData.args.indexOf('@');
         allUsers = room.getUsers();
         random = Math.ceil(Math.random() * 1E10);
         while (lastIndex > -1) {
-            var test = obj.args.substr(lastIndex), found = null;
+            var test = messageData.args.substr(lastIndex), found = null;
             for (i in allUsers) {
                 if (allUsers.hasOwnProperty(i) && test.indexOf(allUsers[i].username) === 1) {
                     if (found === null || allUsers[i].username.length > found.username.length) {
@@ -387,66 +531,58 @@ function receivedChatMessage(m) {
                 }
             }
             if (found !== null) {
-                obj.args = obj.args.substr(0, lastIndex) + '%MENTION-' + random + '-' + obj.mentions.length + '%' + obj.args.substr(lastIndex + found.username.length + 1);
-                obj.mentions.push(found);
+                messageData.args = messageData.args.substr(0, lastIndex) + '%MENTION-' + random + '-' + messageData.mentions.length + '%' + messageData.args.substr(lastIndex + found.username.length + 1);
+                messageData.mentions.push(found);
             }
-            lastIndex = obj.args.indexOf('@', lastIndex + 1);
+            lastIndex = messageData.args.indexOf('@', lastIndex + 1);
         }
 
         // Arguments
-        obj.args = obj.args.split(' ');
-        for (i in obj.args) {
-            if (!obj.args.hasOwnProperty(i)) continue;
-            if (!isNaN(obj.args[i])) obj.args[i] = ~~obj.args[i];
+        messageData.args = messageData.args.split(' ');
+        for (i in messageData.args) {
+            if (!messageData.args.hasOwnProperty(i)) continue;
+            if (!isNaN(messageData.args[i])) messageData.args[i] = ~~messageData.args[i];
         }
 
         // Mention placeholder => User object
-        for (i in obj.mentions) {
-            if (obj.mentions.hasOwnProperty(i)) {
-                obj.args[obj.args.indexOf('%MENTION-' + random + '-' + i + '%')] = obj.mentions[i];
+        for (i in messageData.mentions) {
+            if (messageData.mentions.hasOwnProperty(i)) {
+                messageData.args[messageData.args.indexOf('%MENTION-' + random + '-' + i + '%')] = messageData.mentions[i];
             }
         }
 
         // Pre command handler
-        if (typeof that.preCommandHandler === 'function' && that.preCommandHandler(obj) === false) return;
+        if (typeof that.preCommandHandler === 'function' && that.preCommandHandler(messageData) === false) return;
 
         // Functions
-        obj.respond = function() {
+        messageData.respond = function() {
             var message = Array.prototype.slice.call(arguments).join(' ');
-
-            if (isPM) {
-                return intPM(this.from, message);
-            }
 
             return that.sendChat('@' + this.from.username + ' ' + message);
         };
-        obj.respondTimeout = function() {
+        messageData.respondTimeout = function() {
             var args, timeout, message;
 
             args = Array.prototype.slice.call(arguments);
             timeout = parseInt(args.splice(args.length - 1, 1), 10);
             message = args.join(' ');
 
-            if (isPM) {
-                return intPM(this.from, message);
-            }
-
             return that.sendChat('@' + this.from.username + ' ' + message, timeout);
         };
-        obj.havePermission = function(permission, successCallback, failureCallback) {
+        messageData.havePermission = function(permission, callback) {
             if (permission === undefined) permission = 0;
             if (that.havePermission(this.from.id, permission)) {
-                if (typeof successCallback === 'function') {
-                    successCallback();
+                if (typeof callback === 'function') {
+                    callback(true);
                 }
                 return true;
             }
-            if (typeof failureCallback === 'function') {
-                failureCallback();
+            if (typeof callback === 'function') {
+                callback(false);
             }
             return false;
         };
-        obj.isFrom = function(ids, success, failure) {
+        messageData.isFrom = function(ids, success, failure) {
             if (typeof ids === 'string') ids = [ids];
             if (ids === undefined || !util.isArray(ids)) {
                 if (typeof failure === 'function') {
@@ -454,7 +590,7 @@ function receivedChatMessage(m) {
                 }
                 return false;
             }
-            var isFrom = ids.indexOf(m.uid) > -1;
+            var isFrom = ids.indexOf(messageData.uid) > -1;
             if (isFrom && typeof success === 'function') {
                 success();
             } else if (!isFrom && typeof failure === 'function') {
@@ -462,26 +598,29 @@ function receivedChatMessage(m) {
             }
             return isFrom;
         };
-        that.emit(PlugAPI.events.CHAT_COMMAND, obj);
-        that.emit(PlugAPI.events.CHAT_COMMAND + ':' + cmd, obj);
-        if (that.deleteCommands) {
-            that.moderateDeleteChat(m.cid);
+        if (!mutedUser) {
+            that.emit(prefixChatEventType + PlugAPI.events.CHAT_COMMAND, messageData);
+            that.emit(prefixChatEventType + PlugAPI.events.CHAT_COMMAND + ':' + cmd, messageData);
+            if (that.deleteCommands) {
+                that.moderateDeleteChat(messageData.cid);
+            }
         }
-    } else if (m.type == 'emote') {
-        that.emit(PlugAPI.events.CHAT_EMOTE, obj);
+    } else if (messageData.type == 'emote') {
+        that.emit(prefixChatEventType + PlugAPI.events.CHAT + ':emote', messageData);
     }
-    if (m.type == 'pm') {
-        that.emit('pm', obj);
-    } else {
-        that.emit(PlugAPI.events.CHAT, obj);
-        that.emit(PlugAPI.events.CHAT + ':' + obj.raw.type, obj);
-        if (room.getUser() !== null && m.message.indexOf('@' + room.getUser().username) > -1) {
-            that.emit(PlugAPI.events.CHAT + ':mention', obj);
-            that.emit('mention', obj);
-        }
+
+    that.emit(prefixChatEventType + PlugAPI.events.CHAT, messageData);
+    that.emit(prefixChatEventType + PlugAPI.events.CHAT + ':' + messageData.raw.type, messageData);
+    if (room.getUser() !== null && messageData.message.indexOf('@' + room.getUser().username) > -1) {
+        that.emit(prefixChatEventType + PlugAPI.events.CHAT + ':mention', messageData);
     }
 }
 
+/**
+ * Queue that the bot should connect to the socket server
+ * @param {String} roomSlug Slug of room to join after connection
+ * @private
+ */
 function queueConnectSocket(roomSlug) {
     serverRequests.queue.push({
         type: 'connect',
@@ -493,6 +632,11 @@ function queueConnectSocket(roomSlug) {
     }
 }
 
+/**
+ * Get the auth code for the user
+ * @param {Function} callback Callback function
+ * @private
+ */
 function getAuthCode(callback) {
     request({
         url: 'https://plug.dj/',
@@ -510,13 +654,19 @@ function getAuthCode(callback) {
             callback();
         } else {
             logger.error('Error getting auth code: HTTP ' + res.statusCode);
-            _cookies.cookies = {};
+            _cookies.clear();
+            var slug = room.getRoomMeta().slug;
             that.close();
-            that.connect(room.getRoomMeta().slug);
+            that.connect(slug);
         }
     });
 }
 
+/**
+ * Connect to plug.DJ's socket server
+ * @param {String} roomSlug Slug of room to join after connection
+ * @private
+ */
 function connectSocket(roomSlug) {
     if (_authCode === null || _authCode === '') {
         getAuthCode(function() {
@@ -524,21 +674,10 @@ function connectSocket(roomSlug) {
         });
         return;
     }
-    apiId = 0;
-    rpcHandlers = {};
 
-    var server_id = Math.floor(Math.random() * 1000);
-    var conn_id = (function() {
-        var chars = 'abcdefghijklmnopqrstuvwxyz0123456789_';
-        var i, ret = [];
-        for (i = 0; i < 8; i++) {
-            ret.push(chars.substr(Math.floor(Math.random() * chars.length), 1));
-        }
-        return ret.join('');
-    })();
-
-    ws = new WebSocket('wss://shalamar.plug.dj/socket/' + server_id + '/' + conn_id + '/websocket');
+    ws = new WebSocket('wss://godj.plug.dj:443/socket');
     ws.on('open', function() {
+        //noinspection JSUnresolvedFunction
         logger.success(chalk.green('[Socket Server] Connected'));
         ws.sendEvent('auth', _authCode);
 
@@ -546,20 +685,11 @@ function connectSocket(roomSlug) {
         that.emit('server:socket:connected');
     });
     ws.on('message', function(data) {
-        var type = data.slice(0, 1), payload;
-        switch (type) {
-            case 'a':
-                payload = JSON.parse(data.slice(1) || '[]');
-                for (var i = 0; i < payload.length; i++) {
-                    ws.emit('data', payload[i][0]);
-                }
-                break;
-            case 'm':
-                payload = JSON.parse(data.slice(1) || 'null');
-                ws.emit('data', payload);
-                break;
-            default:
-                break;
+        if (data !== 'h') {
+            var payload = JSON.parse(data || '[]');
+            for (var i = 0; i < payload.length; i++) {
+                ws.emit('data', payload[i]);
+            }
         }
     });
     ws.on('data', messageHandler);
@@ -591,6 +721,12 @@ function connectSocket(roomSlug) {
     });
 }
 
+/**
+ * Initialize the room with roomstate data
+ * @param {Object} data Roomstate Data
+ * @param {Function} callback Callback function
+ * @private
+ */
 function initRoom(data, callback) {
     room.reset();
     room.setRoomData(data);
@@ -606,24 +742,63 @@ function initRoom(data, callback) {
         startTime: room.getStartTime(),
         historyID: room.getHistoryID()
     });
-    queueREST('GET', 'rooms/history', undefined, __bind(room.setHistory, room));
+    queueREST('GET', endpoints.HISTORY, undefined, __bind(room.setHistory, room));
     that.emit(PlugAPI.events.ROOM_JOIN, data.meta.name);
     initialized = true;
-    return callback();
+    callback();
 }
 
 /**
- *
+ * The handling of incoming messages from the Plug.DJ socket server.
+ * If any cases are returned instead of breaking (stopping the emitting to the user code) it MUST be commented just before returning.
  * @param {Object} msg
+ * @private
  */
 function messageHandler(msg) {
-    var type = msg.a, data = msg.p, i;
+    /**
+     * Event type
+     * @type {PlugAPI.events}
+     */
+    var type = msg.a;
+    /**
+     * Data for the event
+     * Will lookup in EventObjectTypes for possible converter function
+     * @type {*}
+     */
+    var data = EventObjectTypes[msg.a] != null ? EventObjectTypes[msg.a](msg.p, room) : msg.p;
+
+    var i, slug;
     switch (type) {
         case 'ack':
-            queueREST('GET', 'users/me', null, function(a) {
-                room.setSelf(a[0]);
+            if (data !== '1') {
+                slug = room.getRoomMeta().slug;
+                _cookies.clear();
+                that.close();
+                _authCode = null;
+                PerformLogin(null, true);
+                that.connect(slug);
+                // This event should not be emitted to the user code.
+                return;
+            }
+            queueREST('GET', endpoints.USER_INFO, null, function(err, data) {
+                room.setSelf(data[0]);
                 joinRoom(connectingRoomSlug);
             });
+            // This event should not be emitted to the user code.
+            return;
+        case PlugAPI.events.ADVANCE:
+            // Add informations about lastPlay to the data
+            data['lastPlay'] = {
+                dj: room.getDJ(),
+                media: room.getMedia(),
+                score: room.getRoomScore()
+            };
+
+            room.advance(data);
+
+            // Override parts of the event data with actual User objects
+            data.currentDJ = room.getDJ();
+            data.djs = room.getDJs();
             break;
         case PlugAPI.events.CHAT:
             chatHistory.push(data);
@@ -632,6 +807,8 @@ function messageHandler(msg) {
             if (chatHistory.length > 512) chatHistory.shift();
 
             receivedChatMessage(data);
+
+            // receivedChatMessage will emit the event with correct chat object and over correct event types
             return;
         case PlugAPI.events.CHAT_DELETE:
             for (i in chatHistory) {
@@ -643,6 +820,9 @@ function messageHandler(msg) {
             room.addUser(data);
             break;
         case PlugAPI.events.USER_LEAVE:
+            /**
+             * @type {User|null|{id: *}}
+             */
             var userData = room.getUser(data);
             if (userData == null) {
                 userData = {
@@ -651,33 +831,21 @@ function messageHandler(msg) {
             }
             room.removeUser(data);
             that.emit(type, userData);
+            // This is getting emitted with the full user object instead of only the user ID
             return;
         case PlugAPI.events.USER_UPDATE:
             room.updateUser(data);
+            //noinspection JSUnresolvedVariable
             that.emit(type, that.getUser(data.i));
+            // This is getting emitted with the full user object instead of only the user ID
             return;
         case PlugAPI.events.VOTE:
+            //noinspection JSUnresolvedVariable
             room.setVote(data.i, data.v);
             break;
         case PlugAPI.events.GRAB:
             room.setGrab(data);
             break;
-        case PlugAPI.events.ADVANCE:
-            var advanceEvent = {
-                lastPlay: {
-                    dj: room.getDJ(),
-                    media: room.getMedia(),
-                    score: room.getRoomScore()
-                },
-                media: data.m,
-                startTime: data.t,
-                historyID: data.h
-            };
-            room.advance(data);
-            advanceEvent.currentDJ = room.getDJ();
-            advanceEvent.djs = room.getDJs();
-            that.emit(type, advanceEvent);
-            return;
         case PlugAPI.events.DJ_LIST_UPDATE:
             room.setDJs(data);
             break;
@@ -688,9 +856,15 @@ function messageHandler(msg) {
             }, floodProtectionDelay * 5);
             logger.warning('Flood protection: Slowing down the sending of chat messages temporary');
             break;
+        case PlugAPI.events.DJ_LIST_LOCKED:
+            room.setBoothLocked(msg.p.f);
+            break;
         case PlugAPI.events.MODERATE_STAFF:
+            //noinspection JSUnresolvedVariable
             for (i in data.u) {
+                //noinspection JSUnresolvedVariable
                 if (!data.u.hasOwnProperty(i)) continue;
+                //noinspection JSUnresolvedVariable
                 room.updateUser({
                     i: data.u[i].i,
                     role: data.u[i].p
@@ -700,14 +874,29 @@ function messageHandler(msg) {
         case PlugAPI.events.MODERATE_ADD_DJ:
         case PlugAPI.events.MODERATE_REMOVE_DJ:
         case PlugAPI.events.MODERATE_MOVE_DJ:
+        case PlugAPI.events.SKIP:
+        case PlugAPI.events.MODERATE_SKIP:
+        case PlugAPI.events.ROOM_VOTE_SKIP:
+            /*
+             These will be ignored by plugAPI.
+             The server will send updates to current song and waitlist.
+             The events are still being sent to the code, so the bot can still react to the events.
+             */
+            break;
+        case PlugAPI.events.MODERATE_MUTE:
+            // Takes care of both mutes and unmutes
+            room.muteUser(data);
             break;
         case PlugAPI.events.DJ_LIST_CYCLE:
+            //noinspection JSUnresolvedVariable
             room.setCycle(data.f);
             break;
         case PlugAPI.events.KILL_SESSION:
-            _cookies.cookies = {};
+            slug = room.getRoomMeta().slug;
+            _cookies.clear();
             that.close();
-            that.connect(room.getRoomMeta().slug);
+            _authCode = null;
+            that.connect(slug);
             break;
         case PlugAPI.events.EARN:
             room.setEarn(data);
@@ -728,7 +917,133 @@ function messageHandler(msg) {
     }
 }
 
-var PlugAPI = function(authenticationData) {
+/**
+ * Perform the login process using cookie.
+ * @param {Function} callback
+ * @private
+ */
+function PerformLoginCookie(callback) {
+    if (typeof callback != 'function') {
+        var deasync = require('deasync');
+    }
+
+    /**
+     * Is the login process running.
+     * Used for sync
+     * @type {boolean}
+     */
+    var loggingIn = true;
+
+    request.get('https://plug.dj/_/users/me', {
+        headers: {
+            'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
+            Cookie: _cookies.toString()
+        }
+    }, function(err, res) {
+        if (res.statusCode === 200) {
+            if (typeof callback == 'function') {
+                callback(that);
+                return;
+            }
+        } else {
+            PerformLoginCredentials(callback);
+        }
+        loggingIn = false;
+    });
+
+    if (typeof callback != 'function') {
+        // Wait until the session is set
+        while (loggingIn) {
+            deasync.sleep(100);
+        }
+    }
+}
+
+/**
+ * Perform the login process using credentials.
+ * @param {Function} callback Callback
+ * @private
+ */
+function PerformLoginCredentials(callback) {
+    if (typeof callback != 'function') {
+        var deasync = require('deasync');
+    }
+
+    /**
+     * Is the login process running.
+     * Used for sync
+     * @type {boolean}
+     */
+    var loggingIn = true;
+
+    request.get('https://plug.dj/', {
+        headers: {
+            'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
+            Cookie: _cookies.toString()
+        }
+    }, function(err, res, body) {
+        var csrfToken;
+
+        _cookies.fromHeaders(res.headers);
+
+        csrfToken = body.split('_csrf')[1].split('"')[1];
+
+        request({
+            method: 'POST',
+            uri: 'https://plug.dj/_/auth/login',
+            headers: {
+                'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
+                Cookie: _cookies.toString()
+            },
+            json: {
+                csrf: csrfToken,
+                email: authenticationInfo.email,
+                password: authenticationInfo.password
+            }
+        }, function(err, res, data) {
+            if (data.status !== 'ok') {
+                logger.error('LOGIN ERROR: ' + data.status);
+                process.exit(1);
+            } else {
+                _cookies.fromHeaders(res.headers);
+                _cookies.save();
+                loggingIn = false;
+                if (typeof callback == 'function') {
+                    callback(that);
+                }
+            }
+        });
+    });
+
+    if (typeof callback != 'function') {
+        // Wait until the session is set
+        while (loggingIn) {
+            deasync.sleep(100);
+        }
+    }
+}
+
+/**
+ * Perform the login process.
+ * @param callback Callback
+ * @param ignoreCache Ignore cached cookie
+ * @private
+ */
+function PerformLogin(callback, ignoreCache) {
+    if (!ignoreCache && _cookies.load()) {
+        PerformLoginCookie(callback);
+    } else {
+        PerformLoginCredentials(callback);
+    }
+}
+
+/**
+ * Create instance of PlugAPI
+ * @param {{email: String, password: String}} authenticationData
+ * @param {Function} [callback]
+ * @constructor
+ */
+var PlugAPI = function(authenticationData, callback) {
     if (!authenticationData) {
         logger.error('You must pass the authentication data into the PlugAPI object to connect correctly');
         process.exit(1);
@@ -741,110 +1056,87 @@ var PlugAPI = function(authenticationData) {
             logger.error('Missing login password');
             process.exit(1);
         }
-        var deasync = require('deasync');
-        var loggingIn = true, loggedIn = false;
-        if (fs.existsSync(_cookies.path)) {
-            _cookies.load();
-            request.get('https://plug.dj/_/users/me', {
-                headers: {
-                    'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
-                    Cookie: _cookies.toString()
-                }
-            }, function(err, res) {
-                if (res.statusCode === 200) {
-                    loggedIn = true;
-                }
-                loggingIn = false;
-            });
-            // Wait until the session is set
-            while (loggingIn) {
-                deasync.sleep(100);
-            }
-        }
-        if (!loggedIn) {
-            loggingIn = true;
-
-            request.get('https://plug.dj/', {
-                headers: {
-                    'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
-                    Cookie: _cookies.toString()
-                }
-            }, function(err, res, body) {
-                var csrfToken;
-
-                _cookies.fromHeaders(res.headers);
-
-                csrfToken = body.split('_csrf')[1].split('"')[1];
-
-                request({
-                    method: 'POST',
-                    uri: 'https://plug.dj/_/auth/login',
-                    headers: {
-                        'User-Agent': 'plugAPI_' + PlugAPIInfo.version,
-                        Cookie: _cookies.toString()
-                    },
-                    json: {
-                        csrf: csrfToken,
-                        email: authenticationData.email,
-                        password: authenticationData.password
-                    }
-                }, function(err, res, data) {
-                    if (data.status !== 'ok') {
-                        logger.error('LOGIN ERROR: ' + data.status);
-                        process.exit(1);
-                    } else {
-                        _cookies.fromHeaders(res.headers);
-                        _cookies.save();
-                        loggedIn = true;
-                        loggingIn = false;
-                    }
-                });
-            });
-
-            // Wait until the session is set
-            while (loggingIn) {
-                deasync.sleep(100);
-            }
-        }
     }
 
     that = this;
 
+    var cookieHash = '';
+    (function(crypto) {
+        var hashPriority = ['md5', 'sha1', 'sha128', 'sha256', 'sha512'];
+        var foundHash = '';
+        (function(hashes) {
+            for (var i in hashes) {
+                if (!hashes.hasOwnProperty(i)) continue;
+                var hash = hashes[i];
+                if (hashPriority.indexOf(hash) > -1) {
+                    if (hashPriority.indexOf(hash) > hashPriority.indexOf(foundHash))
+                        foundHash = hash;
+                }
+            }
+        })(crypto.getHashes());
+        if (foundHash != '') {
+            var hash = crypto.createHash(foundHash);
+            hash.update(authenticationData.email);
+            hash.update(authenticationData.password);
+            cookieHash = hash.digest('hex');
+        }
+    })(require('crypto'));
+    _cookies = new CookieHandler(cookieHash);
+    authenticationInfo = authenticationData;
+    PerformLogin(callback);
+
     /**
      * Should the bot split messages up if hitting message length limit?
-     * @type {boolean}
+     * @type {Boolean}
      */
     this.multiLine = false;
     /**
      * Max splits
-     * @type {number}
+     * @type {Number}
      */
     this.multiLineLimit = 5;
-    this.enablePlugCubedSocket = false;
     /**
      * Should the bot process commands the bot itself is sending?
-     * @type {boolean}
+     * @type {Boolean}
      */
     this.processOwnMessages = false;
     /**
      * Should the bot delete incomming commands?
-     * @type {boolean}
+     * @type {Boolean}
      */
     this.deleteCommands = true;
+    /**
+     * Should muted users trigger normal events?
+     * @type {Boolean}
+     */
+    this.mutedTriggerNormalEvents = false;
 
     room.registerUserExtensions(this);
 
+    //noinspection JSUnusedLocalSymbols
     /**
      * Pre-command Handler
-     * @return {boolean} If false, the command is not getting handled.
+     * @param {Object} [obj]
+     * @returns {Boolean} If false, the command is not getting handled.
      */
-    this.preCommandHandler = function() {
+    this.preCommandHandler = function(obj) {
         return true;
     };
 
-    logger.info('Running plugAPI v.' + PlugAPIInfo.version + '-dev');
-    logger.warn(chalk.yellow('THIS IS A UNSTABLE VERSION! DO NOT USE FOR PRODUCTION!'));
+    logger.info('Running plugAPI v.' + PlugAPIInfo.version);
 };
+
+/**
+ * Create a new logger for your own scripts.
+ * @param channel
+ * @returns {Logger}
+ */
+PlugAPI.CreateLogger = function(channel) {
+    if (!channel) channel = 'Unknown';
+    return new Logger(channel);
+};
+
+PlugAPI.Utils = require('./utils');
 
 /**
  * Room ranks
@@ -897,6 +1189,18 @@ PlugAPI.BAN = {
 };
 
 /**
+ * Ban Reasons
+ * @type {{SPAMMING_TROLLING: number, VERBAL_ABUSE: number, OFFENSIVE_MEDIA: number, INAPPROPRIATE_GENRE: number, NEGATIVE_ATTITUDE: number}}
+ */
+PlugAPI.BAN_REASON = {
+    SPAMMING_TROLLING: 1,
+    VERBAL_ABUSE: 2,
+    OFFENSIVE_MEDIA: 3,
+    INAPPROPRIATE_GENRE: 4,
+    NEGATIVE_ATTITUDE: 5
+};
+
+/**
  * Mute Lengths
  * Short: 15 minutes
  * Medium: 30 minutes
@@ -911,6 +1215,18 @@ PlugAPI.MUTE = {
 };
 
 /**
+ * Mute Reasons
+ * @type {{VIOLATING_COMMUNITY_RULES: number, VERBAL_ABUSE: number, SPAMMING_TROLLING: number, OFFENSIVE_LANGUAGE: number, NEGATIVE_ATTITUDE: number}}
+ */
+PlugAPI.MUTE_REASON = {
+    VIOLATING_COMMUNITY_RULES: 1,
+    VERBAL_ABUSE: 2,
+    SPAMMING_TROLLING: 3,
+    OFFENSIVE_LANGUAGE: 4,
+    NEGATIVE_ATTITUDE: 5
+};
+
+/**
  * Event Types
  * @const {{ADVANCE: string, BAN: string, BOOTH_LOCKED: string, CHAT: string, CHAT_COMMAND: string, CHAT_DELETE: string, CHAT_EMOTE: string, COMMAND: string, DJ_LIST_CYCLE: string, DJ_LIST_UPDATE: string, EARN: string, EMOTE: string, FOLLOW_JOIN: string, FLOOD_CHAT: string, GRAB: string, KILL_SESSION: string, MODERATE_ADD_DJ: string, MODERATE_ADD_WAITLIST: string, MODERATE_AMBASSADOR: string, MODERATE_BAN: string, MODERATE_MOVE_DJ: string, MODERATE_MUTE: string, MODERATE_REMOVE_DJ: string, MODERATE_REMOVE_WAITLIST: string, MODERATE_SKIP: string, MODERATE_STAFF: string, NOTIFY: string, PDJ_MESSAGE: string, PDJ_UPDATE: string, PING: string, PLAYLIST_CYCLE: string, REQUEST_DURATION: string, REQUEST_DURATION_RETRY: string, ROOM_CHANGE: string, ROOM_DESCRIPTION_UPDATE: string, ROOM_JOIN: string, ROOM_NAME_UPDATE: string, ROOM_VOTE_SKIP: string, ROOM_WELCOME_UPDATE: string, SESSION_CLOSE: string, SKIP: string, STROBE_TOGGLE: string, USER_COUNTER_UPDATE: string, USER_FOLLOW: string, USER_JOIN: string, USER_LEAVE: string, USER_UPDATE: string, VOTE: string}}
  */
@@ -921,12 +1237,11 @@ PlugAPI.events = {
     CHAT: 'chat',
     CHAT_COMMAND: 'command',
     CHAT_DELETE: 'chatDelete',
-    CHAT_EMOTE: 'emote',
     COMMAND: 'command',
     DJ_LIST_CYCLE: 'djListCycle',
     DJ_LIST_UPDATE: 'djListUpdate',
+    DJ_LIST_LOCKED: 'djListLocked',
     EARN: 'earn',
-    EMOTE: 'emote',
     FOLLOW_JOIN: 'followJoin',
     FLOOD_CHAT: 'floodChat',
     GRAB: 'grab',
@@ -963,16 +1278,6 @@ PlugAPI.events = {
     USER_LEAVE: 'userLeave',
     USER_UPDATE: 'userUpdate',
     VOTE: 'vote'
-};
-
-/**
- * Create a new logger for your own scripts.
- * @param channel
- * @return {Logger}
- */
-PlugAPI.getLogger = function(channel) {
-    if (!channel) channel = 'Unknown';
-    return new Logger(channel);
 };
 
 PlugAPI.prototype.addListener = function() {
@@ -1036,60 +1341,6 @@ PlugAPI.prototype.emit = function() {
 };
 
 /**
- * Set the Logger object, must contain a info, warn, warning and error function
- * @param {Object} newLogger
- * @returns {boolean} True if set
- */
-PlugAPI.prototype.setLogger = function(newLogger) {
-    var requiredMethods = ['info', 'warn', 'warning', 'error'];
-
-    if (newLogger && typeof newLogger === 'object' && !util.isArray(newLogger)) {
-        for (var i in requiredMethods) {
-            if (!requiredMethods.hasOwnProperty(i)) continue;
-            if (typeof newLogger[requiredMethods[i]] !== 'function')
-                return false;
-        }
-        logger = newLogger;
-        return true;
-    }
-    return false;
-};
-
-/**
- * Join another room
- * @param {String} slug
- */
-PlugAPI.prototype.changeRoom = function(slug) {
-    joinRoom(slug);
-};
-
-/**
- * Close the connection
- */
-PlugAPI.prototype.close = function() {
-    connectingRoomSlug = null;
-    ws.removeAllListeners('close');
-    ws.close();
-    if (this.enablePlugCubedSocket) {
-        p3Socket.removeAllListeners('close');
-        p3Socket.close();
-    }
-};
-
-/**
- * Set the command prefix
- * @param prefix
- * @returns {boolean} True if set
- */
-PlugAPI.prototype.setCommandPrefix = function(prefix) {
-    if (!prefix || typeof prefix !== 'string' || prefix.length < 1) {
-        return false;
-    }
-    commandPrefix = prefix;
-    return true;
-};
-
-/**
  * Connect to a room
  * @param {String} roomSlug Slug of room (The part after https://plug.dj/)
  */
@@ -1105,7 +1356,7 @@ PlugAPI.prototype.connect = function(roomSlug) {
     }
 
     // Only connect if session cookie is set
-    if (_cookies.cookies['session'] == undefined) {
+    if (!_cookies.contain('session')) {
         setImmediate(function() {
             that.connect(roomSlug);
         });
@@ -1116,51 +1367,28 @@ PlugAPI.prototype.connect = function(roomSlug) {
     queueConnectSocket(roomSlug);
 };
 
+//noinspection JSUnusedGlobalSymbols
 /**
- * Send a chat message
- * @param {String} msg Message
- * @param {int} [timeout] If set, auto deletes the message after x seconds. (Needs to have modChat permission)
+ * Join another room
+ * @param {String} slug
  */
-PlugAPI.prototype.sendChat = function(msg, timeout) {
-    if (msg.length > 235 && this.multiLine) {
-        var lines = msg.replace(/.{235}\S*\s+/g, '$&¤').split(/\s+¤/);
-        for (var i = 0; i < lines.length; i++) {
-            msg = lines[i];
-            if (i > 0) {
-                msg = '(continued) ' + msg;
-            }
-            queueChat(msg, timeout);
-            if (i + 1 >= this.multiLineLimit) {
-                break;
-            }
-        }
-    } else {
-        queueChat(msg, timeout);
-    }
+PlugAPI.prototype.changeRoom = function(slug) {
+    joinRoom(slug);
 };
 
 /**
- * Woot
- * @param {Function} [callback]
+ * Close the connection
  */
-PlugAPI.prototype.woot = function(callback) {
-    queueREST('POST', 'votes', {
-        direction: 1,
-        historyID: room.getHistoryID()
-    }, callback);
+PlugAPI.prototype.close = function() {
+    connectingRoomSlug = null;
+    //noinspection JSUnresolvedFunction
+    ws.removeAllListeners('close');
+    ws.close();
+    _authCode = null;
+    room = new Room();
 };
 
-/**
- * Meh
- * @param {Function} [callback]
- */
-PlugAPI.prototype.meh = function(callback) {
-    queueREST('POST', 'votes', {
-        direction: -1,
-        historyID: room.getHistoryID()
-    }, callback);
-};
-
+//noinspection JSUnusedGlobalSymbols
 /**
  * Get a history over chat messages. (Limit 512 messages)
  * @returns {Array} Chat history
@@ -1189,70 +1417,15 @@ PlugAPI.prototype.getHistory = function(callback) {
     });
 };
 
-/**
- * Change the name of the community
- * @param {String} name
- * @param {Function} [callback]
- * @return {boolean}
- */
-PlugAPI.prototype.changeRoomName = function(name, callback) {
-    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST)) {
-        return false;
-    }
-    queueREST('POST', endpoints.ROOM_INFO, {
-        name: name,
-        description: undefined,
-        welcome: undefined
-    }, callback);
-    return true;
+PlugAPI.prototype.getMedia = function() {
+    return room.getMedia();
 };
 
-PlugAPI.prototype.changeRoomDescription = function(description, callback) {
-    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST)) {
-        return false;
-    }
-    queueREST('POST', endpoints.ROOM_INFO, {
-        name: undefined,
-        description: description,
-        welcome: undefined
-    }, callback);
-    return true;
-};
-PlugAPI.prototype.changeRoomWelcome = function(welcome, callback) {
-    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST)) {
-        return false;
-    }
-    queueREST('POST', endpoints.ROOM_INFO, {
-        name: undefined,
-        description: undefined,
-        welcome: welcome
-    }, callback);
-    return true;
-};
-PlugAPI.prototype.changeDJCycle = function(enabled, callback) {
-    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
-        return false;
-    }
-    queueREST('PUT', endpoints.ROOM_CYCLE_BOOTH, {
-        shouldCycle: enabled
-    }, callback);
-    return true;
+PlugAPI.prototype.getRoomScore = function() {
+    return room.getRoomScore();
 };
 
-PlugAPI.prototype.getTimeElapsed = function() {
-    if (!room.getRoomMeta().slug || room.getMedia() == null) {
-        return -1;
-    }
-    return Math.min(room.getMedia().duration, DateUtilities.getSecondsElapsed(room.getStartTime()));
-};
-
-PlugAPI.prototype.getTimeRemaining = function() {
-    if (!room.getRoomMeta().slug || room.getMedia() == null) {
-        return -1;
-    }
-    return room.getMedia().duration - this.getTimeElapsed();
-};
-
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.joinBooth = function(callback) {
     if (!room.getRoomMeta().slug || room.isDJ() || room.isInWaitList() || (room.getBoothMeta().isLocked && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.RESIDENTDJ)) || this.getDJs().length >= 50) {
         return false;
@@ -1261,6 +1434,7 @@ PlugAPI.prototype.joinBooth = function(callback) {
     return true;
 };
 
+//noinspection JSUnusedGlobalSymbols
 PlugAPI.prototype.leaveBooth = function(callback) {
     if (!room.getRoomMeta().slug || (!room.isDJ() && !room.isInWaitList())) {
         return false;
@@ -1269,147 +1443,77 @@ PlugAPI.prototype.leaveBooth = function(callback) {
     return true;
 };
 
-PlugAPI.prototype.moderateAddDJ = function(uid, callback) {
-    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || room.isDJ(uid) || room.isInWaitList(uid) || (room.getBoothMeta().isLocked && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER))) {
-        return false;
+/**
+ * Send a chat message
+ * @param {String} msg Message
+ * @param {int} [timeout] If set, auto deletes the message after x seconds. (Needs to have modChat permission)
+ */
+PlugAPI.prototype.sendChat = function(msg, timeout) {
+    if (msg.length > 235 && this.multiLine) {
+        var lines = msg.replace(/.{235}\S*\s+/g, '$&¤').split(/\s+¤/);
+        for (var i = 0; i < lines.length; i++) {
+            msg = lines[i];
+            if (i > 0) {
+                msg = '(continued) ' + msg;
+            }
+            queueChat(msg, timeout);
+            if (i + 1 >= this.multiLineLimit) {
+                break;
+            }
+        }
+    } else {
+        queueChat(msg, timeout);
     }
-    queueREST('POST', endpoints.MODERATE_ADD_DJ, {
-        id: uid
-    }, callback);
-    return true;
 };
 
-PlugAPI.prototype.moderateRemoveDJ = function(uid, callback) {
-    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || (!room.isDJ(uid) && !room.isInWaitList(uid)) || (room.getBoothMeta().isLocked && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER))) {
-        return false;
-    }
-    queueREST('DELETE', endpoints.MODERATE_REMOVE_DJ + uid, undefined, callback);
-    return true;
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Get the current avatar
+ * @returns {User.avatarID|String} AvatarID of the current avatar
+ */
+PlugAPI.prototype.getAvatar = function() {
+    return room.getUser().avatarID;
 };
 
-PlugAPI.prototype.moderateMoveDJ = function(uid, index, callback) {
-    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER) || !room.isInWaitList(uid) || isNaN(index)) {
-        return false;
-    }
-    queueREST('POST', endpoints.MODERATE_MOVE_DJ, {
-        userID: uid,
-        position: index > 50 ? 49 : index < 1 ? 1 : --index
-    }, callback);
-    return true;
-};
-
-PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
+/**
+ * Get all available avatars
+ * @param {RESTCallback} callback Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.getAvatars = function(callback) {
     if (!room.getRoomMeta().slug) return false;
-    var user = this.getUser(uid);
-    if (user ? room.getPermissions(user).canModBan : this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER)) {
-        reason = Number(reason || 1);
-        if (!duration) duration = this.BAN.PERMA;
-        if (duration === this.BAN.PERMA && this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) duration = this.BAN.DAY;
-        queueREST('POST', endpoints.MODERATE_BAN, {
-            userID: uid,
-            reason: reason,
-            duration: duration
-        }, callback);
-    }
+    queueREST('GET', endpoints.USER_GET_AVATARS, undefined, callback);
     return true;
 };
 
-PlugAPI.prototype.moderateUnbanUser = function(uid, callback) {
-    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) return false;
-    queueREST('DELETE', endpoints.MODERATE_UNBAN + uid, undefined, callback);
-    return true;
-};
-PlugAPI.prototype.moderateForceSkip = function(callback) {
-    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || room.getDJ() === null) return false;
-    queueREST('POST', endpoints.MODERATE_SKIP, {
-        userID: room.getDJ().id,
-        historyID: room.getHistoryID()
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Set avatar
+ * Be sure you only use avatars that are available {@link PlugAPI.prototype.getAvatars}
+ * @param {String} avatar Avatar ID
+ * @param {RESTCallback} callback Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.setAvatar = function(avatar, callback) {
+    if (!room.getRoomMeta().slug || !avatar) return false;
+    queueREST('PUT', endpoints.USER_SET_AVATAR, {
+        id: avatar
     }, callback);
     return true;
 };
 
-PlugAPI.prototype.moderateDeleteChat = function(cid, callback) {
-    if (!room.getRoomMeta().slug) return false;
-    var user = this.getUser(cid.split('-')[0]);
-    if (user ? room.getPermissions(user).canModChat : this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER)) {
-        queueREST('DELETE', endpoints.CHAT_DELETE + cid, undefined, callback, undefined, true);
-    }
-    return true;
-};
-
-PlugAPI.prototype.moderateLockWaitList = function(locked, clear, callback) {
-    return this.moderateLockBooth(locked, clear, callback);
-};
-
-PlugAPI.prototype.moderateSetRole = function(uid, role, callback) {
-    if (!room.getRoomMeta().slug || isNaN(role)) return false;
-    var user = this.getUser(uid);
-    if (user ? room.getPermissions(user).canModStaff : this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
-        queueREST('POST', endpoints.MODERATE_PERMISSIONS, {
-            userID: uid,
-            roleID: role
-        }, callback);
-    }
-    return true;
-};
-
-PlugAPI.prototype.moderateLockBooth = function(locked, clear, callback) {
-    if (!room.getRoomMeta().slug || this.getUser() === null || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER) || (locked === room.getBoothMeta().isLocked && !clear)) return false;
-    queueREST('PUT', endpoints.ROOM_LOCK_BOOTH, {
-        isLocked: locked,
-        removeAllDJs: clear
-    }, callback);
-    return true;
-};
-
-PlugAPI.prototype.getUsers = function() {
-    return room.getUsers();
-};
-
 /**
- * Get specific user in the community
- * @param {Number} [uid]
- * @return {*}
+ * Get plug.dj admins currently in the community
+ * @returns {Array}
  */
-PlugAPI.prototype.getUser = function(uid) {
-    return room.getUser(uid);
+PlugAPI.prototype.getAdmins = function() {
+    return room.getAdmins();
 };
 
-/**
- * Get users in the community that aren't DJing nor in the waitlist
- * @return {Array}
- */
-PlugAPI.prototype.getAudience = function() {
-    return room.getAudience();
-};
-
-/**
- * Get the DJ
- * @return {*}
- */
-PlugAPI.prototype.getDJ = function() {
-    return room.getDJ();
-};
-
-/**
- * Get the DJ and users in the waitlist
- * @return {Array}
- */
-PlugAPI.prototype.getDJs = function() {
-    return room.getDJs();
-};
-
-/**
- * Get staff currently in the community
- * @return {Array}
- */
-PlugAPI.prototype.getStaff = function() {
-    return room.getStaff();
-};
-
+//noinspection JSUnusedGlobalSymbols
 /**
  * Get all staff for the community, also offline.
- * @param {Function} callback
+ * @param {RESTCallback} callback
  */
 PlugAPI.prototype.getAllStaff = function(callback) {
     if (!callback || typeof callback !== 'function') {
@@ -1420,16 +1524,40 @@ PlugAPI.prototype.getAllStaff = function(callback) {
 };
 
 /**
- * Get plug.dj admins currently in the community
- * @return {*}
+ * Get all ambassadors in the community
+ * @returns {Array}
  */
-PlugAPI.prototype.getAdmins = function() {
-    return room.getAdmins();
+PlugAPI.prototype.getAmbassadors = function() {
+    return room.getAmbassadors();
 };
 
 /**
- * Get the user object for the host
- * @returns {*}
+ * Get users in the community that aren't DJing nor in the waitlist
+ * @returns {Array}
+ */
+PlugAPI.prototype.getAudience = function() {
+    return room.getAudience();
+};
+
+/**
+ * Get the current DJ
+ * @returns {User|null} Current DJ or {null} if no one is currently DJing
+ */
+PlugAPI.prototype.getDJ = function() {
+    return room.getDJ();
+};
+
+/**
+ * Get the DJ and users in the waitlist
+ * @returns {Array}
+ */
+PlugAPI.prototype.getDJs = function() {
+    return room.getDJs();
+};
+
+/**
+ * Host if in community, otherwise null
+ * @returns {User|null}
  */
 PlugAPI.prototype.getHost = function() {
     return room.getHost();
@@ -1437,15 +1565,40 @@ PlugAPI.prototype.getHost = function() {
 
 /**
  * Get the user object for yourself
- * @returns {*}
+ * @returns {User|null}
  */
 PlugAPI.prototype.getSelf = function() {
     return room.getSelf();
 };
 
 /**
+ * Get staff currently in the community
+ * @returns {User[]}
+ */
+PlugAPI.prototype.getStaff = function() {
+    return room.getStaff();
+};
+
+/**
+ * Get specific user in the community
+ * @param {Number} [uid]
+ * @returns {User[]|null}
+ */
+PlugAPI.prototype.getUser = function(uid) {
+    return room.getUser(uid);
+};
+
+/**
+ * Get all users in the community
+ * @returns {User[]}
+ */
+PlugAPI.prototype.getUsers = function() {
+    return room.getUsers();
+};
+
+/**
  * Get all DJs in waitlist
- * @returns {*}
+ * @returns {User[]}
  */
 PlugAPI.prototype.getWaitList = function() {
     return room.getWaitList();
@@ -1453,8 +1606,8 @@ PlugAPI.prototype.getWaitList = function() {
 
 /**
  * Get a user's position in waitlist
- * @param {int} uid User ID
- * @returns {number} Position in waitlist.
+ * @param {Number} [uid] User ID
+ * @returns {Number} Position in waitlist.
  * If current DJ, it returns 0.
  * If not in waitlist, it returns -1
  */
@@ -1462,18 +1615,34 @@ PlugAPI.prototype.getWaitListPosition = function(uid) {
     return room.getWaitListPosition(uid);
 };
 
-PlugAPI.prototype.getAmbassadors = function() {
-    return room.getAmbassadors();
+/**
+ * Implementation of plug.dj havePermission method
+ * @param {undefined|Number} uid
+ * @param {Number} permission Permission number
+ * @param {Boolean} [global] Only check global permission
+ */
+PlugAPI.prototype.havePermission = function(uid, permission, global) {
+    if (global) return room.haveGlobalPermission(uid, permission);
+    return room.haveRoomPermission(uid, permission) || room.haveGlobalPermission(uid, permission);
 };
 
-PlugAPI.prototype.getMedia = function() {
-    return room.getMedia();
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Get current status of user
+ * @param {Number} [uid] User ID
+ * @returns {User.status|Number}
+ */
+PlugAPI.prototype.getStatus = function(uid) {
+    return room.getUser(uid).status;
 };
 
-PlugAPI.prototype.getRoomScore = function() {
-    return room.getRoomScore();
-};
-
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Change status
+ * @param {Number} status
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
 PlugAPI.prototype.setStatus = function(status, callback) {
     if (!room.getRoomMeta().slug || !status || status < 0 || status > 3) return false;
     queueREST('PUT', endpoints.USER_SET_STATUS, {
@@ -1481,71 +1650,669 @@ PlugAPI.prototype.setStatus = function(status, callback) {
     }, callback);
     return true;
 };
-/*
- PlugAPI.prototype.createPlaylist = function(name, callback) {
- if (!room.getRoomMeta().slug || !name) return false;
- queueREST(rpcNames.PLAYLIST_CREATE, name, callback);
- return true;
- };
+
+/**
+ * Get time elapsed of current song
+ * @returns {Number} Seconds elapsed, -1 if no song is currently playing
  */
-PlugAPI.prototype.addSongToPlaylist = function(playlistId, songId, callback) {
-    if (!room.getRoomMeta().slug || !playlistId || !songId) return false;
-    queueREST('GET', endpoints.PLAYLIST + '/' + playlistId + '/media/insert', {
-        media: songId,
-        append: true
+PlugAPI.prototype.getTimeElapsed = function() {
+    if (!room.getRoomMeta().slug || room.getMedia() == null) {
+        return -1;
+    }
+    return Math.min(room.getMedia().duration, DateUtilities.getSecondsElapsed(room.getStartTime()));
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Get time remaining of current song
+ * @returns {number} Seconds remaining, -1 if no song is currently playing
+ */
+PlugAPI.prototype.getTimeRemaining = function() {
+    if (!room.getRoomMeta().slug || room.getMedia() == null) {
+        return -1;
+    }
+    return room.getMedia().duration - this.getTimeElapsed();
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Get the command prefix
+ * @returns {String}
+ */
+PlugAPI.prototype.getCommandPrefix = function() {
+    return commandPrefix;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Set the command prefix
+ * @param prefix
+ * @returns {Boolean} True if set
+ */
+PlugAPI.prototype.setCommandPrefix = function(prefix) {
+    if (!prefix || typeof prefix !== 'string' || prefix.length < 1) {
+        return false;
+    }
+    commandPrefix = prefix;
+    return true;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Get the Logger settings
+ * @returns {{fileOutput: boolean, filePath: string, consoleOutput: boolean}}
+ */
+PlugAPI.prototype.getLoggerSettings = function() {
+    return logger.settings;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Set the Logger object, must contain a info, warn, warning and error function
+ * @param {Logger|Object} newLogger
+ * @returns {Boolean} True if set
+ */
+PlugAPI.prototype.setLogger = function(newLogger) {
+    var requiredMethods = ['info', 'warn', 'warning', 'error'];
+
+    if (newLogger && typeof newLogger === 'object' && !util.isArray(newLogger)) {
+        for (var i in requiredMethods) {
+            if (!requiredMethods.hasOwnProperty(i)) continue;
+            if (typeof newLogger[requiredMethods[i]] !== 'function')
+                return false;
+        }
+        logger = newLogger;
+        return true;
+    }
+    return false;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Woot current song
+ * @param {RESTCallback} [callback]
+ */
+PlugAPI.prototype.woot = function(callback) {
+    if (this.getMedia() == null) return false;
+    queueREST('POST', 'votes', {
+        direction: 1,
+        historyID: room.getHistoryID()
     }, callback);
     return true;
 };
 
-PlugAPI.prototype.getPlaylists = function(callback) {
-    if (!room.getRoomMeta().slug) return false;
-    queueREST('GET', endpoints.PLAYLIST, undefined, callback);
-    return true;
-};
-
-PlugAPI.prototype.activatePlaylist = function(playlist_id, callback) {
-    if (!room.getRoomMeta().slug || !playlist_id) return false;
-    queueREST('PUT', endpoints.PLAYLIST + '/' + playlist_id + '/activate', undefined, callback);
-    return true;
-};
-PlugAPI.prototype.deletePlaylist = function(playlist_id, callback) {
-    if (!room.getRoomMeta().slug || !playlist_id) return false;
-    queueREST('DELETE', endpoints.PLAYLIST + '/' + playlist_id, undefined, callback);
-    return true;
-};
-PlugAPI.prototype.shufflePlaylist = function(playlist_id, callback) {
-    if (!room.getRoomMeta().slug || !playlist_id) return false;
-    queueREST('PUT', endpoints.PLAYLIST + '/' + playlist_id + '/shuffle', undefined, callback);
-    return true;
-};
-/*PlugAPI.prototype.playlistMoveSong = function(playlist_id, song_id, position, callback) {
- if (!room.getRoomMeta().slug || !playlist_id || !song_id || !position) return false;
- queueREST(endpoints.PLAYLIST +'/' +playlist_id + '/media/move', {
- ids: song_id
- }, callback);
- return true;
- };*/
-
-PlugAPI.prototype.setAvatar = function(avatar, callback) {
-    if (!room.getRoomMeta().slug || !avatar) return false;
-    queueREST('PUT', endpoints.USER_SET_AVATAR, {
-        id: avatar
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Meh current song
+ * @param {RESTCallback} [callback]
+ */
+PlugAPI.prototype.meh = function(callback) {
+    if (this.getMedia() == null) return false;
+    queueREST('POST', 'votes', {
+        direction: -1,
+        historyID: room.getHistoryID()
     }, callback);
     return true;
 };
 
 /**
- * Implementation of plug.dj havePermission method
- * @param {undefined|Number} [uid]
- * @param {Number} permission
- * @param {Boolean} [global]
+ * Grab current song
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
  */
-PlugAPI.prototype.havePermission = function(uid, permission, global) {
-    if (global) return room.haveGlobalPermission(uid, permission);
-    return room.haveRoomPermission(uid, permission) || room.haveGlobalPermission(uid, permission);
+PlugAPI.prototype.grab = function(callback) {
+    if (!initialized || this.getMedia() == null) return false;
+
+    var playlist = that.getActivePlaylist();
+    if (playlist == null) return false;
+
+    var callbackWrapper = function(err, data) {
+        if (!err)
+            playlist.count++;
+        if (typeof callback == 'function')
+            callback(err, data);
+    };
+
+    queueREST('POST', 'grabs', {
+        playlistID: playlist.id,
+        historyID: room.getHistoryID()
+    }, callbackWrapper);
+    return true;
 };
 
-PlugAPI.prototype.listen = function(port, address) {
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Activate a playlist
+ * @param {Number} pid Playlist ID
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.activatePlaylist = function(pid, callback) {
+    if (!room.getRoomMeta().slug || !pid) return false;
+
+    var playlist = this.getPlaylist(pid);
+    if (playlist == null) return false;
+
+    var callbackWrapper = function(err, data) {
+        if (!err) {
+            that.getActivePlaylist().active = false;
+            playlist.active = true;
+        }
+        if (typeof callback == 'function')
+            callback(err, data);
+    };
+
+    queueREST('PUT', endpoints.PLAYLIST + '/' + pid + '/activate', undefined, callbackWrapper);
+    return true;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Add a song to a playlist
+ * @param {Number} pid Playlist ID
+ * @param sid Song ID
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.addSongToPlaylist = function(pid, sid, callback) {
+    if (!room.getRoomMeta().slug || !pid || !sid) return false;
+
+    var playlist = that.getPlaylist(pid);
+    if (playlist == null) return false;
+
+    var callbackWrapper = function(err, data) {
+        if (!err)
+            playlist.count++;
+        if (typeof callback == 'function')
+            callback(err, data);
+    };
+
+    queueREST('GET', endpoints.PLAYLIST + '/' + pid + '/media/insert', {
+        media: sid,
+        append: true
+    }, callbackWrapper);
+    return true;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Create a new playlist
+ * @param {String} name Name of new playlist
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.createPlaylist = function(name, callback) {
+    if (!room.getRoomMeta().slug || typeof name != 'String' || name.length == 0) return false;
+
+    var callbackWrapper = function(err, data) {
+        if (!err)
+            playlists.push(data[0]);
+        if (typeof callback == 'function')
+            callback(err, data);
+    };
+
+    queueREST('POST', endpoints.PLAYLIST, {name: name}, callbackWrapper);
+    return true;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Delete a playlist
+ * @param {Number} pid Playlist ID
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.deletePlaylist = function(pid, callback) {
+    if (!room.getRoomMeta().slug || !pid) return false;
+
+    if (this.getPlaylist(pid) == null) return false;
+
+    var callbackWrapper = function(err, data) {
+        if (!err) {
+            var playlistsData = playlists.get();
+            for (var i in playlistsData) {
+                if (!playlistsData.hasOwnProperty(i)) continue;
+                if (playlistsData[i].id == pid) {
+                    playlists.removeAt(i);
+                    break;
+                }
+            }
+        }
+        if (typeof callback == 'function')
+            callback(err, data);
+    };
+
+    queueREST('DELETE', endpoints.PLAYLIST + '/' + pid, undefined, callbackWrapper);
+    return true;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Get active playlist
+ * @returns {Object|null}
+ */
+PlugAPI.prototype.getActivePlaylist = function() {
+    var playlistsData = playlists.get();
+    for (var i in playlistsData) {
+        if (!playlistsData.hasOwnProperty(i)) continue;
+        if (playlistsData[i].active) {
+            return playlistsData[i];
+        }
+    }
+    return null;
+};
+
+/**
+ * Get playlist by ID
+ * @param {Number} [pid] Playlist ID
+ * @returns {Object|null}
+ */
+PlugAPI.prototype.getPlaylist = function(pid) {
+    var playlistsData = playlists.get();
+    for (var i in playlistsData) {
+        if (!playlistsData.hasOwnProperty(i)) continue;
+        if (playlistsData[i].id == pid) {
+            return playlistsData[i];
+        }
+    }
+    return null;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Get playlists
+ * @params {Function} callback Callback function (without err)
+ * @returns {Array}
+ */
+PlugAPI.prototype.getPlaylists = function(callback) {
+    return playlists.get(callback);
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Get all medias in playlist
+ * @param {Number} pid Playlist ID
+ * @param {RESTCallback} callback Callback function
+ */
+PlugAPI.prototype.getPlaylistMedias = function(pid, callback) {
+    if (this.getPlaylist(pid) == null) return false;
+
+    queueREST("GET", endpoints.PLAYLIST + '/' + pid + '/media', undefined, callback);
+    return true;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Move a media in a playlist
+ * @param {Number} pid Playlist ID
+ * @param {Number|Number[]} mid Media ID(s)
+ * @param {Number} before_mid Move them before this media ID
+ * @param {RESTCallback} [callback] Callback function
+ */
+PlugAPI.prototype.playlistMoveMedia = function(pid, mid, before_mid, callback) {
+    if (!room.getRoomMeta().slug || !pid || !mid || (!util.isArray(mid) || (util.isArray(mid) && mid.length > 0)) || !before_mid) return false;
+
+    if (this.getPlaylist(pid) == null) return false;
+
+    if (!util.isArray(mid))
+        mid = [mid];
+
+    queueREST("PUT", endpoints.PLAYLIST + '/' + pid + '/media/move', {
+        ids: mid,
+        beforeID: before_mid
+    }, callback);
+    return true;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Shuffle playlist
+ * @param {Number} pid Playlist ID
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.shufflePlaylist = function(pid, callback) {
+    if (!room.getRoomMeta().slug || !pid) return false;
+
+    if (this.getPlaylist(pid) == null) return false;
+
+    queueREST('PUT', endpoints.PLAYLIST + '/' + pid + '/shuffle', undefined, callback);
+    return true;
+};
+
+/**
+ * Add a DJ to Waitlist/Booth
+ * @param {Number} uid User ID
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.moderateAddDJ = function(uid, callback) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || room.isDJ(uid) || room.isInWaitList(uid) || (room.getBoothMeta().isLocked && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER))) {
+        return false;
+    }
+
+    queueREST('POST', endpoints.MODERATE_ADD_DJ, {
+        id: uid
+    }, callback);
+    return true;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Ban a user from the community
+ * @param {Number} uid User ID
+ * @param {Number} reason Reason ID
+ * @param {String} duration Duration of the ban
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
+    if (!room.getRoomMeta().slug) return false;
+
+    if (duration != null) {
+        if (!objectContainsValue(PlugAPI.BAN, duration)) return false;
+    } else {
+        duration = PlugAPI.BAN.LONG;
+    }
+
+    if (reason != null) {
+        if (!objectContainsValue(PlugAPI.BAN_REASON, reason)) return false;
+    } else {
+        reason = PlugAPI.BAN_REASON.SPAMMING_TROLLING;
+    }
+
+    var user = this.getUser(uid);
+    if (user !== null ? room.getPermissions(user).canModBan : this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER)) {
+        if (duration === PlugAPI.BAN.PERMA && this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
+            duration = PlugAPI.BAN.DAY;
+        }
+
+        queueREST('POST', endpoints.MODERATE_BAN, {
+            userID: uid,
+            reason: reason,
+            duration: duration
+        }, callback);
+    }
+    return true;
+};
+
+/**
+ * Delete a chat message
+ * @param {String} cid Chat ID
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.moderateDeleteChat = function(cid, callback) {
+    if (!room.getRoomMeta().slug || typeof cid != 'string') {
+        return false;
+    }
+
+    var user = this.getUser(cid.split('-')[0]);
+    if (user !== null ? room.getPermissions(user).canModChat : this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER)) {
+        queueREST('DELETE', endpoints.CHAT_DELETE + cid, undefined, callback, true);
+        return true;
+    }
+    return false;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Skip current media
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.moderateForceSkip = function(callback) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || room.getDJ() === null) {
+        return false;
+    }
+
+    queueREST('POST', endpoints.MODERATE_SKIP, {
+        userID: room.getDJ().id,
+        historyID: room.getHistoryID()
+    }, callback);
+    return true;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Lock/Clear the waitlist/booth
+ * Alias for {@link PlugAPI.prototype.moderateLockBooth}
+ * @param {Boolean} locked Lock the waitlist/booth
+ * @param {Boolean} clear Clear the waitlist
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.moderateLockWaitList = function(locked, clear, callback) {
+    return this.moderateLockBooth(locked, clear, callback);
+};
+
+/**
+ * Lock/Clear the waitlist/booth
+ * @param {Boolean} locked Lock the waitlist/booth
+ * @param {Boolean} clear Clear the waitlist
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.moderateLockBooth = function(locked, clear, callback) {
+    if (!room.getRoomMeta().slug || this.getUser() === null || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER) || (locked === room.getBoothMeta().isLocked && !clear)) {
+        return false;
+    }
+
+    queueREST('PUT', endpoints.ROOM_LOCK_BOOTH, {
+        isLocked: locked,
+        removeAllDJs: clear
+    }, callback);
+    return true;
+};
+
+/**
+ * Move a DJ in the waitlist
+ * @param {Number} uid User ID
+ * @param {Number} index New position in the waitlist
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.moderateMoveDJ = function(uid, index, callback) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER) || !room.isInWaitList(uid) || isNaN(index)) {
+        return false;
+    }
+
+    queueREST('POST', endpoints.MODERATE_MOVE_DJ, {
+        userID: uid,
+        position: index > 50 ? 49 : index < 1 ? 1 : --index
+    }, callback);
+    return true;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Mute user
+ * @param {Number} uid User ID
+ * @param {Number} [reason] Reason ID
+ * @param {String} [duration] Duration ID
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.moderateMuteUser = function(uid, reason, duration, callback) {
+    if (!room.getRoomMeta().slug) return false;
+
+    if (duration != null) {
+        if (!objectContainsValue(PlugAPI.MUTE, duration)) return false;
+    } else {
+        duration = PlugAPI.MUTE.LONG;
+    }
+
+    if (reason != null) {
+        if (!objectContainsValue(PlugAPI.MUTE_REASON, reason)) return false;
+    } else {
+        reason = PlugAPI.MUTE_REASON.VIOLATING_COMMUNITY_RULES;
+    }
+
+    var user = this.getUser(uid);
+    if (user !== null ? room.getPermissions(user).canModMute : this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER)) {
+        queueREST('POST', endpoints.MODERATE_MUTE, {
+            userID: uid,
+            reason: reason,
+            duration: duration
+        }, callback);
+    }
+    return true;
+};
+
+/**
+ * Remove a DJ from Waitlist/Booth
+ * @param {Number} uid User ID
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.moderateRemoveDJ = function(uid, callback) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.BOUNCER) || (!room.isDJ(uid) && !room.isInWaitList(uid)) || (room.getBoothMeta().isLocked && !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER))) {
+        return false;
+    }
+
+    queueREST('DELETE', endpoints.MODERATE_REMOVE_DJ + uid, undefined, callback);
+    return true;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Set the role of a user
+ * @param {Number} uid User ID
+ * @param {Number} role The new role
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.moderateSetRole = function(uid, role, callback) {
+    if (!room.getRoomMeta().slug || isNaN(role) || role < 0 || role > 5) {
+        return false;
+    }
+
+    var user = this.getUser(uid);
+    if (user !== null ? room.getPermissions(user).canModStaff : this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
+        queueREST('POST', endpoints.MODERATE_PERMISSIONS, {
+            userID: uid,
+            roleID: role
+        }, callback);
+    }
+    return true;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Unban a user
+ * @param {Number} uid User ID
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.moderateUnbanUser = function(uid, callback) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
+        return false;
+    }
+
+    queueREST('DELETE', endpoints.MODERATE_UNBAN + uid, undefined, callback);
+    return true;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Unmute a user
+ * @param {Number} uid User ID
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.moderateUnmuteUser = function(uid, callback) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
+        return false;
+    }
+
+    queueREST('DELETE', endpoints.MODERATE_UNMUTE + uid, undefined, callback);
+    return true;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Change the name of the community
+ * @param {String} name New community name
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.changeRoomName = function(name, callback) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST) || room.getRoomMeta().name == name) {
+        return false;
+    }
+
+    queueREST('POST', endpoints.ROOM_INFO, {
+        name: name,
+        description: undefined,
+        welcome: undefined
+    }, callback);
+    return true;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Change the description of the community
+ * @param {String} description New community description
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.changeRoomDescription = function(description, callback) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST) || room.getRoomMeta().description == description) {
+        return false;
+    }
+
+    queueREST('POST', endpoints.ROOM_INFO, {
+        name: undefined,
+        description: description,
+        welcome: undefined
+    }, callback);
+    return true;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Change the welcome message of the community
+ * @param {String} welcome New community welcome
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.changeRoomWelcome = function(welcome, callback) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.COHOST) || room.getRoomMeta().welcome == welcome) {
+        return false;
+    }
+
+    queueREST('POST', endpoints.ROOM_INFO, {
+        name: undefined,
+        description: undefined,
+        welcome: welcome
+    }, callback);
+    return true;
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Change the DJ cycle of the community
+ * @param {Boolean} enabled
+ * @param {RESTCallback} [callback] Callback function
+ * @returns {Boolean} If the REST request got queued
+ */
+PlugAPI.prototype.changeDJCycle = function(enabled, callback) {
+    if (!room.getRoomMeta().slug || !this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER) || room.getBoothMeta().shouldCycle == enabled) {
+        return false;
+    }
+
+    queueREST('PUT', endpoints.ROOM_CYCLE_BOOTH, {
+        shouldCycle: enabled
+    }, callback);
+    return true;
+};
+
+/**
+ * Open a HTTP server
+ * @param {Number} port
+ * @param {String} [hostname]
+ */
+PlugAPI.prototype.listen = function(port, hostname) {
     var _this = this;
     http.createServer(function(req, res) {
         var dataStr = '';
@@ -1556,10 +2323,16 @@ PlugAPI.prototype.listen = function(port, address) {
             req._POST = querystring.parse(dataStr);
             _this.emit('httpRequest', req, res);
         });
-    }).listen(port, address);
+    }).listen(port, hostname);
 };
 
-PlugAPI.prototype.tcpListen = function(port, address) {
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Open a TCP server
+ * @param {Number} port
+ * @param {String} [hostname]
+ */
+PlugAPI.prototype.tcpListen = function(port, hostname) {
     var _this = this;
     net.createServer(function(socket) {
         socket.on('connect', function() {
@@ -1574,6 +2347,7 @@ PlugAPI.prototype.tcpListen = function(port, address) {
         socket.on('end', function() {
             _this.emit('tcpEnd', socket);
         });
-    }).listen(port, address);
+    }).listen(port, hostname);
 };
+
 module.exports = PlugAPI;

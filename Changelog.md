@@ -1,7 +1,16 @@
 plugAPI Changelog
 =================
 
-3.0.0-dev
+3.1.1
+---------
+* **FIXED:** Update for Go DJ web socket
+
+3.1.0
+---------
+* **ADDED:** Added utils
+* **FIXED:** Fixed being unable to lock and unlock the booth without reloading the bot. (#57)
+
+3.0.0
 ---------
 * **FIXED:** Working with plug.dj > v1.0.0
  * New connection method for socket server (Chat server and socket server combined)

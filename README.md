@@ -14,8 +14,9 @@ Run the following:
 
 ```npm install plugapi --production```
 
-To connect, do this!
+You can choose to instantiate the instance both sync or async.
 
+**Sync**
 ```javascript
 var PlugAPI = require('plugapi');
 
@@ -30,6 +31,22 @@ bot.on('roomJoin', function(room) {
 });
 ```
 
+**Async**
+```javascript
+var PlugAPI = require('plugapi');
+
+new PlugAPI({
+    "email": "",
+    "password": ""
+}, function(bot) {
+    bot.connect('roomslug'); // The part after https://plug.dj
+    
+    bot.on('roomJoin', function(room) {
+        console.log("Joined " + room);
+    });
+});
+```
+
 ## Examples
 Here are some bots using this API.
 
@@ -37,6 +54,7 @@ Here are some bots using this API.
 | ---------------------------------------------------- | --------------------------------------------------------------- |
 | [BeavisBot](https://github.com/AvatarKava/BeavisBot) | [I <3 the 80's and 90's](https://plug.dj/i-the-80-s-and-90-s-1) |                                           
 | AuntJackie                                           | [Mix-N-Mash](https://plug.dj/mix-n-mash-2)                      |
+| -DnB-                                                | [Drum & Bass](https://plug.dj/drum-bass)                        |
 | FlavorBar                                            | [Flavorz](https://plug.dj/flavorz)                              |
 | FoxBot                                               | [Approaching Nirvana](https://plug.dj/approachingnirvana)       |
 

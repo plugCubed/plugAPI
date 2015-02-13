@@ -1,6 +1,6 @@
 {
     "name": "plugapi",
-    "version": "3.0.0",
+    "version": "3.1.1",
     "author": "Thomas Andresen <TAT@plugCubed.net>",
     "description": "Generic API for building plug.dj bots",
     "contributors": [{
@@ -15,7 +15,7 @@
         "name": "Chris Bellew",
         "email": "atomjack@gmail.com"
     }],
-    "main": "./src/client.js",
+    "main": "./bin/client.js",
     "keywords": [
         "plug.dj",
         "plug",

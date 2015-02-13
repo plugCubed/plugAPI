@@ -1,5 +1,6 @@
-var chalk, months, levels;
+var fs, chalk, months, levels;
 
+fs = require('fs');
 chalk = require('chalk');
 months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 levels = {
@@ -28,7 +29,17 @@ function chalkPaint(sidewalkChalks, text) {
     return combinedChalk(text);
 }
 
-module.exports = function(channel) {
+function Logger(channel) {
+    /**
+     * Settings for Logger
+     * @type {{fileOutput: boolean, filePath: string, consoleOutput: boolean}}
+     */
+    var settings = {
+        fileOutput: false,
+        filePath: '',
+        consoleOutput: true
+    };
+
     function createLogFunc(level) {
         return function() {
             var args = Array.prototype.slice.call(arguments);
@@ -40,6 +51,7 @@ module.exports = function(channel) {
     function log() {
         var args = Array.prototype.slice.call(arguments);
         var level = 'info';
+
         if (levels[args[0]] !== undefined) {
             level = args.shift();
         }
@@ -50,14 +62,23 @@ module.exports = function(channel) {
         args.unshift(chalkPaint(levels[level], '[' + level.toUpperCase() + ']'));
         args.unshift(timestamp());
 
-        console.log.apply(console, args);
+        if (settings.consoleOutput) {
+            console.log.apply(console, args);
+        }
+
+        if (settings.fileOutput) {
+            fs.appendFileSync(settings.filePath, chalk.stripColor(args.join(' ')) + '\n');
+        }
     }
 
     return {
+        settings: settings,
         success: createLogFunc('success'),
         info: createLogFunc('info'),
         warn: createLogFunc('warning'),
         warning: createLogFunc('warning'),
         error: createLogFunc('error')
     };
-};
+}
+
+module.exports = Logger;

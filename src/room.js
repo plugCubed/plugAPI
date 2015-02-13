@@ -12,7 +12,7 @@ var User = function(data) {
     this.badge = data.badge ? data.badge : 0;
     this.blurb = data.blurb ? data.blurb : undefined;
     this.ep = data.ep ? data.ep : undefined;
-    this.gRole = data.gRole ? data.gRole : 0;
+    this.gRole = data.gRole !== null ? data.gRole : 0;
     this.grab = grabs[data.id] === true;
     this.id = data.id ? data.id : -1;
     this.ignores = data.ignores ? data.ignores : undefined;
@@ -36,16 +36,27 @@ User.prototype.toString = function() {
 
 var cacheUsers = {};
 
-var booth, fx, grabs, meta, mutes, playback, self, role, users, votes;
-booth = {
+/**
+ * @type {{currentDJ: number, isLocked: boolean, shouldCycle: boolean, waitingDJs: Array}}
+ */
+var booth = {
     currentDJ: -1,
     isLocked: false,
     shouldCycle: true,
     waitingDJs: []
 };
-fx = [];
-grabs = {};
-meta = {
+/**
+ * @type {Array}
+ */
+var fx = [];
+/**
+ * @type {{}}
+ */
+var grabs = {};
+/**
+ * @type {{description: string, favorite: boolean, hostID: number, hostName: string, id: number, name: string, population: number, slug: string, welcome: string}}
+ */
+var meta = {
     description: '',
     favorite: false,
     hostID: -1,
@@ -56,8 +67,14 @@ meta = {
     slug: '',
     welcome: ''
 };
-mutes = {};
-playback = {
+/**
+ * @type {{}}
+ */
+var mutes = {};
+/**
+ * @type {{historyID: string, media: {author: string, cid: string, duration: number, format: number, id: number, image: string, title: string}, playlistID: number, startTime: string}}
+ */
+var playback = {
     historyID: '',
     media: {
         author: '',
@@ -71,10 +88,31 @@ playback = {
     playlistID: -1,
     startTime: ''
 };
-self = {};
-role = 0;
-users = [];
-votes = {};
+/**
+ * @type {{}}
+ */
+var mySelf = {};
+/**
+ * @type {number}
+ */
+var role = 0;
+/**
+ * @type {Array}
+ */
+var users = [];
+/**
+ * @type {{}}
+ */
+var votes = {};
+
+
+setInterval(function() {
+    for (var i in mutes) {
+        if (!mutes.hasOwnProperty(i)) continue;
+        if (mutes[i] > 0)
+            mutes[i]--;
+    }
+}, 1e3);
 
 /**
  * Room data container
@@ -87,8 +125,8 @@ var Room = function() {
 
 /**
  * Make an array of userIDs to an array of user objects
- * @param {Array} ids
- * @return {Array}
+ * @param {Number[]} ids
+ * @return {User[]}
  */
 Room.prototype.usersToArray = function(ids) {
     var user, users;
@@ -138,56 +176,104 @@ Room.prototype.getPermissions = function(other) {
     return permissions;
 };
 
+/**
+ * Extend the User object
+ * @param {PlugAPI} instance Instance of PlugAPI client
+ */
 Room.prototype.registerUserExtensions = function(instance) {
+    //noinspection JSUnusedGlobalSymbols
     /**
      * Add the user to the waitlist
      */
     User.prototype.addToWaitList = function() {
         instance.moderateAddDJ(this.id);
     };
+
+    //noinspection JSUnusedGlobalSymbols
     /**
      * Remove the user from the waitlist
      */
     User.prototype.removeFromWaitList = function() {
         instance.moderateRemoveDJ(this.id);
     };
+
+    //noinspection JSUnusedGlobalSymbols
     /**
      * Move the user to a new position in the waitlist
-     * @param {int} pos New position
+     * @param {Number} pos New position
      */
     User.prototype.moveInWaitList = function(pos) {
         instance.moderateMoveDJ(this.id, pos);
     };
-}
+};
 
+//noinspection JSUnusedGlobalSymbols
 /**
  * Implementation of plug.dj methods
  * Gets the permissions over another user by userID
- * @param {Number} uid Other userID
+ * @param {Number} [uid] Other userID
  * @return {{canModChat: boolean, canModMute: boolean, canModBan: boolean, canModStaff: boolean}}
  */
 Room.prototype.getPermissionsID = function(uid) {
     return this.getPermissions(this.getUser(uid));
 };
 
+/**
+ * Check if a user have a certain permission in the room staff
+ * @param {Number|undefined} uid User ID
+ * @param {Number} permission
+ * @returns {boolean}
+ */
 Room.prototype.haveRoomPermission = function(uid, permission) {
     var user = this.getUser(uid);
     return !(user == null || user.role < permission);
 };
 
+/**
+ * Check if a user have a certain permission in the global staff (admins, ambassadors)
+ * @param {Number|undefined} uid User ID
+ * @param {Number} permission
+ * @returns {boolean}
+ */
 Room.prototype.haveGlobalPermission = function(uid, permission) {
     var user = this.getUser(uid);
     return !(user == null || user.gRole < permission);
 };
 
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Is user an ambassador?
+ * Can only check users in the room
+ * @param {Number} [uid]
+ * @returns {Boolean}
+ */
 Room.prototype.isAmbassador = function(uid) {
-    if (!uid) uid = self.id;
-    return this.haveGlobalPermission(uid, 2);
+    if (!uid) uid = mySelf.id;
+    return this.haveGlobalPermission(uid, 2) && !this.isAdmin(uid);
 };
 
-Room.prototype.isStaff = function(userid) {
-    if (!userid) userid = self.id;
-    return this.staff[userid] != null;
+/**
+ * Is user an admin?
+ * Can only check users in the room
+ * @param {Number} [uid]
+ * @returns {Boolean}
+ */
+Room.prototype.isAdmin = function(uid) {
+    if (!uid) uid = mySelf.id;
+    return this.haveGlobalPermission(uid, 5);
+};
+
+//noinspection JSUnusedGlobalSymbols
+/**
+ * Is user staff?
+ * Does not include global staff
+ * Can only check users in the room
+ * @param {Number} [uid]
+ * @returns {Boolean}
+ */
+Room.prototype.isStaff = function(uid) {
+    if (!uid) uid = mySelf.id;
+    return this.haveRoomPermission(uid, 1);
 };
 
 /**
@@ -196,7 +282,7 @@ Room.prototype.isStaff = function(userid) {
  * @return {boolean}
  */
 Room.prototype.isDJ = function(uid) {
-    if (!uid) uid = self.id;
+    if (!uid) uid = mySelf.id;
     return booth.currentDJ === uid;
 };
 
@@ -206,7 +292,7 @@ Room.prototype.isDJ = function(uid) {
  * @return {boolean}
  */
 Room.prototype.isInWaitList = function(uid) {
-    if (!uid) uid = self.id;
+    if (!uid) uid = mySelf.id;
     return this.getWaitListPosition(uid) > 0;
 };
 
@@ -259,7 +345,7 @@ Room.prototype.reset = function() {
  */
 Room.prototype.addUser = function(user) {
     // Don't add yourself
-    if (user.id === self.id) return;
+    if (user.id === mySelf.id) return;
 
     // Only add if the user doesn't exist
     if (this.getUser(user.id) === null) users.push(user);
@@ -302,42 +388,16 @@ Room.prototype.updateUser = function(data) {
     }
 };
 
-/*
- Room.prototype.setUsers = function(users) {
- var user, _i, _len, _results;
- this.users = {};
- _results = [];
- for (_i = 0, _len = users.length; _i < _len; _i++) {
- user = users[_i];
- _results.push(this.users[user.id] = user);
- }
- return _results;
- };
-
- Room.prototype.setStaff = function(ids) {
- this.staff = ids;
- return this.setPermissions();
- };
-
- Room.prototype.setAmbassadors = function(ids) {
- this.ambassadors = ids;
- return this.setPermissions();
- };
-
- Room.prototype.setAdmins = function(ids) {
- return this.admins = ids;
- };
-
- Room.prototype.setOwner = function(ownerId) {
- return this.owner = ownerId;
- };*/
+Room.prototype.isMuted = function(uid) {
+    return mutes[uid] != null && mutes[uid] > 0;
+};
 
 /**
- * Set self object
+ * Set mySelf object
  * @param {Object} data Self data
  */
 Room.prototype.setSelf = function(data) {
-    self = data;
+    mySelf = data;
 };
 
 /**
@@ -345,15 +405,25 @@ Room.prototype.setSelf = function(data) {
  * @param {Object} data Room data
  */
 Room.prototype.setRoomData = function(data) {
+    //noinspection JSUnresolvedVariable
     booth = data.booth;
+    //noinspection JSUnresolvedVariable
     fx = data.fx;
     grabs = data.grabs;
     meta = data.meta;
+    //noinspection JSUnresolvedVariable
     mutes = data.mutes;
+    //noinspection JSUnresolvedVariable
     playback = data.playback;
-    self.role = data.role;
+    mySelf.role = data.role;
+    //noinspection JSUnresolvedVariable
     users = data.users;
+    //noinspection JSUnresolvedVariable
     votes = data.votes;
+};
+
+Room.prototype.setBoothLocked = function(data){
+    booth.isLocked = data;
 };
 
 Room.prototype.setDJs = function(djs) {
@@ -373,6 +443,9 @@ Room.prototype.setMedia = function(mediaInfo, mediaStartTime) {
     playback.startTime = mediaStartTime;
 };
 
+/**
+ * @param {AdvanceEventObject} data
+ */
 Room.prototype.advance = function(data) {
     if (songHistory.length < 1) {
         setImmediate(this.advance, data);
@@ -381,16 +454,16 @@ Room.prototype.advance = function(data) {
 
     songHistory[0].room = this.getRoomScore();
 
-    this.setMedia(data.m, data.t);
-    this.setDJs(data.d);
+    this.setMedia(data.media, data.startTime);
+    this.setDJs(data.djs);
 
-    booth.currentDJ = data.c;
-    playback.historyID = data.h;
-    playback.playlistID = data.p;
+    booth.currentDJ = data.currentDJ;
+    playback.historyID = data.historyID;
+    playback.playlistID = data.playlistID;
 
     var historyObj = {
-        id: data.h,
-        media: data.m,
+        id: data.historyID,
+        media: data.media,
         room: {
             name: meta.name,
             slug: meta.slug
@@ -402,10 +475,10 @@ Room.prototype.advance = function(data) {
             negative: 0,
             skipped: 0
         },
-        timestamp: data.t,
+        timestamp: data.startTime,
         user: {
-            id: data.c,
-            username: this.getUser(data.c) === null ? '' : this.getUser(data.c).username
+            id: data.currentDJ,
+            username: this.getUser(data.currentDJ) === null ? '' : this.getUser(data.currentDJ).username
         }
     };
 
@@ -417,6 +490,28 @@ Room.prototype.advance = function(data) {
     cacheUsers = {};
 };
 
+Room.prototype.muteUser = function(data) {
+    //noinspection JSUnresolvedVariable
+    switch (data.d) {
+        // Unmute
+        case 'o':
+            mutes[data.i] = 0;
+            break;
+        // Short (15 minutes)
+        case 's':
+            mutes[data.i] = 900;
+            break;
+        // Medium (30 minutes)
+        case 'm':
+            mutes[data.i] = 1800;
+            break;
+        // Long (45 minutes)
+        case 'l':
+            mutes[data.i] = 2700;
+            break;
+    }
+};
+
 Room.prototype.setGrab = function(uid) {
     grabs[uid] = 1;
 };
@@ -426,17 +521,39 @@ Room.prototype.setVote = function(uid, vote) {
 };
 
 Room.prototype.setEarn = function(data) {
-    self.xp = data.xp;
-    self.ep = data.ep;
-    self.level = data.level;
+    mySelf.xp = data.xp;
+    mySelf.ep = data.ep;
+    mySelf.level = data.level;
+};
+
+/**
+ * Get the user object for yourself
+ * @returns {User}
+ */
+Room.prototype.getSelf = function() {
+    return mySelf != null ? new User(mySelf) : null;
+};
+
+/**
+ * Get specific user in the community
+ * @param {Number} [uid]
+ * @returns {User|null}
+ */
+Room.prototype.getUser = function(uid) {
+    if (!uid || uid === mySelf.id) return this.getSelf();
+    for (var i in users) {
+        if (!users.hasOwnProperty(i)) continue;
+        if (users[i].id === uid) return new User(users[i]);
+    }
+    return null;
 };
 
 /**
  * Get all users in the community
- * @returns {*}
+ * @returns {User[]}
  */
 Room.prototype.getUsers = function() {
-    return this.usersToArray([self.id].concat((function() {
+    return this.usersToArray([mySelf.id].concat((function() {
         var ids = [];
         for (var i in users) {
             if (!users.hasOwnProperty(i)) continue;
@@ -447,26 +564,8 @@ Room.prototype.getUsers = function() {
 };
 
 /**
- * Get specific user in the community
- * @param {Number} [userid]
- * @returns {*}
- */
-Room.prototype.getUser = function(userid) {
-    if (!userid || userid === self.id) return this.getSelf();
-    for (var i in users) {
-        if (!users.hasOwnProperty(i)) continue;
-        if (users[i].id === userid) return new User(users[i]);
-    }
-    return null;
-};
-
-Room.prototype.getSelf = function() {
-    return self != null ? new User(self) : null;
-};
-
-/**
  * Get the current DJ
- * @returns {*}
+ * @returns {User|null} Current DJ or {null} if no one is currently DJing
  */
 Room.prototype.getDJ = function() {
     if (booth.currentDJ > 0) {
@@ -482,7 +581,7 @@ Room.prototype.getDJ = function() {
 
 /**
  * Get all DJs (including current DJ)
- * @returns {Array}
+ * @returns {User[]}
  */
 Room.prototype.getDJs = function() {
     return this.usersToArray([booth.currentDJ].concat(booth.waitingDJs));
@@ -490,7 +589,7 @@ Room.prototype.getDJs = function() {
 
 /**
  * Get all DJs in waitlist
- * @returns {*}
+ * @returns {User[]}
  */
 Room.prototype.getWaitList = function() {
     return this.usersToArray(booth.waitingDJs);
@@ -498,8 +597,8 @@ Room.prototype.getWaitList = function() {
 
 /**
  * Get a user's position in waitlist
- * @param {number} uid User ID
- * @returns {number}
+ * @param {Number} uid User ID
+ * @returns {Number}
  * Position in waitlist.
  * If current DJ, it returns 0.
  * If not in waitlist, it returns -1
@@ -508,22 +607,56 @@ Room.prototype.getWaitListPosition = function(uid) {
     if (booth.currentDJ === uid) {
         return 0;
     }
-    var pos = booth.waitingDJs.indexOf(uid);
+    var pos = booth.waitingDJs == null ? -1 : booth.waitingDJs.indexOf(uid);
     return pos < 0 ? -1 : pos + 1;
 };
 
 /**
- * Get the audience (not current DJ nor waiting)
+ * Get admins in the room
+ * @returns {Array}
+ */
+Room.prototype.getAdmins = function() {
+    var admins = [], _ref;
+    _ref = [mySelf].concat(users);
+    for (var i in _ref) {
+        if (!_ref.hasOwnProperty(i)) continue;
+        var user = _ref[i];
+        if (user.gRole == 5) {
+            admins.push(user.id);
+        }
+    }
+    return this.usersToArray(admins);
+};
+
+/**
+ * Get all ambassadors in the community
+ * @returns {Array}
+ */
+Room.prototype.getAmbassadors = function() {
+    var ambassadors = [], _ref;
+    _ref = [mySelf].concat(users);
+    for (var i in _ref) {
+        if (!_ref.hasOwnProperty(i)) continue;
+        var user = _ref[i];
+        if (user.gRole < 5 && user.gRole > 1) {
+            ambassadors.push(user.id);
+        }
+    }
+    return this.usersToArray(ambassadors);
+};
+
+/**
+ * Get users in the community that aren't DJing nor in the waitlist
  * @return {Array}
  */
 Room.prototype.getAudience = function() {
     var audience = [], _ref;
-    _ref = [self].concat(users);
+    _ref = [mySelf].concat(users);
     for (var i in _ref) {
         if (!_ref.hasOwnProperty(i)) continue;
-        var userID = _ref[i].id;
-        if (this.getWaitListPosition(userID) < 0) {
-            audience.push(userID);
+        var uid = _ref[i].id;
+        if (this.getWaitListPosition(uid) < 0) {
+            audience.push(uid);
         }
     }
     return this.usersToArray(audience);
@@ -531,7 +664,7 @@ Room.prototype.getAudience = function() {
 
 Room.prototype.getStaff = function() {
     var staff = [], _ref;
-    _ref = [self].concat(users);
+    _ref = [mySelf].concat(users);
     for (var i in _ref) {
         if (!_ref.hasOwnProperty(i)) continue;
         var user = _ref[i];
@@ -543,8 +676,8 @@ Room.prototype.getStaff = function() {
 };
 
 /**
- * Get the host of the community.
- * @returns {*} Host if in community, otherwise null
+ * Host if in community, otherwise null
+ * @returns {User|null}
  */
 Room.prototype.getHost = function() {
     return this.getUser(meta.hostID);
@@ -566,8 +699,9 @@ Room.prototype.getHistory = function() {
     return songHistory;
 };
 
-Room.prototype.setHistory = function(data) {
-    songHistory = data;
+Room.prototype.setHistory = function(err, data) {
+    if (!err)
+        songHistory = data;
 };
 
 Room.prototype.setCycle = function(cycle) {
@@ -575,6 +709,7 @@ Room.prototype.setCycle = function(cycle) {
 };
 
 /**
+ * Get the booth meta
  * @return {booth}
  */
 Room.prototype.getBoothMeta = function() {
@@ -582,12 +717,17 @@ Room.prototype.getBoothMeta = function() {
 };
 
 /**
+ * Get the room meta
  * @return {meta}
  */
 Room.prototype.getRoomMeta = function() {
     return util._extend({}, meta);
 };
 
+/**
+ * Get the room score
+ * @return {{positive: number, listeners: number, grabs: number, negative: number, skipped: number}}
+ */
 Room.prototype.getRoomScore = function() {
     var result = {
         positive: 0,

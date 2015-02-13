@@ -1,4 +1,5 @@
 var fs = require('fs');
+
 fs.readdir('./bin', function(err, files) {
     if (err) throw err;
     for (var i in files) {
