@@ -18,7 +18,7 @@ request = require('request');
 WebSocket = require('ws');
 WebSocket.prototype._send = WebSocket.prototype.send;
 WebSocket.prototype.send = function(data, options, cb) {
-    data = '"' + (typeof data === 'string' ? data : JSON.stringify(data)).split('"').join('\\"') + '"';
+    data = (typeof data === 'string' ? data : JSON.stringify(data));
     this._send(data, options, cb);
 };
 WebSocket.prototype.sendEvent = function(type, data) {
@@ -675,17 +675,7 @@ function connectSocket(roomSlug) {
         return;
     }
 
-    var server_id = Math.floor(Math.random() * 1000);
-    var conn_id = (function() {
-        var chars = 'abcdefghijklmnopqrstuvwxyz0123456789_';
-        var i, ret = [];
-        for (i = 0; i < 8; i++) {
-            ret.push(chars.substr(Math.floor(Math.random() * chars.length), 1));
-        }
-        return ret.join('');
-    })();
-
-    ws = new WebSocket('wss://shalamar.plug.dj/socket/' + server_id + '/' + conn_id + '/websocket');
+    ws = new WebSocket('wss://godj.plug.dj:443/socket');
     ws.on('open', function() {
         //noinspection JSUnresolvedFunction
         logger.success(chalk.green('[Socket Server] Connected'));
@@ -695,20 +685,11 @@ function connectSocket(roomSlug) {
         that.emit('server:socket:connected');
     });
     ws.on('message', function(data) {
-        var type = data.slice(0, 1), payload;
-        switch (type) {
-            case 'a':
-                payload = JSON.parse(data.slice(1) || '[]');
-                for (var i = 0; i < payload.length; i++) {
-                    ws.emit('data', payload[i][0]);
-                }
-                break;
-            case 'm':
-                payload = JSON.parse(data.slice(1) || 'null');
-                ws.emit('data', payload);
-                break;
-            default:
-                break;
+        if (data !== 'h') {
+            var payload = JSON.parse(data || '[]');
+            for (var i = 0; i < payload.length; i++) {
+                ws.emit('data', payload[i]);
+            }
         }
     });
     ws.on('data', messageHandler);
@@ -789,7 +770,7 @@ function messageHandler(msg) {
     var i, slug;
     switch (type) {
         case 'ack':
-            if (data !== 1) {
+            if (data !== '1') {
                 slug = room.getRoomMeta().slug;
                 _cookies.clear();
                 that.close();
