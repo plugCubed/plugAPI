@@ -2032,8 +2032,10 @@ PlugAPI.prototype.moderateBanUser = function(uid, reason, duration, callback) {
             reason: reason,
             duration: duration
         }, callback);
+
+        return true;
     }
-    return true;
+    return false;
 };
 
 /**
