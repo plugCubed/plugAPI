@@ -89,6 +89,7 @@ var endpoints = {
     MODERATE_PERMISSIONS: 'staff/update',
     MODERATE_REMOVE_DJ: 'booth/remove/',
     MODERATE_SKIP: 'booth/skip',
+    MODERATE_STAFF: 'staff/',
     MODERATE_UNBAN: 'bans/',
     MODERATE_UNMUTE: 'mutes/',
     PLAYLIST: 'playlists',
@@ -2191,10 +2192,14 @@ PlugAPI.prototype.moderateSetRole = function(uid, role, callback) {
 
     var user = this.getUser(uid);
     if (user !== null ? room.getPermissions(user).canModStaff : this.havePermission(undefined, PlugAPI.ROOM_ROLE.MANAGER)) {
-        queueREST('POST', endpoints.MODERATE_PERMISSIONS, {
-            userID: uid,
-            roleID: role
-        }, callback);
+        if (role === 0) {
+            queueREST('DELETE', endpoints.MODERATE_STAFF + uid, undefined, callback);
+        } else {
+            queueREST('POST', endpoints.MODERATE_PERMISSIONS, {
+                userID: uid,
+                roleID: role
+            }, callback);
+        }
     }
     return true;
 };
