@@ -70,7 +70,7 @@ exports.fromHeaders = function(headers) {
                 key = cookieKeyValue.shift();
                 value = cookieKeyValue.join('=');
 
-                if (cookies[cookieKey] == undefined) {
+                if (typeof cookies[cookieKey] === 'undefined') {
                     cookies[cookieKey] = {};
                 }
                 cookies[cookieKey][key] = value;

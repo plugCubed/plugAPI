@@ -1,9 +1,14 @@
-plugAPI
-=======
+#plugAPI
 
-[![NPM](https://nodei.co/npm/plugapi.png?downloads=true)](https://nodei.co/npm/plugapi/)
+## Status
 
-A generic API for creating plug.dj bots.
+[![NPM](https://nodei.co/npm/plugapi.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/plugapi/)[![NPM](https://nodei.co/npm-dl/plugapi.png?months=1&height=3)](https://nodei.co/npm-dl/plugapi/)
+
+[![NPM](https://img.shields.io/npm/l/plugapi.svg)](https://github.com/plugCubed/plugAPI/blob/master/LICENSE.md)
+
+## About
+
+A generic NodeJS API for creating plug.dj bots.
 
 Originally by [Chris Vickery](https://github.com/chrisinajar), now maintained by [TAT](https://github.com/TATDK) and [The plug³ Team](https://github.com/plugCubed).
 
@@ -12,18 +17,21 @@ Originally by [Chris Vickery](https://github.com/chrisinajar), now maintained by
 ## How to use
 Run the following:
 
-```npm install plugapi --production```
+``` javascript
+npm install plugapi --production
+```
 
-You can choose to instantiate the instance both sync or async.
+You can choose to instantiate plugAPI with either Sync or Async
 
-**Sync**
+**Sync:**
+
 ```javascript
 var PlugAPI = require('plugapi');
-
 var bot = new PlugAPI({
-    "email": "",
-    "password": ""
+    email: '',
+    password: ''
 });
+
 bot.connect('roomslug'); // The part after https://plug.dj
 
 bot.on('roomJoin', function(room) {
@@ -31,16 +39,17 @@ bot.on('roomJoin', function(room) {
 });
 ```
 
-**Async**
+**Async:**
+
 ```javascript
 var PlugAPI = require('plugapi');
 
 new PlugAPI({
-    "email": "",
-    "password": ""
+   "email: '',
+    password: ''
 }, function(bot) {
     bot.connect('roomslug'); // The part after https://plug.dj
-    
+
     bot.on('roomJoin', function(room) {
         console.log("Joined " + room);
     });
@@ -48,17 +57,18 @@ new PlugAPI({
 ```
 
 ## Examples
-Here are some bots using this API.
+Here are some bots that are using this API.
 
 | Botname                                              | Room                                                            |
-| ---------------------------------------------------- | --------------------------------------------------------------- |                                           
+| ---------------------------------------------------- | --------------------------------------------------------------- |
 | AuntJackie                                           | [Mix-N-Mash](https://plug.dj/mix-n-mash-2)                      |
 | [BeavisBot](https://github.com/AvatarKava/BeavisBot) | [I <3 the 80's and 90's](https://plug.dj/i-the-80-s-and-90-s-1) |
 | -DnB-                                                | [Drum & Bass](https://plug.dj/drum-bass)                        |
 | FlavorBar                                            | [Flavorz](https://plug.dj/flavorz)                              |
 | FoxBot                                               | [Approaching Nirvana](https://plug.dj/approachingnirvana)       |
+| TFLBot                                               | [The F**k Off Lounge \| TFL](https://plug.dj/thedark1337)        |
 
-Have a bot that uses the API? Let me know!
+Have a bot that uses the API? Let us know!
 
 ## EventListener
 You can listen on essentially any event that plug emits.
@@ -79,22 +89,16 @@ var reconnect = function() { bot.connect(ROOM); };
 bot.on('close', reconnect);
 bot.on('error', reconnect);
 ```
-
-## Events
-
-Read about some of the events on the [wiki](https://github.com/TATDK/plugapi/wiki/events).
-
-## Actions
-
-Read about the actions on the [wiki](https://github.com/TATDK/plugapi/wiki/actions).
+## API
+Please Refer to the [Wiki](https://github.com/TATDK/plugapi/wiki) for both the Events and Actions.
 
 ## Contribute
 1. Clone repository to empty folder.
-2. Cd to the repository.
+2. Cd to the folder containing the repository.
 3. Run `npm install` to set up the environment.
-4. Edit your code.
-5. Run `grunt` to compile the code and test.
-6. After it's bug free, you may submit it as a Pull Request to the main repo.
+4. Edit your changes in the code, and make sure it follows our [Style Guidelines](https://github.com/plugCubed/Code-Style/blob/master/JavaScript%20Style%20Guide.md).
+5. Run `grunt` to compile the code and test your changes.
+6. After it's bug free, you may submit it as a Pull Request to this repo.
 
 ## Misc
 
@@ -103,6 +107,7 @@ Since Plug.dj cuts off chat messages at 250 characters, you can choose to have y
 
 ```javascript
 var bot = new PlugAPI(auth);
+
 bot.multiLine = true; // Set to true to enable multi line chat. Default is false
 bot.multiLineLimit = 5; // Set to the maximum number of lines the bot should split messages up into. Any text beyond this number will just be omitted. Default is 5.
 ```

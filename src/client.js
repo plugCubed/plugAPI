@@ -909,6 +909,9 @@ function messageHandler(msg) {
                 logger.info('Notify', data);
             }
             break;
+        case PlugAPI.events.CHAT_LEVEL_UPDATE:
+           logger.info('Chat Level has changed to level: ' + data.level + ' By: ' + data.user.username);
+           break;
         default:
         case void 0:
             logger.warning('UNKNOWN MESSAGE FORMAT\n', JSON.stringify(msg, null, 4));
@@ -984,11 +987,17 @@ function PerformLoginCredentials(callback) {
         }
     }, function(err, res, body) {
         var csrfToken;
-
-        _cookies.fromHeaders(res.headers);
-
-        csrfToken = body.split('_csrf')[1].split('"')[1];
-
+        if (res.statusCode !== 200) {
+            logger.error('LOGIN ERROR: Can\'t connect to plug.dj. HTTP Status: ' + res.statusCode);
+            process.exit(1);
+        }
+        try {
+            _cookies.fromHeaders(res.headers);
+            csrfToken = body.split('_csrf')[1].split('"')[1];
+        } catch(e) {
+            logger.error('LOGIN ERROR: Can\'t get CSRF Token');
+            process.exit(1);
+        }
         request({
             method: 'POST',
             uri: 'https://plug.dj/_/auth/login',
@@ -1002,8 +1011,8 @@ function PerformLoginCredentials(callback) {
                 password: authenticationInfo.password
             }
         }, function(err, res, data) {
-            if (data.status !== 'ok') {
-                logger.error('LOGIN ERROR: ' + data.status);
+            if (data.status !== 'ok' || res.statusCode !== 200) {
+                logger.error('LOGIN ERROR: ' + data.status + ' HTTP Status: ' + res.statusCode);
                 process.exit(1);
             } else {
                 _cookies.fromHeaders(res.headers);
@@ -1229,7 +1238,7 @@ PlugAPI.MUTE_REASON = {
 
 /**
  * Event Types
- * @const {{ADVANCE: string, BAN: string, BOOTH_LOCKED: string, CHAT: string, CHAT_COMMAND: string, CHAT_DELETE: string, CHAT_EMOTE: string, COMMAND: string, DJ_LIST_CYCLE: string, DJ_LIST_UPDATE: string, EARN: string, EMOTE: string, FOLLOW_JOIN: string, FLOOD_CHAT: string, GRAB: string, KILL_SESSION: string, MODERATE_ADD_DJ: string, MODERATE_ADD_WAITLIST: string, MODERATE_AMBASSADOR: string, MODERATE_BAN: string, MODERATE_MOVE_DJ: string, MODERATE_MUTE: string, MODERATE_REMOVE_DJ: string, MODERATE_REMOVE_WAITLIST: string, MODERATE_SKIP: string, MODERATE_STAFF: string, NOTIFY: string, PDJ_MESSAGE: string, PDJ_UPDATE: string, PING: string, PLAYLIST_CYCLE: string, REQUEST_DURATION: string, REQUEST_DURATION_RETRY: string, ROOM_CHANGE: string, ROOM_DESCRIPTION_UPDATE: string, ROOM_JOIN: string, ROOM_NAME_UPDATE: string, ROOM_VOTE_SKIP: string, ROOM_WELCOME_UPDATE: string, SESSION_CLOSE: string, SKIP: string, STROBE_TOGGLE: string, USER_COUNTER_UPDATE: string, USER_FOLLOW: string, USER_JOIN: string, USER_LEAVE: string, USER_UPDATE: string, VOTE: string}}
+ * @const {{ADVANCE: string, BAN: string, BOOTH_LOCKED: string, CHAT: string, CHAT_COMMAND: string, CHAT_DELETE: string, CHAT_EMOTE: string, CHAT_LEVEL_UPDATE: string, COMMAND: string, DJ_LIST_CYCLE: string, DJ_LIST_UPDATE: string, EARN: string, EMOTE: string, FOLLOW_JOIN: string, FLOOD_CHAT: string, GRAB: string, KILL_SESSION: string, MODERATE_ADD_DJ: string, MODERATE_ADD_WAITLIST: string, MODERATE_AMBASSADOR: string, MODERATE_BAN: string, MODERATE_MOVE_DJ: string, MODERATE_MUTE: string, MODERATE_REMOVE_DJ: string, MODERATE_REMOVE_WAITLIST: string, MODERATE_SKIP: string, MODERATE_STAFF: string, NOTIFY: string, PDJ_MESSAGE: string, PDJ_UPDATE: string, PING: string, PLAYLIST_CYCLE: string, REQUEST_DURATION: string, REQUEST_DURATION_RETRY: string, ROOM_CHANGE: string, ROOM_DESCRIPTION_UPDATE: string, ROOM_JOIN: string, ROOM_NAME_UPDATE: string, ROOM_VOTE_SKIP: string, ROOM_WELCOME_UPDATE: string, SESSION_CLOSE: string, SKIP: string, STROBE_TOGGLE: string, USER_COUNTER_UPDATE: string, USER_FOLLOW: string, USER_JOIN: string, USER_LEAVE: string, USER_UPDATE: string, VOTE: string}}
  */
 PlugAPI.events = {
     ADVANCE: 'advance',
@@ -1238,6 +1247,7 @@ PlugAPI.events = {
     CHAT: 'chat',
     CHAT_COMMAND: 'command',
     CHAT_DELETE: 'chatDelete',
+    CHAT_LEVEL_UPDATE: 'roomMinChatLevelUpdate',
     COMMAND: 'command',
     DJ_LIST_CYCLE: 'djListCycle',
     DJ_LIST_UPDATE: 'djListUpdate',

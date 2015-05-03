@@ -49,3 +49,19 @@ function ChatEventObject(data, room) {
 }
 
 exports.chat = ChatEventObject;
+
+/**
+ * @param {{m: Number, u: Number}} data
+ * @returns {{raw: Object, id: Number, user: Object, level: Number}}
+ * @constructor
+ */
+function ChatLevelUpdateObject(data, room) {
+    return {
+        raw: data,
+        id: data.u,
+        user: room.getUser(data.u),
+        level: data.m
+    };
+}
+
+exports.roomMinChatLevelUpdate = ChatLevelUpdateObject;

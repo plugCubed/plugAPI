@@ -23,3 +23,4 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.*/
 function AdvanceEventObject(a){return{media:a.m,startTime:a.t,historyID:a.h,djs:a.d,currentDJ:a.c,playlistID:a.p}}exports.advance=AdvanceEventObject;var encoder=require("node-html-encoder").Encoder("entity");function ChatEventObject(a,b){return{raw:a,id:a.cid,from:b.getUser(a.uid),message:encoder.htmlDecode(a.message),mentions:[],muted:b.isMuted(a.uid),type:0===a.message.indexOf("/me")?"emote":-1<a.message.indexOf("@"+b.getSelf().username)?"mention":"message"}}exports.chat=ChatEventObject;
+function ChatLevelUpdateObject(a,b){return{raw:a,id:a.u,user:b.getUser(a.u),level:a.m}}exports.roomMinChatLevelUpdate=ChatLevelUpdateObject;

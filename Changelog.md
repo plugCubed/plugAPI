@@ -1,14 +1,20 @@
 plugAPI Changelog
 =================
+3.1.4
+-------
+* **ADDED:** Chat Level Update Object and notificaton when it changes.
+* **IMPROVE:** Logging in to plug.dj via plugAPI should show more descriptive errors instead of stacktraces that were unreadable.
+* **CHANGE: ** Code change for cookies.js, should be typeof === 'undefined'
+* **FIXED:** CreatePlaylist typeof check was String instead of string. Fix provided by @purechaose
 
 3.1.3
 -------
-* **FIXED: ** Grab was always false, and users were not being removed from staff properly. Fix provide by @anjanms
-* **FIXED: ** ModerateBanUser was not returning true if successful.Fix provided by @chrishayesmu
+* **FIXED:** Grab was always false, and users were not being removed from staff properly. Fix provided by @anjanms.
+* **FIXED:** ModerateBanUser was not returning true if successful.Fix provided by @chrishayesmu.
 
 3.1.2
 ---------
-* **FIXED:** Added type back to chat messages
+* **FIXED:** Added type back to chat messages.
 
 3.1.1
 ---------
