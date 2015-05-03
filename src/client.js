@@ -1843,7 +1843,7 @@ PlugAPI.prototype.addSongToPlaylist = function(pid, sid, callback) {
  * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.createPlaylist = function(name, callback) {
-    if (!room.getRoomMeta().slug || typeof name != 'String' || name.length == 0) return false;
+    if (!room.getRoomMeta().slug || typeof name != 'string' || name.length == 0) return false;
 
     var callbackWrapper = function(err, data) {
         if (!err)
