@@ -45,7 +45,7 @@ bot.on('roomJoin', function(room) {
 var PlugAPI = require('plugapi');
 
 new PlugAPI({
-   "email: '',
+    email: '',
     password: ''
 }, function(bot) {
     bot.connect('roomslug'); // The part after https://plug.dj
