@@ -1,14 +1,19 @@
 plugAPI Changelog
 =================
-3.20
+3.2.1
+-----
+* **CHANGED:** Npmignore apparently is case sensitive... actually ignore Gruntfile.js
+* **FIXED:** Markdown in Changelog was wrong in previous entries.
+
+3.2.0
 ------
-* ** REMOVED:** REPL Example. Not very used anymore.
-* ** ADDED:** Npmignore file to ignore files when publishing.
-* ** FIXED:** Latest WS was breaking connection due to removal of Origin Header.
-* ** CHANGED:** Pinned dependencies to avoid issues with breaking changes.
-* ** CHANGED:** Changed TAT to contributor and Thedark1337 to Author
-* ** ADDED:** Bugs URL in package json to link to Github issues.
-* ** ADDED:** David Badge to check if dependencies are at latest version.
+* **REMOVED:** REPL Example. Not very used anymore.
+* **ADDED:** Npmignore file to ignore files when publishing.
+* **FIXED:** Latest WS was breaking connection due to removal of Origin Header.
+* **CHANGED:** Pinned dependencies to avoid issues with breaking changes.
+* **CHANGED:** Changed TAT to contributor and Thedark1337 to Author
+* **ADDED:** Bugs URL in package json to link to Github issues.
+* **ADDED:** David Badge to check if dependencies are at latest version.
 
 3.1.4
 -------
