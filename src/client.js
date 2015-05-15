@@ -676,7 +676,9 @@ function connectSocket(roomSlug) {
         return;
     }
 
-    ws = new WebSocket('wss://godj.plug.dj:443/socket');
+    ws = new WebSocket('wss://godj.plug.dj:443/socket', {
+        origin: 'https://plug.dj'
+    });
     ws.on('open', function() {
         //noinspection JSUnresolvedFunction
         logger.success(chalk.green('[Socket Server] Connected'));

@@ -1,0 +1,7 @@
+.git
+gruntfile.js
+source-map-fix.js
+.jsbeautifyrc
+.editorconfig
+*.log
+*.tmp

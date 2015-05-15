@@ -1,49 +1,62 @@
 {
-    "name": "plugapi",
-    "version": "3.1.4",
-    "author": "Thomas Andresen <TAT@plugCubed.net>",
-    "description": "Generic API for building plug.dj bots",
-    "contributors": [{
-        "name": "Chris Vickery",
-        "email": "chrisinajar@gmail.com"
-    }, {
-        "name": "ging"
-    }, {
-        "name": "Nicolas Jeker",
-        "email": "n.jeker@gmx.net"
-    }, {
-        "name": "Chris Bellew",
-        "email": "atomjack@gmail.com"
-    }],
-    "main": "./bin/client.js",
-    "keywords": [
-        "plug.dj",
-        "plug",
-        "api"
-    ],
-    "dependencies": {
-        "node-html-encoder": "*",
-        "ws": "*",
-        "request": "*",
-        "source-map-support": "*",
-        "eventemitter2": "*",
-        "deasync": "*",
-        "chalk": "*"
+  "name": "plugapi",
+  "version": "3.2.0",
+  "author": "Alex Pham <thedark1337@thedark1337.com>",
+  "description": "Generic API for building plug.dj bots",
+  "contributors": [
+    {
+      "name": "Chris Vickery",
+      "email": "chrisinajar@gmail.com"
     },
-    "devDependencies": {
-        "grunt": "*",
-        "grunt-closurecompiler": "*",
-        "grunt-execute": "*"
+    {
+      "name": "ging"
     },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/plugCubed/plugAPI"
+    {
+      "name": "Nicolas Jeker",
+      "email": "n.jeker@gmx.net"
     },
-    "license": {
-        "type": "MIT",
-        "url": "https://github.com/plugCubed/plugAPI/blob/master/LICENSE.md"
+    {
+      "name": "Chris Bellew",
+      "email": "atomjack@gmail.com"
     },
-    "engines": {
-        "node": ">= 0.10.0"
+    {
+      "name": "Thomas Andresen",
+      "email": "TAT@plugcubed.net"
     }
+  ],
+  "main": "./bin/client.js",
+  "keywords": [
+    "plug.dj",
+    "plug",
+    "api",
+    "bot"
+  ],
+  "dependencies": {
+    "chalk": "^1.0.0",
+    "deasync": "0.0.10",
+    "eventemitter2": "^0.4.14",
+    "node-html-encoder": "0.0.2",
+    "request": "^2.55.0",
+    "source-map-support": "^0.2.10",
+    "ws": "^0.7.2"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-closurecompiler": "^0.9.9",
+    "grunt-execute": "^0.2.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/plugCubed/plugAPI"
+  },
+  "bugs": {
+    "url": "https://github.com/plugCubed/plugAPI/issues"
+    },
+  "license": {
+    "type": "MIT",
+    "url": "https://github.com/plugCubed/plugAPI/blob/master/LICENSE.md"
+  },
+  "engines": {
+    "node": ">= 0.10.0"
+  }
 }

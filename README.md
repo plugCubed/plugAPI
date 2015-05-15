@@ -5,6 +5,7 @@
 [![NPM](https://nodei.co/npm/plugapi.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/plugapi/)[![NPM](https://nodei.co/npm-dl/plugapi.png?months=1&height=3)](https://nodei.co/npm-dl/plugapi/)
 
 [![NPM](https://img.shields.io/npm/l/plugapi.svg)](https://github.com/plugCubed/plugAPI/blob/master/LICENSE.md)
+[![David](https://img.shields.io/david/strongloop/express.svg)](https://david-dm.org/plugcubed/plugapi)
 
 ## About
 
@@ -91,6 +92,13 @@ bot.on('error', reconnect);
 ```
 ## API
 Please Refer to the [Wiki](https://github.com/TATDK/plugapi/wiki) for both the Events and Actions.
+
+
+## Troubleshooting
+
+If you are having issues connecting, please check if cookies.tmp exists in node_modules/plugapi, if it does delete that and try to connect again.
+
+Please note that at this current time only one account may be used per plugAPI installation due to the cookies.tmp file.
 
 ## Contribute
 1. Clone repository to empty folder.

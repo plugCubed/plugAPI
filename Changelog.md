@@ -1,10 +1,20 @@
 plugAPI Changelog
 =================
+3.20
+------
+* ** REMOVED:** REPL Example. Not very used anymore.
+* ** ADDED:** Npmignore file to ignore files when publishing.
+* ** FIXED:** Latest WS was breaking connection due to removal of Origin Header.
+* ** CHANGED:** Pinned dependencies to avoid issues with breaking changes.
+* ** CHANGED:** Changed TAT to contributor and Thedark1337 to Author
+* ** ADDED:** Bugs URL in package json to link to Github issues.
+* ** ADDED:** David Badge to check if dependencies are at latest version.
+
 3.1.4
 -------
 * **ADDED:** Chat Level Update Object and notificaton when it changes.
 * **IMPROVE:** Logging in to plug.dj via plugAPI should show more descriptive errors instead of stacktraces that were unreadable.
-* **CHANGE: ** Code change for cookies.js, should be typeof === 'undefined'
+* **CHANGED:** Code change for cookies.js, should be typeof === 'undefined'
 * **FIXED:** CreatePlaylist typeof check was String instead of string. Fix provided by @purechaose
 
 3.1.3
