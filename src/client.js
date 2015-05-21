@@ -996,6 +996,7 @@ function PerformLoginCredentials(callback) {
             if (callback) {
                 callback(new Error('plugAPI login error: can\'t connect to plug.dj. HTTP Status: ' + res.statusCode));
             }
+            return;
         }
         try {
             _cookies.fromHeaders(res.headers);
