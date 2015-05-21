@@ -1069,17 +1069,30 @@ function PerformLogin(callback, ignoreCache) {
  * @constructor
  */
 var PlugAPI = function(authenticationData, callback) {
+    if (typeof callback != 'function') {
+        callback = undefined;
+    }
+
     if (!authenticationData) {
         logger.error('You must pass the authentication data into the PlugAPI object to connect correctly');
-        process.exit(1);
+        if (callback) {
+            callback(new Error('You must pass the authentication data into the PlugAPI object to connect correctly'));
+        }
+        return;
     } else {
         if (!authenticationData.email) {
             logger.error('Missing login e-mail');
-            process.exit(1);
+            if (callback) {
+                callback(new Error('Missing login e-mail'));
+            }
+            return;
         }
         if (!authenticationData.password) {
             logger.error('Missing login password');
-            process.exit(1);
+            if (callback) {
+                callback(new Error('Missing login password'));
+            }
+            return;
         }
     }
 
