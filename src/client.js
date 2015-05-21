@@ -1386,7 +1386,7 @@ PlugAPI.prototype.emit = function() {
 PlugAPI.prototype.connect = function(roomSlug) {
     if (!roomSlug || typeof roomSlug !== 'string' || roomSlug.length === 0 || roomSlug.indexOf('/') > -1) {
         logger.error('Invalid room name');
-        process.exit(1);
+        return;
     }
 
     if (connectingRoomSlug != null) {
