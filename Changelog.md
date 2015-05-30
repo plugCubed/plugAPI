@@ -1,12 +1,19 @@
 plugAPI Changelog
 =================
+
+3.3.0
+-------
+* **CHANGED:** Changed Package.json license to new [format](https://docs.npmjs.com/files/package.json#license) (Commit [46dc1fe](https://github.com/plugCubed/plugAPI/commit/086561bf265b040768d4a99f84c0b05cd46dc1fe)).
+* **UPDATED:** Dependencies.  - Deasync@0.1.0, Request@2.56.0, Source Map Support@0.3.1 (Commit [46dc1fe](https://github.com/plugCubed/plugAPI/commit/086561bf265b040768d4a99f84c0b05cd46dc1fe)).
+* **FIXED:** Playlist functions not working properly due to callbacks. (Commit [4c1f915](https://github.com/plugCubed/plugAPI/commit/90c3816177cda33faf3263f15d644dcac4c1f915))
+
 3.2.1
------
+-------
 * **CHANGED:** Npmignore apparently is case sensitive... actually ignore Gruntfile.js
 * **FIXED:** Markdown in Changelog was wrong in previous entries.
 
 3.2.0
-------
+-------
 * **REMOVED:** REPL Example. Not very used anymore.
 * **ADDED:** Npmignore file to ignore files when publishing.
 * **FIXED:** Latest WS was breaking connection due to removal of Origin Header.
@@ -28,20 +35,20 @@ plugAPI Changelog
 * **FIXED:** ModerateBanUser was not returning true if successful.Fix provided by @chrishayesmu.
 
 3.1.2
----------
+-------
 * **FIXED:** Added type back to chat messages.
 
 3.1.1
----------
+-------
 * **FIXED:** Update for Go DJ web socket
 
 3.1.0
----------
+-------
 * **ADDED:** Added utils
 * **FIXED:** Fixed being unable to lock and unlock the booth without reloading the bot. (#57)
 
 3.0.0
----------
+-------
 * **FIXED:** Working with plug.dj > v1.0.0
  * New connection method for socket server (Chat server and socket server combined)
 * **ADDED:** Manage a history of chat, limited to 512 messages (Same limit as browser clients)
@@ -53,67 +60,67 @@ plugAPI Changelog
 * A lot more, can't remember everything I have done...
 
 2.4.1
------
+-------
 * **FIXED:** Compatibility with pre-2.4.0 command eventlisteners using chatID (Commit [b9afcba](https://github.com/TATDK/plugapi/commit/b9afcba861d7eb85e05df3e47506db2de4f950e2))
 
 2.4.0
------
+-------
 * **ADDED:** Added deleteCommands (Commit [bf8acd8](https://github.com/TATDK/plugapi/commit/bf8acd87927f05caeed737b8162621a13740a0e1))
 * **IMPROVE:** Improvements for plug.dj v0.9.833 (Commit [5fa24ad](https://github.com/TATDK/plugapi/commit/5fa24adfafca678dbb60f86b1a072c38e3c63714))
 
 2.3.2
------
+-------
 * **FIXED:** Temporary fix for plug.dj v0.9.833 (Commit [69e2f51](https://github.com/TATDK/plugapi/commit/69e2f51310dabbeda9dc6017eb522d05089ce5de))
 
 2.3.1
------
+-------
 * **FIXED:** Fix detecting numbers (Commit [0319ad7](https://github.com/TATDK/plugapi/commit/0319ad7f173a2bae92212744053109801203ce1c))
 
 2.3.0
------
+-------
 * **ADDED:** Set status via `setStatus` (Commit [7bd4390](https://github.com/TATDK/plugapi/commit/7bd4390d15d8946e66ce2680b88336a32ab10dfc))
 * **IMPROVE:** Convert numbers in args to actual numbers (Commit [629a655](https://github.com/TATDK/plugapi/commit/629a6553358b2dd0ee001b269154067b67cc4331))
 * **FIXED:** Fix error with commandPrefix longer than 1 character (Commit [c259fe8](https://github.com/TATDK/plugapi/commit/c259fe81b26de6f97c4291c0617e0bc853d9c35f))
 
 2.2.8
------
+-------
 * **IMPROVE:** Include all user data on `USER_LEAVE` (Commit [b198ddc](https://github.com/TATDK/plugapi/commit/b198ddc33143e68943d794f66d1ac2b5acbf62cb))
 
 2.2.7
------
+-------
 * **FIXED:** Gateway error requesting captcha (Commit [f5e4590](https://github.com/TATDK/plugapi/commit/f5e4590dd7189dc6b9125f30034fd93eca09d51d))
 
 2.2.6
------
+-------
 * **FIXED:** Fix dependency for `sockjs-client-node` (Commit [a1650eb](https://github.com/TATDK/plugapi/commit/a1650ebdbc14e102991e93e0fe4f650e39f34d40))
 
 2.2.5
------
+-------
 * **FIXED:** Be sure the user exists while handling MODERATE_STAFF messages - Fixes #14 (Commit [7883859](https://github.com/TATDK/plugapi/commit/788385993247e01eb9633e65bf524edaf868eecf))
 
 2.2.4
------
+-------
 * **IMPROVE:** Allow command prefixes longer than 1 character (Commit [56374ed](https://github.com/TATDK/plugapi/commit/56374ed0bb970416bb825918ae20b7c7c78fee41))
 * **IMPROVE:** Added sourcemap for easier tracking of issues and bugs (Commit [56374ed](https://github.com/TATDK/plugapi/commit/56374ed0bb970416bb825918ae20b7c7c78fee41))
 
 2.2.3
------
+-------
 * **IMPROVE:** Improve invalid roomname detection (Commit [3d0dbee](https://github.com/TATDK/plugapi/commit/3d0dbeeb28fa6073ef53dd530517d86dea928a90))
 
 2.2.2
------
+-------
 * **IMPROVE:** Allow banning people not in the room (Commit [78e7945](https://github.com/TATDK/plugapi/commit/78e794527174635a57adbd11a3f9be0ac0fabd2c))
 
 2.2.1
------
+-------
 * **FIXED:** Fixed coding error (Commit [ba52159](https://github.com/TATDK/plugapi/commit/ba5215962360a48300e1ddb2b2a3aeb7d2df0c4e))
 
 2.2.0
------
+-------
 * **ADDED:** Added `havePermission` (Commit [a323aa8](https://github.com/TATDK/plugapi/commit/a323aa8f0860ee5e0b2444b5fded4fa80174cac0))
 
 2.1.0
------
+-------
 * **ADDED:** Added `close` (Commit [ffa6f65](https://github.com/TATDK/plugapi/commit/ffa6f65efc1a9f57a8417637f5978185a95f6fe6))
 * **ADDED:** Ability to set other command prefix (Commit [a122f47](https://github.com/TATDK/plugapi/commit/a122f473b4934b49d09a8f73c1263433eb6f18ab))
 * **ADDED:** Ability to have bot's own messages processed (Commit [ea226c8](https://github.com/TATDK/plugapi/commit/ea226c8fdaab117560d9e235c0d3e05bb6129cca))
@@ -127,19 +134,19 @@ plugAPI Changelog
 * **DEPRECATE:** Deprecate `addToWaitlist` and `removeFromWaitlist` on user objects (Commit [b1cf712](b1cf712bd77374f5f8471e51fccbf66ead2de225))
 
 2.0.3
------
+-------
 * **FIXED:** Fix broken `getHistory` (Commit [645f03a](https://github.com/TATDK/plugapi/commit/645f03a30504183ce24d7034c66fe08579657281))
 
 2.0.2
------
+-------
 * **FIXED:** More inteligent way of running the `queueTicker` (Commit [80e314c](https://github.com/TATDK/plugapi/commit/80e314c6bc4a18a109d3bf14f3602c6d8ccbc3de))
 
 2.0.1
------
+-------
 * **FIXED:** Changed required node version from 0.6 to 0.10 (Commit [78ec90f](https://github.com/TATDK/plugapi/commit/78ec90fca5d2fa1404e85e8df49b14ea76bc3372))
 
 2.0.0
------
+-------
 * **ADDED:** Settings files for formatting in .jsbeautifyrc and .editorconfig format (Commit [5123fbc](https://github.com/TATDK/plugapi/commit/5123fbce7206c15d0e985cc73c0e3ba82c8bb258))
 * **ADDED:** Prevent spamming plug.dj's servers (Commit [e52a3ef](https://github.com/TATDK/plugapi/commit/e52a3eff27df94914911f0cbdcd67d4bb2888062))
 * **ADDED:** Support to use plugCubed's socket server for PMs (Commit [e52a3ef](https://github.com/TATDK/plugapi/commit/e52a3eff27df94914911f0cbdcd67d4bb2888062))
@@ -150,31 +157,31 @@ plugAPI Changelog
 * Facepalm, bin folder needs to be included (Commit [7719cdc](https://github.com/TATDK/plugapi/commit/7719cdc760e21cf1a61dac1fb6485e11f9fc89f7))
 
 1.1.4
------
+-------
 * **FIXED:** Ensure gateway requests sends an array (Commit [d000f9d](https://github.com/TATDK/plugapi/commit/d000f9d8b77c92594773f5808546ef39a442e0bb))
 
 1.1.3
------
+-------
 * **FIXED:** Uncompress the updatecode from the server (Commit [963235a](https://github.com/TATDK/plugapi/commit/963235af51a80e160f1a07a7ca162203c59720ea))
 * **REMOVE:** Removed `cheerio` as a dependency as it wasn't used (Commit [52731a6](https://github.com/TATDK/plugapi/commit/52731a6af870120888731e6b559eb0b82b65cdd8))
 
 1.1.2
------
-* **CHANGE:** Now getting the updateCode from server (Commit [b32bc48](https://github.com/TATDK/plugapi/commit/b32bc4801c1208236f81fa46441a7e72a845786b))
+-------
+* **CHANGED:** Now getting the updateCode from server (Commit [b32bc48](https://github.com/TATDK/plugapi/commit/b32bc4801c1208236f81fa46441a7e72a845786b))
 
 1.1.1
------
+-------
 * **FIXED:** Hopefully give an error when gateway returns invalid JSON (Commit [dfb9c6c](https://github.com/TATDK/plugapi/commit/dfb9c6c19ed19bac5c6f318d349b97963d0ee0bf))
 * **FIXED:** Actually remove the user when the user leaves the room (Commit [dfb9c6c](https://github.com/TATDK/plugapi/commit/dfb9c6c19ed19bac5c6f318d349b97963d0ee0bf))
 
 1.1.0
------
+-------
 * **ADDED:** Added optional autodelete of message (Commit [af6f879](https://github.com/TATDK/plugapi/commit/af6f879f52239bc0c67d46c84c9cb464f17e57c6))
     1. Added respondTimeout for commands
     1. Added timeout parameter for `intChat`, `chat` and `sendChat`
-* **CHANGE:** Now using MIT license (Commit [93da87d](https://github.com/TATDK/plugapi/commit/93da87d3ad0655a5cb265ee50a80c6189f92004d))
+* **CHANGED:** Now using MIT license (Commit [93da87d](https://github.com/TATDK/plugapi/commit/93da87d3ad0655a5cb265ee50a80c6189f92004d))
 
 1.0.0
------
+-------
 * Initial Release
 * TAT is added as maintainer of the official npm package
