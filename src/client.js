@@ -912,8 +912,8 @@ function messageHandler(msg) {
             }
             break;
         case PlugAPI.events.CHAT_LEVEL_UPDATE:
-           logger.info('Chat Level has changed to level: ' + data.level + ' By: ' + data.user.username);
-           break;
+            logger.info('Chat Level has changed to level: ' + data.level + ' By: ' + data.user.username);
+            break;
         default:
         case void 0:
             logger.warning('UNKNOWN MESSAGE FORMAT\n', JSON.stringify(msg, null, 4));
@@ -996,7 +996,7 @@ function PerformLoginCredentials(callback) {
         try {
             _cookies.fromHeaders(res.headers);
             csrfToken = body.split('_csrf')[1].split('"')[1];
-        } catch(e) {
+        } catch (e) {
             logger.error('LOGIN ERROR: Can\'t get CSRF Token');
             process.exit(1);
         }
@@ -1771,26 +1771,33 @@ PlugAPI.prototype.meh = function(callback) {
 /**
  * Grab current song
  * @param {RESTCallback} [callback] Callback function
- * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.grab = function(callback) {
-    if (!initialized || this.getMedia() == null) return false;
-
-    var playlist = that.getActivePlaylist();
-    if (playlist == null) return false;
-
-    var callbackWrapper = function(err, data) {
-        if (!err)
-            playlist.count++;
+    if (!initialized || this.getMedia() == null) {
         if (typeof callback == 'function')
-            callback(err, data);
-    };
+            callback(new Error('No media playing'), null);
+        return;
+    }
 
-    queueREST('POST', 'grabs', {
-        playlistID: playlist.id,
-        historyID: room.getHistoryID()
-    }, callbackWrapper);
-    return true;
+    that.getActivePlaylist(function(playlist) {
+        if (playlist == null) {
+            if (typeof callback == 'function')
+                callback(new Error('Playlist not found'), null);
+            return;
+        }
+
+        var callbackWrapper = function(err, data) {
+            if (!err)
+                playlist.count++;
+            if (typeof callback == 'function')
+                callback(err, data);
+        };
+
+        queueREST('POST', 'grabs', {
+            playlistID: playlist.id,
+            historyID: room.getHistoryID()
+        }, callbackWrapper);
+    });
 };
 
 //noinspection JSUnusedGlobalSymbols
@@ -1798,25 +1805,42 @@ PlugAPI.prototype.grab = function(callback) {
  * Activate a playlist
  * @param {Number} pid Playlist ID
  * @param {RESTCallback} [callback] Callback function
- * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.activatePlaylist = function(pid, callback) {
-    if (!room.getRoomMeta().slug || !pid) return false;
-
-    var playlist = this.getPlaylist(pid);
-    if (playlist == null) return false;
-
-    var callbackWrapper = function(err, data) {
-        if (!err) {
-            that.getActivePlaylist().active = false;
-            playlist.active = true;
-        }
+    if (!room.getRoomMeta().slug) {
         if (typeof callback == 'function')
-            callback(err, data);
-    };
+            callback(new Error('Not in a room'), null);
+        return;
+    }
 
-    queueREST('PUT', endpoints.PLAYLIST + '/' + pid + '/activate', undefined, callbackWrapper);
-    return true;
+    if (!pid) {
+        if (typeof callback == 'function')
+            callback(new Error('Missing playlist ID'), null);
+        return;
+    }
+
+    var playlist = this.getPlaylist(pid, function(playlist) {
+        if (playlist == null) {
+            if (typeof callback == 'function')
+                callback(new Error('Playlist not found'), null);
+            return;
+        }
+
+        var callbackWrapper = function(err, data) {
+            if (!err) {
+                that.getActivePlaylist(function(playlist) {
+                    if (playlist != null) {
+                        playlist.active = false;
+                    }
+                });
+                playlist.active = true;
+            }
+            if (typeof callback == 'function')
+                callback(err, data);
+        };
+
+        queueREST('PUT', endpoints.PLAYLIST + '/' + pid + '/activate', undefined, callbackWrapper);
+    });
 };
 
 //noinspection JSUnusedGlobalSymbols
@@ -1825,26 +1849,45 @@ PlugAPI.prototype.activatePlaylist = function(pid, callback) {
  * @param {Number} pid Playlist ID
  * @param sid Song ID
  * @param {RESTCallback} [callback] Callback function
- * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.addSongToPlaylist = function(pid, sid, callback) {
-    if (!room.getRoomMeta().slug || !pid || !sid) return false;
-
-    var playlist = that.getPlaylist(pid);
-    if (playlist == null) return false;
-
-    var callbackWrapper = function(err, data) {
-        if (!err)
-            playlist.count++;
+    if (!room.getRoomMeta().slug) {
         if (typeof callback == 'function')
-            callback(err, data);
-    };
+            callback(new Error('Not in a room'), null);
+        return;
+    }
 
-    queueREST('GET', endpoints.PLAYLIST + '/' + pid + '/media/insert', {
-        media: sid,
-        append: true
-    }, callbackWrapper);
-    return true;
+    if (!pid) {
+        if (typeof callback == 'function')
+            callback(new Error('Missing playlist ID'), null);
+        return;
+    }
+
+    if (!sid) {
+        if (typeof callback == 'function')
+            callback(new Error('Missing song ID'), null);
+        return;
+    }
+
+    that.getPlaylist(pid, function(playlist) {
+        if (playlist == null) {
+            if (typeof callback == 'function')
+                callback(new Error('Playlist not found'), null);
+            return;
+        }
+
+        var callbackWrapper = function(err, data) {
+            if (!err)
+                playlist.count++;
+            if (typeof callback == 'function')
+                callback(err, data);
+        };
+
+        queueREST('GET', endpoints.PLAYLIST + '/' + pid + '/media/insert', {
+            media: sid,
+            append: true
+        }, callbackWrapper);
+    });
 };
 
 //noinspection JSUnusedGlobalSymbols
@@ -1873,69 +1916,92 @@ PlugAPI.prototype.createPlaylist = function(name, callback) {
  * Delete a playlist
  * @param {Number} pid Playlist ID
  * @param {RESTCallback} [callback] Callback function
- * @returns {Boolean} If the REST request got queued
  */
 PlugAPI.prototype.deletePlaylist = function(pid, callback) {
-    if (!room.getRoomMeta().slug || !pid) return false;
+    if (!room.getRoomMeta().slug) {
+        if (typeof callback == 'function')
+            callback(new Error('Not in a room'), null);
+        return;
+    }
 
-    if (this.getPlaylist(pid) == null) return false;
+    if (!pid) {
+        if (typeof callback == 'function')
+            callback(new Error('Missing playlist ID'), null);
+        return;
+    }
 
-    var callbackWrapper = function(err, data) {
-        if (!err) {
-            var playlistsData = playlists.get();
-            for (var i in playlistsData) {
-                if (!playlistsData.hasOwnProperty(i)) continue;
-                if (playlistsData[i].id == pid) {
-                    playlists.removeAt(i);
-                    break;
+    this.getPlaylist(pid, function(playlist) {
+        if (playlist == null) {
+            if (typeof callback == 'function')
+                callback(new Error('Playlist not found'), null);
+            return;
+        }
+
+        var callbackWrapper = function(err, data) {
+            if (!err) {
+                var playlistsData = playlists.get();
+                for (var i in playlistsData) {
+                    if (!playlistsData.hasOwnProperty(i)) continue;
+                    if (playlistsData[i].id == pid) {
+                        playlists.removeAt(i);
+                        break;
+                    }
                 }
             }
-        }
-        if (typeof callback == 'function')
-            callback(err, data);
-    };
+            if (typeof callback == 'function')
+                callback(err, data);
+        };
 
-    queueREST('DELETE', endpoints.PLAYLIST + '/' + pid, undefined, callbackWrapper);
-    return true;
+        queueREST('DELETE', endpoints.PLAYLIST + '/' + pid, undefined, callbackWrapper);
+    });
 };
 
 //noinspection JSUnusedGlobalSymbols
 /**
  * Get active playlist
- * @returns {Object|null}
+ * @param {Function} callback Callback function
  */
-PlugAPI.prototype.getActivePlaylist = function() {
-    var playlistsData = playlists.get();
-    for (var i in playlistsData) {
-        if (!playlistsData.hasOwnProperty(i)) continue;
-        if (playlistsData[i].active) {
-            return playlistsData[i];
+PlugAPI.prototype.getActivePlaylist = function(callback) {
+    this.getPlaylists(function(playlistsData) {
+        for (var i in playlistsData) {
+            if (!playlistsData.hasOwnProperty(i)) continue;
+            if (playlistsData[i].active) {
+                if (typeof callback == 'function')
+                    callback(playlistsData[i]);
+                return;
+            }
         }
-    }
-    return null;
+
+        if (typeof callback == 'function')
+            callback(null);
+    });
 };
 
 /**
  * Get playlist by ID
- * @param {Number} [pid] Playlist ID
- * @returns {Object|null}
+ * @param {Number} pid Playlist ID
+ * @param {Function} callback Callback function
  */
-PlugAPI.prototype.getPlaylist = function(pid) {
-    var playlistsData = playlists.get();
-    for (var i in playlistsData) {
-        if (!playlistsData.hasOwnProperty(i)) continue;
-        if (playlistsData[i].id == pid) {
-            return playlistsData[i];
+PlugAPI.prototype.getPlaylist = function(pid, callback) {
+    this.getPlaylists(function(playlistsData) {
+        for (var i in playlistsData) {
+            if (!playlistsData.hasOwnProperty(i)) continue;
+            if (playlistsData[i].id == pid) {
+                if (typeof callback == 'function')
+                    callback(playlistsData[i]);
+                return;
+            }
         }
-    }
-    return null;
+
+        if (typeof callback == 'function')
+            callback(null);
+    });
 };
 
 //noinspection JSUnusedGlobalSymbols
 /**
  * Get playlists
- * @params {Function} callback Callback function (without err)
- * @returns {Array}
+ * @param {Function} callback Callback function
  */
 PlugAPI.prototype.getPlaylists = function(callback) {
     return playlists.get(callback);
@@ -1948,10 +2014,13 @@ PlugAPI.prototype.getPlaylists = function(callback) {
  * @param {RESTCallback} callback Callback function
  */
 PlugAPI.prototype.getPlaylistMedias = function(pid, callback) {
-    if (this.getPlaylist(pid) == null) return false;
+    this.getPlaylist(pid, function(playlist) {
+        if (playlist == null) {
+            return;
+        }
 
-    queueREST("GET", endpoints.PLAYLIST + '/' + pid + '/media', undefined, callback);
-    return true;
+        queueREST("GET", endpoints.PLAYLIST + '/' + pid + '/media', undefined, callback);
+    });
 };
 
 //noinspection JSUnusedGlobalSymbols
@@ -1965,16 +2034,21 @@ PlugAPI.prototype.getPlaylistMedias = function(pid, callback) {
 PlugAPI.prototype.playlistMoveMedia = function(pid, mid, before_mid, callback) {
     if (!room.getRoomMeta().slug || !pid || !mid || (!util.isArray(mid) || (util.isArray(mid) && mid.length > 0)) || !before_mid) return false;
 
-    if (this.getPlaylist(pid) == null) return false;
+    this.getPlaylist(pid, function(playlist) {
+        if (playlist == null) {
+            if (typeof callback == 'function')
+                callback(new Error('Playlist not found'), null);
+            return;
+        }
 
-    if (!util.isArray(mid))
-        mid = [mid];
+        if (!util.isArray(mid))
+            mid = [mid];
 
-    queueREST("PUT", endpoints.PLAYLIST + '/' + pid + '/media/move', {
-        ids: mid,
-        beforeID: before_mid
-    }, callback);
-    return true;
+        queueREST("PUT", endpoints.PLAYLIST + '/' + pid + '/media/move', {
+            ids: mid,
+            beforeID: before_mid
+        }, callback);
+    });
 };
 
 //noinspection JSUnusedGlobalSymbols
@@ -1987,10 +2061,15 @@ PlugAPI.prototype.playlistMoveMedia = function(pid, mid, before_mid, callback) {
 PlugAPI.prototype.shufflePlaylist = function(pid, callback) {
     if (!room.getRoomMeta().slug || !pid) return false;
 
-    if (this.getPlaylist(pid) == null) return false;
+    this.getPlaylist(pid, function(playlist) {
+        if (playlist == null) {
+            if (typeof callback == 'function')
+                callback(new Error('Playlist not found'), null);
+            return;
+        }
 
-    queueREST('PUT', endpoints.PLAYLIST + '/' + pid + '/shuffle', undefined, callback);
-    return true;
+        queueREST('PUT', endpoints.PLAYLIST + '/' + pid + '/shuffle', undefined, callback);
+    });
 };
 
 /**
