@@ -1,6 +1,6 @@
 {
   "name": "plugapi",
-  "version": "3.2.1",
+  "version": "3.3.0",
   "author": "Alex Pham <thedark1337@thedark1337.com>",
   "description": "Generic API for building plug.dj bots",
   "contributors": [
@@ -33,11 +33,11 @@
   ],
   "dependencies": {
     "chalk": "^1.0.0",
-    "deasync": "0.0.10",
+    "deasync": "^0.1.0",
     "eventemitter2": "^0.4.14",
     "node-html-encoder": "0.0.2",
-    "request": "^2.55.0",
-    "source-map-support": "^0.2.10",
+    "request": "^2.56.0",
+    "source-map-support": "^0.3.1",
     "ws": "^0.7.2"
   },
   "devDependencies": {
@@ -51,11 +51,8 @@
   },
   "bugs": {
     "url": "https://github.com/plugCubed/plugAPI/issues"
-    },
-  "license": {
-    "type": "MIT",
-    "url": "https://github.com/plugCubed/plugAPI/blob/master/LICENSE.md"
   },
+  "license":"MIT",
   "engines": {
     "node": ">= 0.10.0"
   }
