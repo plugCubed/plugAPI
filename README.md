@@ -68,6 +68,7 @@ Here are some bots that are using this API.
 | FlavorBar                                            | [Flavorz](https://plug.dj/flavorz)                              |
 | FoxBot                                               | [Approaching Nirvana](https://plug.dj/approachingnirvana)       |
 | TFLBot                                               | [The F**k Off Lounge \| TFL](https://plug.dj/thedark1337)        |
+| QBot                                                   | [EDM Qluster](https://plug.dj/qluster) |
 
 Have a bot that uses the API? Let us know!
 
