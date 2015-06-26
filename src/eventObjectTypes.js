@@ -51,6 +51,39 @@ function ChatEventObject(data, room) {
 exports.chat = ChatEventObject;
 
 /**
+ * @param {{m: String, mi: Number, f: Boolean}} data
+ * @param {Room} room
+ * @returns {{raw: Object, user: Object, cycle: Boolean}}
+ * @constructor
+ */
+function djListCycleObject(data, room) {
+    return {
+        raw: data,
+        user: room.getUser(data.mi),
+        cycle: data.f
+    };
+}
+
+exports.djListCycle = djListCycleObject;
+
+/**
+ * @param {{m: String, mi: Number, c: Boolean, f: Boolean}} data
+ * @param {Room} room
+ * @returns {{raw: Object, user: Object, clear: Boolean, locked: Boolean}}
+ * @constructor
+ */
+function djListLockedObject(data, room) {
+    return {
+        raw: data,
+        user: room.getUser(data.mi),
+        clear: data.c,
+        locked: data.f
+    };
+}
+
+exports.djListLocked = djListLockedObject;
+
+/**
  * @param {{m: Number, u: Number}} data
  * @returns {{raw: Object, id: Number, user: Object, level: Number}}
  * @constructor

@@ -857,8 +857,17 @@ function messageHandler(msg) {
         case PlugAPI.events.GRAB:
             room.setGrab(data);
             break;
+        case PlugAPI.events.DJ_LIST_CYCLE:
+            room.setBoothCycle(data.cycle);
+            break;
+        case PlugAPI.events.DJ_LIST_LOCKED:
+            room.setBoothLocked(data.locked);
+            break;
         case PlugAPI.events.DJ_LIST_UPDATE:
             room.setDJs(data);
+
+            // Override the data with full user objects
+            data = room.getWaitList();
             break;
         case PlugAPI.events.FLOOD_CHAT:
             floodProtectionDelay += 500;
@@ -866,9 +875,6 @@ function messageHandler(msg) {
                 floodProtectionDelay -= 500;
             }, floodProtectionDelay * 5);
             logger.warning('Flood protection: Slowing down the sending of chat messages temporary');
-            break;
-        case PlugAPI.events.DJ_LIST_LOCKED:
-            room.setBoothLocked(msg.p.f);
             break;
         case PlugAPI.events.MODERATE_STAFF:
             //noinspection JSUnresolvedVariable
@@ -897,10 +903,6 @@ function messageHandler(msg) {
         case PlugAPI.events.MODERATE_MUTE:
             // Takes care of both mutes and unmutes
             room.muteUser(data);
-            break;
-        case PlugAPI.events.DJ_LIST_CYCLE:
-            //noinspection JSUnresolvedVariable
-            room.setCycle(data.f);
             break;
         case PlugAPI.events.KILL_SESSION:
             slug = room.getRoomMeta().slug;
@@ -1435,6 +1437,10 @@ PlugAPI.prototype.getHistory = function(callback) {
     setImmediate(function() {
         that.getHistory(callback);
     });
+};
+
+PlugAPI.prototype.getBoothMeta = function() {
+    return room.getBoothMeta();
 };
 
 PlugAPI.prototype.getMedia = function() {

@@ -446,7 +446,7 @@ Room.prototype.setBoothLocked = function(data){
     booth.isLocked = data;
 };
 
-Room.prototype.setCycle = function(cycle) {
+Room.prototype.setBoothCycle = function(cycle) {
     booth.shouldCycle = cycle;
 };
 
@@ -749,7 +749,13 @@ Room.prototype.setHistory = function(err, data) {
  * @return {booth}
  */
 Room.prototype.getBoothMeta = function() {
-    return util._extend({}, booth);
+    var result = util._extend({}, booth);
+
+    // Override ids with full user objects
+    result.currentDJ = this.getDJ();
+    result.waitingDJs = this.getWaitList();
+
+    return result;
 };
 
 /**
