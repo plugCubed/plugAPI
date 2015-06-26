@@ -75,7 +75,7 @@ var PlugAPIInfo = require('../package.json');
 
 /**
  * REST Endpoints
- * @type {{CHAT_DELETE: string, HISTORY: string, MODERATE_ADD_DJ: string, MODERATE_BAN: string, MODERATE_BOOTH: string, MODERATE_MOVE_DJ: string, MODERATE_MUTE: string, MODERATE_PERMISSIONS: string, MODERATE_REMOVE_DJ: string, MODERATE_SKIP: string, MODERATE_UNBAN: string, MODERATE_UNMUTE: string, PLAYLIST: string, ROOM_CYCLE_BOOTH: string, ROOM_INFO: string, ROOM_LOCK_BOOTH: string, USER_SET_AVATAR: string, USER_SET_STATUS: string, USER_GET_AVATARS: string}}
+ * @type {{CHAT_DELETE: string, HISTORY: string, MODERATE_ADD_DJ: string, MODERATE_BAN: string, MODERATE_BOOTH: string, MODERATE_MOVE_DJ: string, MODERATE_MUTE: string, MODERATE_PERMISSIONS: string, MODERATE_REMOVE_DJ: string, MODERATE_SKIP: string, MODERATE_UNBAN: string, MODERATE_UNMUTE: string, PLAYLIST: string, ROOM_CYCLE_BOOTH: string, ROOM_INFO: string, ROOM_LOCK_BOOTH: string, USER_SET_AVATAR: string, USER_GET_AVATARS: string}}
  * @private
  */
 var endpoints = {
@@ -98,8 +98,7 @@ var endpoints = {
     ROOM_LOCK_BOOTH: 'booth/lock',
     USER_INFO: 'users/me',
     USER_GET_AVATARS: 'store/inventory/avatars',
-    USER_SET_AVATAR: 'users/avatar',
-    USER_SET_STATUS: 'users/status'
+    USER_SET_AVATAR: 'users/avatar'
 };
 
 /**
@@ -1189,14 +1188,12 @@ PlugAPI.GLOBAL_ROLES = {
 
 /**
  * Statuses
- * @type {{AVAILABLE: number, AFK: number, WORKING: number, GAMING: number}}
+ * @type {{OFFLINE: number, ONLINE: number}}
  * @const
  */
 PlugAPI.STATUS = {
-    AVAILABLE: 0,
-    AFK: 1,
-    WORKING: 2,
-    GAMING: 3
+    OFFLINE: 0,
+    ONLINE: 1
 };
 
 /**
@@ -1651,31 +1648,6 @@ PlugAPI.prototype.getWaitListPosition = function(uid) {
 PlugAPI.prototype.havePermission = function(uid, permission, global) {
     if (global) return room.haveGlobalPermission(uid, permission);
     return room.haveRoomPermission(uid, permission) || room.haveGlobalPermission(uid, permission);
-};
-
-//noinspection JSUnusedGlobalSymbols
-/**
- * Get current status of user
- * @param {Number} [uid] User ID
- * @returns {User.status|Number}
- */
-PlugAPI.prototype.getStatus = function(uid) {
-    return room.getUser(uid).status;
-};
-
-//noinspection JSUnusedGlobalSymbols
-/**
- * Change status
- * @param {Number} status
- * @param {RESTCallback} [callback] Callback function
- * @returns {Boolean} If the REST request got queued
- */
-PlugAPI.prototype.setStatus = function(status, callback) {
-    if (!room.getRoomMeta().slug || !status || status < 0 || status > 3) return false;
-    queueREST('PUT', endpoints.USER_SET_STATUS, {
-        status: status
-    }, callback);
-    return true;
 };
 
 /**
