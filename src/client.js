@@ -819,6 +819,15 @@ function messageHandler(msg) {
                 if (chatHistory[i].cid == data.c) chatHistory.splice(i, 1);
             }
             break;
+        case PlugAPI.events.ROOM_DESCRIPTION_UPDATE:
+            room.setRoomDescription(data.description);
+            break;
+        case PlugAPI.events.ROOM_NAME_UPDATE:
+            room.setRoomName(data.name);
+            break;
+        case PlugAPI.events.ROOM_WELCOME_UPDATE:
+            room.setRoomWelcome(data.welcome);
+            break;
         case PlugAPI.events.USER_JOIN:
             room.addUser(data);
             break;
@@ -912,6 +921,7 @@ function messageHandler(msg) {
             }
             break;
         case PlugAPI.events.CHAT_LEVEL_UPDATE:
+            room.setMinChatLevel(data.level);
             logger.info('Chat Level has changed to level: ' + data.level + ' By: ' + data.user.username);
             break;
         default:
@@ -1432,6 +1442,10 @@ PlugAPI.prototype.getHistory = function(callback) {
 
 PlugAPI.prototype.getMedia = function() {
     return room.getMedia();
+};
+
+PlugAPI.prototype.getRoomMeta = function() {
+    return room.getRoomMeta();
 };
 
 PlugAPI.prototype.getRoomScore = function() {

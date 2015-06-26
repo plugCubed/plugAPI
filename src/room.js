@@ -54,14 +54,16 @@ var fx = [];
  */
 var grabs = {};
 /**
- * @type {{description: string, favorite: boolean, hostID: number, hostName: string, id: number, name: string, population: number, slug: string, welcome: string}}
+ * @type {{description: string, favorite: boolean, guests: number, hostID: number, hostName: string, id: number, minChatLevel: number, name: string, population: number, slug: string, welcome: string}}
  */
 var meta = {
     description: '',
     favorite: false,
+    guests: 0,
     hostID: -1,
     hostName: '',
     id: -1,
+    minChatLevel: 1,
     name: '',
     population: 0,
     slug: '',
@@ -311,9 +313,11 @@ Room.prototype.reset = function() {
     meta = {
         description: '',
         favorite: false,
+        guests: 0,
         hostID: -1,
         hostName: '',
         id: -1,
+        minChatLevel: 1,
         name: '',
         population: 0,
         slug: '',
@@ -347,8 +351,17 @@ Room.prototype.addUser = function(user) {
     // Don't add yourself
     if (user.id === mySelf.id) return;
 
+    // Don't add guests
+    if (user.guest) {
+        meta.guests += 1;
+        return;
+    }
+
     // Only add if the user doesn't exist
-    if (this.getUser(user.id) === null) users.push(user);
+    if (this.getUser(user.id) === null) {
+        users.push(user);
+        meta.population = users.length + 1;
+    }
 
     // Remove user from cache
     delete cacheUsers[booth.currentDJ];
@@ -359,11 +372,18 @@ Room.prototype.addUser = function(user) {
  * @param {Number} uid UserID
  */
 Room.prototype.removeUser = function(uid) {
+    // Remove guests
+    if (uid === 0) {
+        meta.guests = Math.max(0, meta.guests - 1);
+        return;
+    }
+
     for (var i in users) {
         if (!users.hasOwnProperty(i)) continue;
         if (users[i].id == uid) {
             // User found
             cacheUsers[uid] = users.splice(i, 1);
+            meta.population = users.length + 1;
             return;
         }
     }
@@ -426,8 +446,28 @@ Room.prototype.setBoothLocked = function(data){
     booth.isLocked = data;
 };
 
+Room.prototype.setCycle = function(cycle) {
+    booth.shouldCycle = cycle;
+};
+
 Room.prototype.setDJs = function(djs) {
     booth.waitingDJs = djs;
+};
+
+Room.prototype.setMinChatLevel = function(level) {
+    meta.minChatLevel = level;
+};
+
+Room.prototype.setRoomDescription = function(desc) {
+    meta.description = desc;
+};
+
+Room.prototype.setRoomName = function(name) {
+    meta.name = name;
+};
+
+Room.prototype.setRoomWelcome = function(welcome) {
+    meta.welcome = welcome;
 };
 
 /**
@@ -702,10 +742,6 @@ Room.prototype.getHistory = function() {
 Room.prototype.setHistory = function(err, data) {
     if (!err)
         songHistory = data;
-};
-
-Room.prototype.setCycle = function(cycle) {
-    booth.shouldCycle = cycle;
 };
 
 /**

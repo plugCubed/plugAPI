@@ -65,3 +65,51 @@ function ChatLevelUpdateObject(data, room) {
 }
 
 exports.roomMinChatLevelUpdate = ChatLevelUpdateObject;
+
+/**
+ * @param {{u: Number, d: String}} data
+ * @param {Room} room
+ * @returns {{raw: Object, user: Object, description: String}}
+ * @constructor
+ */
+function RoomDescriptionUpdateObject(data, room) {
+    return {
+        raw: data,
+        user: room.getUser(data.u),
+        description: data.d
+    };
+}
+
+exports.roomDescriptionUpdate = RoomDescriptionUpdateObject;
+
+/**
+ * @param {{u: Number, n: String}} data
+ * @param {Room} room
+ * @returns {{raw: Object, user: Object, name: String}}
+ * @constructor
+ */
+function RoomNameUpdateObject(data, room) {
+    return {
+        raw: data,
+        user: room.getUser(data.u),
+        name: data.n
+    };
+}
+
+exports.roomNameUpdate = RoomNameUpdateObject;
+
+/**
+ * @param {{u: Number, w: String}} data
+ * @param {Room} room
+ * @returns {{raw: Object, user: Object, name: String}}
+ * @constructor
+ */
+function RoomWelcomeUpdateObject(data, room) {
+    return {
+        raw: data,
+        user: room.getUser(data.u),
+        welcome: data.w
+    };
+}
+
+exports.roomWelcomeUpdate = RoomWelcomeUpdateObject;
