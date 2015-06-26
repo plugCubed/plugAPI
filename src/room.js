@@ -8,26 +8,26 @@ var songHistory = [];
 var that = null;
 
 var User = function(data) {
-    this.avatarID = data.avatarID ? data.avatarID : '';
-    this.badge = data.badge ? data.badge : 0;
+    this.avatarID = data.avatarID ? data.avatarID : null;
+    this.badge = data.badge ? data.badge : null;
     this.blurb = data.blurb ? data.blurb : undefined;
-    this.ep = data.ep ? data.ep : undefined;
     this.gRole = data.gRole !== null ? data.gRole : 0;
     this.grab = grabs[data.id] === 1;
     this.id = data.id ? data.id : -1;
     this.ignores = data.ignores ? data.ignores : undefined;
     this.joined = data.joined ? data.joined : '';
-    this.language = data.language ? data.language : '';
-    this.level = data.level ? data.level : 0;
+    this.language = data.language ? data.language : null;
+    this.level = data.level ? data.level : 1;
     this.notifications = data.notifications ? data.notifications : undefined;
-    this.pVibes = data.pVibes ? data.pVibes : undefined;
-    this.pw = data.pw ? data.pw : undefined;
+    this.pp = data.pp !== undefined ? data.pp : undefined;
+    this.pw = data.pw !== undefined ? data.pw : undefined;
     this.role = data.role ? data.role : 0;
-    this.slug = data.slug ? data.slug : undefined;
-    this.status = data.status ? data.status : 0;
+    this.slug = data.slug ? data.slug : null;
+    this.status = data.status !== undefined ? data.status : 1;
+    this.sub = data.sub ? data.sub : 0;
     this.username = data.username ? data.username : '';
     this.vote = votes[data.id] !== undefined ? votes[data.id] === -1 ? -1 : 1 : 0;
-    this.xp = data.xp ? data.xp : 0;
+    this.xp = data.xp !== undefined ? data.xp : undefined;
 };
 
 User.prototype.toString = function() {
