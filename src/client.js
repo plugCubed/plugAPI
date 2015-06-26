@@ -888,12 +888,15 @@ function messageHandler(msg) {
                 });
             }
             break;
+        case PlugAPI.events.MODERATE_BAN:
         case PlugAPI.events.MODERATE_ADD_DJ:
         case PlugAPI.events.MODERATE_REMOVE_DJ:
         case PlugAPI.events.MODERATE_MOVE_DJ:
         case PlugAPI.events.SKIP:
         case PlugAPI.events.MODERATE_SKIP:
         case PlugAPI.events.ROOM_VOTE_SKIP:
+        case PlugAPI.events.FRIEND_REQUEST:
+        case PlugAPI.events.GIFTED:
             /*
              These will be ignored by plugAPI.
              The server will send updates to current song and waitlist.
@@ -1266,6 +1269,8 @@ PlugAPI.events = {
     EARN: 'earn',
     FOLLOW_JOIN: 'followJoin',
     FLOOD_CHAT: 'floodChat',
+    FRIEND_REQUEST: 'friendRequest',
+    GIFTED: 'gifted',
     GRAB: 'grab',
     KILL_SESSION: 'killSession',
     MODERATE_ADD_DJ: 'modAddDJ',
