@@ -1448,6 +1448,10 @@ PlugAPI.prototype.getBoothMeta = function() {
     return room.getBoothMeta();
 };
 
+PlugAPI.prototype.getHistoryID = function() {
+    return room.getHistoryID();
+};
+
 PlugAPI.prototype.getMedia = function() {
     return room.getMedia();
 };
