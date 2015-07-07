@@ -64,11 +64,12 @@ Here are some bots that are using this API.
 | ---------------------------------------------------- | --------------------------------------------------------------- |
 | AuntJackie                                           | [Mix-N-Mash](https://plug.dj/mix-n-mash-2)                      |
 | [BeavisBot](https://github.com/AvatarKava/BeavisBot) | [I <3 the 80's and 90's](https://plug.dj/i-the-80-s-and-90-s-1) |
-| -DnB-                                                | [Drum & Bass](https://plug.dj/drum-bass)                        |
+| -DnB-                                                   | [Drum & Bass](https://plug.dj/drum-bass)                        |
 | FlavorBar                                            | [Flavorz](https://plug.dj/flavorz)                              |
-| FoxBot                                               | [Approaching Nirvana](https://plug.dj/approachingnirvana)       |
+| FoxBot                                                | [Approaching Nirvana](https://plug.dj/approachingnirvana)       |
 | TFLBot                                               | [The F**k Off Lounge \| TFL](https://plug.dj/thedark1337)        |
 | QBot                                                   | [EDM Qluster](https://plug.dj/qluster) |
+| Holly Refbots                                     | [Connect The Songs (Read Info!)](https://plug.dj/connect-the-songs-read-info/) |
 
 Have a bot that uses the API? Let us know!
 
