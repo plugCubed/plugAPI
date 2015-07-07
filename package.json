@@ -1,6 +1,6 @@
 {
   "name": "plugapi",
-  "version": "3.3.0",
+  "version": "3.4.0",
   "author": "Alex Pham <thedark1337@thedark1337.com>",
   "description": "Generic API for building plug.dj bots",
   "contributors": [
