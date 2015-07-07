@@ -945,6 +945,7 @@ function messageHandler(msg) {
 function PerformLoginCookie(callback) {
     if (typeof callback != 'function') {
         var deasync = require('deasync');
+        callback = undefined;
     }
 
     /**
@@ -961,8 +962,8 @@ function PerformLoginCookie(callback) {
         }
     }, function(err, res) {
         if (res.statusCode === 200) {
-            if (typeof callback == 'function') {
-                callback(that);
+            if (callback) {
+                callback(undefined, that);
                 return;
             }
         } else {
@@ -971,7 +972,7 @@ function PerformLoginCookie(callback) {
         loggingIn = false;
     });
 
-    if (typeof callback != 'function') {
+    if (!callback) {
         // Wait until the session is set
         while (loggingIn) {
             deasync.sleep(100);
@@ -986,6 +987,7 @@ function PerformLoginCookie(callback) {
  */
 function PerformLoginCredentials(callback) {
     if (typeof callback != 'function') {
+        callback = undefined;
         var deasync = require('deasync');
     }
 
@@ -1005,14 +1007,20 @@ function PerformLoginCredentials(callback) {
         var csrfToken;
         if (res.statusCode !== 200) {
             logger.error('LOGIN ERROR: Can\'t connect to plug.dj. HTTP Status: ' + res.statusCode);
-            process.exit(1);
+            if (callback) {
+                callback(new Error('plugAPI login error: can\'t connect to plug.dj. HTTP Status: ' + res.statusCode));
+            }
+            return;
         }
         try {
             _cookies.fromHeaders(res.headers);
             csrfToken = body.split('_csrf')[1].split('"')[1];
         } catch (e) {
             logger.error('LOGIN ERROR: Can\'t get CSRF Token');
-            process.exit(1);
+            if (callback) {
+                callback(new Error('plugAPI login error: can\'t get CSRF Token'));
+            }
+            return;
         }
         request({
             method: 'POST',
@@ -1027,21 +1035,27 @@ function PerformLoginCredentials(callback) {
                 password: authenticationInfo.password
             }
         }, function(err, res, data) {
-            if (data.status !== 'ok' || res.statusCode !== 200) {
-                logger.error('LOGIN ERROR: ' + data.status + ' HTTP Status: ' + res.statusCode);
-                process.exit(1);
-            } else {
-                _cookies.fromHeaders(res.headers);
-                _cookies.save();
-                loggingIn = false;
-                if (typeof callback == 'function') {
-                    callback(that);
+            if (!err) {
+                if (data.status !== 'ok' || res.statusCode !== 200) {
+                    logger.error('LOGIN ERROR: ' + data.status + ' HTTP Status: ' + res.statusCode);
+                    if (callback) {
+                        callback(new Error('plugAPI login error: ' + data.status + ', HTTP Status: ' + res.statusCode));
+                    }
+                } else {
+                    _cookies.fromHeaders(res.headers);
+                    _cookies.save();
+                    loggingIn = false;
+                    if (callback) {
+                        callback(err, that);
+                    }
                 }
+            } else if (callback) {
+                callback(err);
             }
         });
     });
 
-    if (typeof callback != 'function') {
+    if (!callback) {
         // Wait until the session is set
         while (loggingIn) {
             deasync.sleep(100);
@@ -1070,17 +1084,30 @@ function PerformLogin(callback, ignoreCache) {
  * @constructor
  */
 var PlugAPI = function(authenticationData, callback) {
+    if (typeof callback != 'function') {
+        callback = undefined;
+    }
+
     if (!authenticationData) {
         logger.error('You must pass the authentication data into the PlugAPI object to connect correctly');
-        process.exit(1);
+        if (callback) {
+            callback(new Error('You must pass the authentication data into the PlugAPI object to connect correctly'));
+        }
+        return;
     } else {
         if (!authenticationData.email) {
             logger.error('Missing login e-mail');
-            process.exit(1);
+            if (callback) {
+                callback(new Error('Missing login e-mail'));
+            }
+            return;
         }
         if (!authenticationData.password) {
             logger.error('Missing login password');
-            process.exit(1);
+            if (callback) {
+                callback(new Error('Missing login password'));
+            }
+            return;
         }
     }
 
@@ -1374,7 +1401,7 @@ PlugAPI.prototype.emit = function() {
 PlugAPI.prototype.connect = function(roomSlug) {
     if (!roomSlug || typeof roomSlug !== 'string' || roomSlug.length === 0 || roomSlug.indexOf('/') > -1) {
         logger.error('Invalid room name');
-        process.exit(1);
+        return;
     }
 
     if (connectingRoomSlug != null) {
