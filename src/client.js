@@ -75,7 +75,7 @@ var PlugAPIInfo = require('../package.json');
 
 /**
  * REST Endpoints
- * @type {{CHAT_DELETE: string, HISTORY: string, MODERATE_ADD_DJ: string, MODERATE_BAN: string, MODERATE_BOOTH: string, MODERATE_MOVE_DJ: string, MODERATE_MUTE: string, MODERATE_PERMISSIONS: string, MODERATE_REMOVE_DJ: string, MODERATE_SKIP: string, MODERATE_UNBAN: string, MODERATE_UNMUTE: string, PLAYLIST: string, ROOM_CYCLE_BOOTH: string, ROOM_INFO: string, ROOM_LOCK_BOOTH: string, USER_SET_AVATAR: string, USER_SET_STATUS: string, USER_GET_AVATARS: string}}
+ * @type {{CHAT_DELETE: string, HISTORY: string, MODERATE_ADD_DJ: string, MODERATE_BAN: string, MODERATE_BOOTH: string, MODERATE_MOVE_DJ: string, MODERATE_MUTE: string, MODERATE_PERMISSIONS: string, MODERATE_REMOVE_DJ: string, MODERATE_SKIP: string, MODERATE_UNBAN: string, MODERATE_UNMUTE: string, PLAYLIST: string, ROOM_CYCLE_BOOTH: string, ROOM_INFO: string, ROOM_LOCK_BOOTH: string, USER_SET_AVATAR: string, USER_GET_AVATARS: string}}
  * @private
  */
 var endpoints = {
@@ -98,8 +98,7 @@ var endpoints = {
     ROOM_LOCK_BOOTH: 'booth/lock',
     USER_INFO: 'users/me',
     USER_GET_AVATARS: 'store/inventory/avatars',
-    USER_SET_AVATAR: 'users/avatar',
-    USER_SET_STATUS: 'users/status'
+    USER_SET_AVATAR: 'users/avatar'
 };
 
 /**
@@ -819,6 +818,15 @@ function messageHandler(msg) {
                 if (chatHistory[i].cid == data.c) chatHistory.splice(i, 1);
             }
             break;
+        case PlugAPI.events.ROOM_DESCRIPTION_UPDATE:
+            room.setRoomDescription(data.description);
+            break;
+        case PlugAPI.events.ROOM_NAME_UPDATE:
+            room.setRoomName(data.name);
+            break;
+        case PlugAPI.events.ROOM_WELCOME_UPDATE:
+            room.setRoomWelcome(data.welcome);
+            break;
         case PlugAPI.events.USER_JOIN:
             room.addUser(data);
             break;
@@ -849,8 +857,17 @@ function messageHandler(msg) {
         case PlugAPI.events.GRAB:
             room.setGrab(data);
             break;
+        case PlugAPI.events.DJ_LIST_CYCLE:
+            room.setBoothCycle(data.cycle);
+            break;
+        case PlugAPI.events.DJ_LIST_LOCKED:
+            room.setBoothLocked(data.locked);
+            break;
         case PlugAPI.events.DJ_LIST_UPDATE:
             room.setDJs(data);
+
+            // Override the data with full user objects
+            data = room.getWaitList();
             break;
         case PlugAPI.events.FLOOD_CHAT:
             floodProtectionDelay += 500;
@@ -858,9 +875,6 @@ function messageHandler(msg) {
                 floodProtectionDelay -= 500;
             }, floodProtectionDelay * 5);
             logger.warning('Flood protection: Slowing down the sending of chat messages temporary');
-            break;
-        case PlugAPI.events.DJ_LIST_LOCKED:
-            room.setBoothLocked(msg.p.f);
             break;
         case PlugAPI.events.MODERATE_STAFF:
             //noinspection JSUnresolvedVariable
@@ -874,12 +888,15 @@ function messageHandler(msg) {
                 });
             }
             break;
+        case PlugAPI.events.MODERATE_BAN:
         case PlugAPI.events.MODERATE_ADD_DJ:
         case PlugAPI.events.MODERATE_REMOVE_DJ:
         case PlugAPI.events.MODERATE_MOVE_DJ:
         case PlugAPI.events.SKIP:
         case PlugAPI.events.MODERATE_SKIP:
         case PlugAPI.events.ROOM_VOTE_SKIP:
+        case PlugAPI.events.FRIEND_REQUEST:
+        case PlugAPI.events.GIFTED:
             /*
              These will be ignored by plugAPI.
              The server will send updates to current song and waitlist.
@@ -889,10 +906,6 @@ function messageHandler(msg) {
         case PlugAPI.events.MODERATE_MUTE:
             // Takes care of both mutes and unmutes
             room.muteUser(data);
-            break;
-        case PlugAPI.events.DJ_LIST_CYCLE:
-            //noinspection JSUnresolvedVariable
-            room.setCycle(data.f);
             break;
         case PlugAPI.events.KILL_SESSION:
             slug = room.getRoomMeta().slug;
@@ -912,6 +925,7 @@ function messageHandler(msg) {
             }
             break;
         case PlugAPI.events.CHAT_LEVEL_UPDATE:
+            room.setMinChatLevel(data.level);
             logger.info('Chat Level has changed to level: ' + data.level + ' By: ' + data.user.username);
             break;
         default:
@@ -1179,14 +1193,12 @@ PlugAPI.GLOBAL_ROLES = {
 
 /**
  * Statuses
- * @type {{AVAILABLE: number, AFK: number, WORKING: number, GAMING: number}}
+ * @type {{OFFLINE: number, ONLINE: number}}
  * @const
  */
 PlugAPI.STATUS = {
-    AVAILABLE: 0,
-    AFK: 1,
-    WORKING: 2,
-    GAMING: 3
+    OFFLINE: 0,
+    ONLINE: 1
 };
 
 /**
@@ -1257,6 +1269,8 @@ PlugAPI.events = {
     EARN: 'earn',
     FOLLOW_JOIN: 'followJoin',
     FLOOD_CHAT: 'floodChat',
+    FRIEND_REQUEST: 'friendRequest',
+    GIFTED: 'gifted',
     GRAB: 'grab',
     KILL_SESSION: 'killSession',
     MODERATE_ADD_DJ: 'modAddDJ',
@@ -1430,8 +1444,20 @@ PlugAPI.prototype.getHistory = function(callback) {
     });
 };
 
+PlugAPI.prototype.getBoothMeta = function() {
+    return room.getBoothMeta();
+};
+
+PlugAPI.prototype.getHistoryID = function() {
+    return room.getHistoryID();
+};
+
 PlugAPI.prototype.getMedia = function() {
     return room.getMedia();
+};
+
+PlugAPI.prototype.getRoomMeta = function() {
+    return room.getRoomMeta();
 };
 
 PlugAPI.prototype.getRoomScore = function() {
@@ -1637,31 +1663,6 @@ PlugAPI.prototype.getWaitListPosition = function(uid) {
 PlugAPI.prototype.havePermission = function(uid, permission, global) {
     if (global) return room.haveGlobalPermission(uid, permission);
     return room.haveRoomPermission(uid, permission) || room.haveGlobalPermission(uid, permission);
-};
-
-//noinspection JSUnusedGlobalSymbols
-/**
- * Get current status of user
- * @param {Number} [uid] User ID
- * @returns {User.status|Number}
- */
-PlugAPI.prototype.getStatus = function(uid) {
-    return room.getUser(uid).status;
-};
-
-//noinspection JSUnusedGlobalSymbols
-/**
- * Change status
- * @param {Number} status
- * @param {RESTCallback} [callback] Callback function
- * @returns {Boolean} If the REST request got queued
- */
-PlugAPI.prototype.setStatus = function(status, callback) {
-    if (!room.getRoomMeta().slug || !status || status < 0 || status > 3) return false;
-    queueREST('PUT', endpoints.USER_SET_STATUS, {
-        status: status
-    }, callback);
-    return true;
 };
 
 /**

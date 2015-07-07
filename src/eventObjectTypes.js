@@ -51,6 +51,39 @@ function ChatEventObject(data, room) {
 exports.chat = ChatEventObject;
 
 /**
+ * @param {{m: String, mi: Number, f: Boolean}} data
+ * @param {Room} room
+ * @returns {{raw: Object, user: Object, cycle: Boolean}}
+ * @constructor
+ */
+function djListCycleObject(data, room) {
+    return {
+        raw: data,
+        user: room.getUser(data.mi),
+        cycle: data.f
+    };
+}
+
+exports.djListCycle = djListCycleObject;
+
+/**
+ * @param {{m: String, mi: Number, c: Boolean, f: Boolean}} data
+ * @param {Room} room
+ * @returns {{raw: Object, user: Object, clear: Boolean, locked: Boolean}}
+ * @constructor
+ */
+function djListLockedObject(data, room) {
+    return {
+        raw: data,
+        user: room.getUser(data.mi),
+        clear: data.c,
+        locked: data.f
+    };
+}
+
+exports.djListLocked = djListLockedObject;
+
+/**
  * @param {{m: Number, u: Number}} data
  * @returns {{raw: Object, id: Number, user: Object, level: Number}}
  * @constructor
@@ -65,3 +98,51 @@ function ChatLevelUpdateObject(data, room) {
 }
 
 exports.roomMinChatLevelUpdate = ChatLevelUpdateObject;
+
+/**
+ * @param {{u: Number, d: String}} data
+ * @param {Room} room
+ * @returns {{raw: Object, user: Object, description: String}}
+ * @constructor
+ */
+function RoomDescriptionUpdateObject(data, room) {
+    return {
+        raw: data,
+        user: room.getUser(data.u),
+        description: data.d
+    };
+}
+
+exports.roomDescriptionUpdate = RoomDescriptionUpdateObject;
+
+/**
+ * @param {{u: Number, n: String}} data
+ * @param {Room} room
+ * @returns {{raw: Object, user: Object, name: String}}
+ * @constructor
+ */
+function RoomNameUpdateObject(data, room) {
+    return {
+        raw: data,
+        user: room.getUser(data.u),
+        name: data.n
+    };
+}
+
+exports.roomNameUpdate = RoomNameUpdateObject;
+
+/**
+ * @param {{u: Number, w: String}} data
+ * @param {Room} room
+ * @returns {{raw: Object, user: Object, name: String}}
+ * @constructor
+ */
+function RoomWelcomeUpdateObject(data, room) {
+    return {
+        raw: data,
+        user: room.getUser(data.u),
+        welcome: data.w
+    };
+}
+
+exports.roomWelcomeUpdate = RoomWelcomeUpdateObject;
