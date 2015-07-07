@@ -1,5 +1,15 @@
 plugAPI Changelog
 =================
+3.4.0
+-------
+
+* **CHANGED:** Removed getStatus and setStatus and updated plugAPI's status object. (Commit [e2e331e](https://github.com/plugCubed/plugAPI/commit/077946781eb1a2ac72a47c3d11b7ab7c6e2e331e)).
+* **ADDED:** Added friendRequest, gifted, and modBan to ignore list. (Commit [f9c703d](https://github.com/plugCubed/plugAPI/commit/b07028daef2e7eba04d5176006e9e0e20f9c703d)).
+* **ADDED:** Added djListCycle and djListLocked event objects, Added getBoothMeta function. (Commit [0010d0b](https://github.com/plugCubed/plugAPI/commit/e3533aa8e78b667a101da562149bdb3920010d0b)).
+* **CHANGED:** Changed djListUpdate to emit user objects instead of ids. (Commit [0010d0b](https://github.com/plugCubed/plugAPI/commit/e3533aa8e78b667a101da562149bdb3920010d0b)).
+* **UPDATED:** Updated user object properties and defaults.(Commit [b5abec1](https://github.com/plugCubed/plugAPI/commit/fcb031643df302495bdd2dec1495df0f5b5abec1)).
+* **ADDED:** Added room description, name, and welcome update events. Added getRoomMeta function. Don't add guests to users listing. (Commit [aab71a9](https://github.com/plugCubed/plugAPI/commit/9ced439cdcbabec1b3e0a488e253a58f5aab71a9)).
+* **ADDED:** Added 2 more bots to readme info. QBot and Holly Refbots (Commit [9bfd810](https://github.com/plugCubed/plugAPI/commit/6b3c24c8de4c28c598945513a5b98d8ba9bfd810)). (Commit [f9aa9a8](https://github.com/plugCubed/plugAPI/commit/b3a53099804b7f3cb3c552026f6620d6bf9aa9a8)).
 
 3.3.0
 -------
