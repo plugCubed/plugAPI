@@ -1,6 +1,5 @@
 .git
 Gruntfile.js
-source-map-fix.js
 .jsbeautifyrc
 .editorconfig
 *.log
