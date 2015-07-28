@@ -1,5 +1,17 @@
 plugAPI Changelog
 =================
+3.5.0
+------
+* **REMOVED:** Removed Bin and Minification build. Not neccesary for a node.js library. (Commit [7ddf40](https://github.com/plugCubed/plugAPI/commit/63ab9c23fbaaa6f45fc901d8c0995e89dd7ddf40))
+* **ADDED:** selfSkip method to skip self (Commit [44c6b78](https://github.com/plugCubed/plugAPI/commit/58ddd2eb187ef459fe18f5d6015fc7ec744c6b78)).
+* **CHANGED:** moderateForceSkip will skip self if person djing is the bot (Commit [44c6b78](https://github.com/plugCubed/plugAPI/commit/58ddd2eb187ef459fe18f5d6015fc7ec744c6b78)).
+* **CHANGED:** Codestyle to be multiple var declarations. Fixed a duplicate var in room.js as well (Commit [44c6b78](https://github.com/plugCubed/plugAPI/commit/58ddd2eb187ef459fe18f5d6015fc7ec744c6b78)).
+* **CHANGED:** Added in a baseURL to request (Commit [44c6b78](https://github.com/plugCubed/plugAPI/commit/58ddd2eb187ef459fe18f5d6015fc7ec744c6b78)).
+* **UPDATED:** Dependencies: chalk@1.1.0, request to 2.60.0 (Commit [44c6b78](https://github.com/plugCubed/plugAPI/commit/58ddd2eb187ef459fe18f5d6015fc7ec744c6b78)).
+* **CHANGED:** Removed outdated node-html-encoder for [he](https://npmjs.com/package/he) (Commit [44c6b78](https://github.com/plugCubed/plugAPI/commit/58ddd2eb187ef459fe18f5d6015fc7ec744c6b78)).
+* **CHANGED:** Src is now Lib to fit the pattern of node.js modules. (Commit [44c6b78](https://github.com/plugCubed/plugAPI/commit/58ddd2eb187ef459fe18f5d6015fc7ec744c6b78)).
+* **REMOVED:** Grunt and ClosureCompiler. Will add testing later on. (Commit [7ddf40](https://github.com/plugCubed/plugAPI/commit/63ab9c23fbaaa6f45fc901d8c0995e89dd7ddf40))
+
 3.4.0
 -------
 
