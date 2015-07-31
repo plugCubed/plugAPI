@@ -30,7 +30,7 @@
   "dependencies": {
     "chalk": "^1.1.0",
     "deasync": "^0.1.0",
-    "eventemitter2": "^0.4.14",
+    "eventemitter3": "^1.1.1",
     "he": "^0.5.0",
     "request": "^2.60.0",
     "ws": "^0.7.2"
