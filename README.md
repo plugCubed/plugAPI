@@ -39,8 +39,24 @@ bot.on('roomJoin', function(room) {
     console.log("Joined " + room);
 });
 ```
+**Async 3.5.0 and Below:**
 
-**Async:**
+```javascript
+var PlugAPI = require('plugapi');
+
+new PlugAPI({
+    email: '',
+    password: ''
+}, function(bot) {
+    bot.connect('roomslug'); // The part after https://plug.dj
+
+    bot.on('roomJoin', function(room) {
+        console.log("Joined " + room);
+    });
+});
+```
+
+**Async 4.0.0:**
 
 ```javascript
 var PlugAPI = require('plugapi');
@@ -124,20 +140,4 @@ var bot = new PlugAPI(auth);
 
 bot.multiLine = true; // Set to true to enable multi line chat. Default is false
 bot.multiLineLimit = 5; // Set to the maximum number of lines the bot should split messages up into. Any text beyond this number will just be omitted. Default is 5.
-```
-
-#### TCP Server
-You can start up a TCP server the bot will listen to, for remote administration
-
-Example:
-```javascript
-    bot.tcpListen(6666, 'localhost');
-    bot.on('tcpConnect', function(socket) {
-        // executed when someone telnets into localhost port 6666
-    });
-
-    bot.on('tcpMessage', function(socket, msg) {
-        // Use socket.write, for example, to send output back to the telnet session
-        // 'msg' is whatever was entered by the user in the telnet session
-    });
 ```
