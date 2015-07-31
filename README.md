@@ -48,12 +48,16 @@ var PlugAPI = require('plugapi');
 new PlugAPI({
     email: '',
     password: ''
-}, function(bot) {
-    bot.connect('roomslug'); // The part after https://plug.dj
+}, function(err, bot) {
+    if (!err) {
+        bot.connect('roomslug'); // The part after https://plug.dj
 
-    bot.on('roomJoin', function(room) {
-        console.log("Joined " + room);
-    });
+        bot.on('roomJoin', function(room) {
+            console.log("Joined " + room);
+        });
+    } else {
+        console.log('Error initializing plugAPI: ' + err);
+    }
 });
 ```
 
