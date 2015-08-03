@@ -1,5 +1,21 @@
 plugAPI Changelog
 =================
+4.0.0
+------
+* **CHANGED:** Room.js object checks to find both null and undefined (Commit [c54e34b](https://github.com/plugCubed/plugAPI/commit/864070e1fd2662e0254dddf801bcdff4b1c54e3b))
+* **REMOVED:** cookies saving / cookies.tmp file. Was causing too many issues. (Commit [10059f7](https://github.com/plugCubed/plugAPI/commit/977925a931b89e8ba0300ced2fe7bcbb710059f7)) (Commit [30b2a13](https://github.com/plugCubed/plugAPI/commit/17014bfaf92b5532f26ab5b2c6e368b7d30b2a13))
+* **CHANGED:** Most of plugAPI is now compliant to the node.js style of callback(err, data) (Commit [10059f7](https://github.com/plugCubed/plugAPI/commit/977925a931b89e8ba0300ced2fe7bcbb710059f7))
+* **CHANGED:** Use IsFinite ES6 polyfill for a more accurate check of numbers. (Commit [10059f7](https://github.com/plugCubed/plugAPI/commit/977925a931b89e8ba0300ced2fe7bcbb710059f7))
+* **ADDED:** Use Handle-Errors to throw if no callback is defined, else return the error. (Commit [10059f7](https://github.com/plugCubed/plugAPI/commit/977925a931b89e8ba0300ced2fe7bcbb710059f7))
+* **FIXED:** Empty Arguments getting interpreted as 0. (Commit [10059f7](https://github.com/plugCubed/plugAPI/commit/977925a931b89e8ba0300ced2fe7bcbb710059f7))
+* **FIXED:** moderateForceSkip skipping other users. (Commit [77baafb](https://github.com/plugCubed/plugAPI/commit/6cf13b75a7d85ba436dadff8a1fe952a377baafb))
+* **CHANGED: ** From Eventemitter 2 to Eventemitter 3. (Commit [bea2829](https://github.com/plugCubed/plugAPI/commit/7c5806b8da427a26e546c8c2e87d47cdabea2829))
+
+
+**BREAKING CHANGES:**
+* OnAny and OffAny are now removed.
+* Async now requires end users to handle errors by plugAPI.
+
 3.5.0
 ------
 * **REMOVED:** Removed Bin and Minification build. Not neccesary for a node.js library. (Commit [7ddf40](https://github.com/plugCubed/plugAPI/commit/63ab9c23fbaaa6f45fc901d8c0995e89dd7ddf40))
