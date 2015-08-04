@@ -1,5 +1,10 @@
 plugAPI Changelog
 =================
+
+4.0.1
+------
+* **FIXED:** Room.js was returning Internal Users Array and not the local variable. (Commit [07793b8](https://github.com/plugCubed/plugAPI/commit/f02a2d57afbda19f9247863fd49d2a59307793b8))
+
 4.0.0
 ------
 * **CHANGED:** Room.js object checks to find both null and undefined (Commit [c54e34b](https://github.com/plugCubed/plugAPI/commit/864070e1fd2662e0254dddf801bcdff4b1c54e3b))
