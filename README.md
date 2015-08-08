@@ -1,11 +1,4 @@
-#plugAPI
-
-## Status
-
-[![NPM](https://nodei.co/npm/plugapi.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/plugapi/)[![NPM](https://nodei.co/npm-dl/plugapi.png?months=1&height=3)](https://nodei.co/npm-dl/plugapi/)
-
-[![NPM](https://img.shields.io/npm/l/plugapi.svg)](https://github.com/plugCubed/plugAPI/blob/master/LICENSE.md)
-[![David](https://img.shields.io/david/strongloop/express.svg)](https://david-dm.org/plugcubed/plugapi)
+#plugAPI  [![Build Status](https://img.shields.io/travis/thedark1337/plugCubed/plugAPI.svg)](https://travis-ci.org/plugCubed/plugAPI) [![npm version](http://img.shields.io/npm/v/plugapi.svg)](https://npmjs.org/package/plugapi) [![npm downloads](https://img.shields.io/npm/dm/plugapi.svg)](https://npmjs.org/package/plugapi) [![NPM](https://img.shields.io/npm/l/plugapi.svg)](https://github.com/plugCubed/plugAPI/blob/master/LICENSE.md) [![David](https://img.shields.io/david/strongloop/express.svg)](https://david-dm.org/plugcubed/plugapi) [![Gratipay](https://img.shields.io/gratipay/thedark1337.svg)](https://www.gratipay.com/thedark1337/)
 
 ## About
 
@@ -112,22 +105,16 @@ var reconnect = function() { bot.connect(ROOM); };
 bot.on('close', reconnect);
 bot.on('error', reconnect);
 ```
+
 ## API
-Please Refer to the [Wiki](https://github.com/TATDK/plugapi/wiki) for both the Events and Actions.
-
-
-## Troubleshooting
-
-If you are having issues connecting, please check if cookies.tmp exists in node_modules/plugapi, if it does delete that and try to connect again.
-
-Please note that at this current time only one account may be used per plugAPI installation due to the cookies.tmp file.
+Please Refer to the [Wiki](https://github.com/plugcubed/plugapi/wiki) for both the Events and Actions.
 
 ## Contribute
 1. Clone repository to empty folder.
 2. Cd to the folder containing the repository.
 3. Run `npm install` to set up the environment.
 4. Edit your changes in the code, and make sure it follows our [Style Guidelines](https://github.com/plugCubed/Code-Style/blob/master/JavaScript%20Style%20Guide.md).
-5. Run `grunt` to compile the code and test your changes.
+5. Run `npm test` to make sure all tests pass.
 6. After it's bug free, you may submit it as a Pull Request to this repo.
 
 ## Misc

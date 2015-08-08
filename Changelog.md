@@ -1,5 +1,13 @@
 plugAPI Changelog
 =================
+4.1.0
+------
+* **ADDED:** Starting work on mocha test. Linting added for now.
+* **CHANGED:** Linted and fixed many issues with code.
+* **FIXED:** Forgot to rename function in switch case.
+* **ADDED:** Default case for mutes (sets to null if time is not defined)
+* **CHANGED:** JSDoc to be valid and descriptions where needed.
+* **CHANGED:** Use Strict mode.
 
 4.0.1
 ------
