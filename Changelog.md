@@ -1,13 +1,18 @@
 plugAPI Changelog
 =================
+4.1.1
+------
+* **FIXED:** Null issue with ws (Commit [913b8d](https://github.com/plugCubed/plugAPI/cmmit/b039d5eef7ff7b8468b96e3d1da9820c32913b8d))
+* **FIXED:** A few broken links in readme (Commit [d635862](https://github.com/plugCubed/plugAPI/commit/f56d59e93ba7b1f5dd3e7ae762d42b453d635862))
+
 4.1.0
 ------
-* **ADDED:** Starting work on mocha test. Linting added for now.
-* **CHANGED:** Linted and fixed many issues with code.
-* **FIXED:** Forgot to rename function in switch case.
-* **ADDED:** Default case for mutes (sets to null if time is not defined)
-* **CHANGED:** JSDoc to be valid and descriptions where needed.
-* **CHANGED:** Use Strict mode.
+* **ADDED:** Starting work on mocha test. Linting added for now. (Commit [33375f3](https://github.com/plugCubed/plugAPI/commit/2ca5357b9c10d9251ca44022afe37a22533375f3))
+* **CHANGED:** Linted and fixed many issues with code. (Commit [33375f3](https://github.com/plugCubed/plugAPI/commit/2ca5357b9c10d9251ca44022afe37a22533375f3))
+* **FIXED:** Forgot to rename function in switch case. (Commit [33375f3](https://github.com/plugCubed/plugAPI/commit/2ca5357b9c10d9251ca44022afe37a22533375f3))
+* **ADDED:** Default case for mutes (sets to null if time is not defined) (Commit [33375f3](https://github.com/plugCubed/plugAPI/commit/2ca5357b9c10d9251ca44022afe37a22533375f3))
+* **CHANGED:** JSDoc to be valid and descriptions where needed. (Commit [33375f3](https://github.com/plugCubed/plugAPI/commit/2ca5357b9c10d9251ca44022afe37a22533375f3))
+* **CHANGED:** Use Strict mode. (Commit [33375f3](https://github.com/plugCubed/plugAPI/commit/2ca5357b9c10d9251ca44022afe37a22533375f3))
 
 4.0.1
 ------
