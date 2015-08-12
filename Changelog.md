@@ -2,7 +2,7 @@ plugAPI Changelog
 =================
 4.1.1
 ------
-* **FIXED:** Null issue with ws (Commit [913b8d](https://github.com/plugCubed/plugAPI/cmmit/b039d5eef7ff7b8468b96e3d1da9820c32913b8d))
+* **FIXED:** Null issue with ws (Commit [73d9409](https://github.com/plugCubed/plugAPI/commit/5431ffa108aa4eca6f59a86b8ee2420db73d9409))
 * **FIXED:** A few broken links in readme (Commit [d635862](https://github.com/plugCubed/plugAPI/commit/f56d59e93ba7b1f5dd3e7ae762d42b453d635862))
 
 4.1.0
