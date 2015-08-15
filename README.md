@@ -120,6 +120,7 @@ Please Refer to the [Wiki](https://github.com/plugcubed/plugapi/wiki) for both t
 ## Misc
 
 #### Multi line chat
+
 Since Plug.dj cuts off chat messages at 250 characters, you can choose to have your bot split up chat messages into multiple lines:
 
 ```javascript
@@ -128,3 +129,7 @@ var bot = new PlugAPI(auth);
 bot.multiLine = true; // Set to true to enable multi line chat. Default is false
 bot.multiLineLimit = 5; // Set to the maximum number of lines the bot should split messages up into. Any text beyond this number will just be omitted. Default is 5.
 ```
+
+#### Support
+
+We have a [Slack](https://plugcubed.slack.com/) channel we use to communicate. Please email [1337alexpham@gmail.com](mailto:1337alexpham@gmail.com?subject=Slack&nbsp;Plug3) if you'd like to be added
