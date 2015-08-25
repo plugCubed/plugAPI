@@ -1,5 +1,13 @@
 plugAPI Changelog
 =================
+4.1.2
+------
+* **ADDED:** `Object.assign` Ponyfill (Commit [48d3c92](https://github.com/plugCubed/plugAPI/commit/106f9eed0b89d26c74152d1e7336431ca48d3c92))
+* **UPDATED:** Request to 2.61.0 , ws to 0.8.0 (Commit [48d3c92](https://github.com/plugCubed/plugAPI/commit/106f9eed0b89d26c74152d1e7336431ca48d3c92))
+* **CHANGED:** Use `Array.isArray` instead of `util.isArray` due to being deprecated (Commit [ac2bdbc](https://github.com/plugCubed/plugAPI/commit/83a28892112ee12ed1d9f8cff4a4001b0ac2bdbc))
+* **CHANGED:** Use `Object.assign` ponyfill instead of util._extend (Commit [1927037](https://github.com/plugCubed/plugAPI/commit/3a26d81482e2c15bc0d2c624083da7d841927037))
+* **FIXED:** Null / Undefined messages should not break sendChat (Commit [ac2bdbc](https://github.com/plugCubed/plugAPI/commit/83a28892112ee12ed1d9f8cff4a4001b0ac2bdbc))
+
 4.1.1
 ------
 * **FIXED:** Null issue with ws (Commit [73d9409](https://github.com/plugCubed/plugAPI/commit/5431ffa108aa4eca6f59a86b8ee2420db73d9409))
