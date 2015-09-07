@@ -1,5 +1,12 @@
 plugAPI Changelog
 =================
+4.2.0
+------
+* **FIXED:** Commands should now be able to be deleted. (Commit [3aacf8c](https://github.com/plugCubed/plugAPI/commit/548b4b06d463f32a98e745aeceae415c83aacf8c))
+* **FIXED:** parseInt if getUser uid is String (Commit [3aacf8c](https://github.com/plugCubed/plugAPI/commit/548b4b06d463f32a98e745aeceae415c83aacf8c))
+* **ADDED:** MAINT_MODE and MAINT_MODE_ALERT events (Commit [3aacf8c](https://github.com/plugCubed/plugAPI/commit/548b4b06d463f32a98e745aeceae415c83aacf8c))
+* **IMPROVE:** JSDoc to be more consistent (Commit [3aacf8c](https://github.com/plugCubed/plugAPI/commit/548b4b06d463f32a98e745aeceae415c83aacf8c))
+* **IMPROVE:** Typo in utils comment (Commit [322bcbb](https://github.com/plugCubed/plugAPI/commit/44f130bf24b60274fe7fd58e5e0ca1f15322bcbb))
 4.1.2
 ------
 * **ADDED:** `Object.assign` Ponyfill (Commit [48d3c92](https://github.com/plugCubed/plugAPI/commit/106f9eed0b89d26c74152d1e7336431ca48d3c92))
