@@ -1,6 +1,8 @@
-#plugAPI  [![Build Status](https://img.shields.io/travis/plugCubed/plugAPI.svg)](https://travis-ci.org/plugCubed/plugAPI) [![npm version](http://img.shields.io/npm/v/plugapi.svg)](https://npmjs.org/package/plugapi) [![npm downloads](https://img.shields.io/npm/dm/plugapi.svg)](https://npmjs.org/package/plugapi) [![NPM](https://img.shields.io/npm/l/plugapi.svg)](https://github.com/plugCubed/plugAPI/blob/master/LICENSE.md) [![David](https://img.shields.io/david/plugcubed/plugapi.svg)](https://david-dm.org/plugcubed/plugapi) [![Gratipay](https://img.shields.io/gratipay/thedark1337.svg)](https://www.gratipay.com/thedark1337/)
+#plugAPI  [![Build Status](https://img.shields.io/travis/plugCubed/plugAPI.svg)](https://travis-ci.org/plugCubed/plugAPI) [![npm version](http://img.shields.io/npm/v/plugapi.svg)](https://npmjs.org/package/plugapi) [![npm downloads](https://img.shields.io/npm/dm/plugapi.svg)](https://npmjs.org/package/plugapi) [![NPM](https://img.shields.io/npm/l/plugapi.svg)](https://github.com/plugCubed/plugAPI/blob/master/LICENSE.md) [![David](https://img.shields.io/david/plugcubed/plugapi.svg)](https://david-dm.org/plugcubed/plugapi)
 
 ## About
+
+**NOTE:** Development work has stopped on this project. Issues and Pull Requests will not be answered. This is due to plug.dj shutting down. [Farewell Letter](https://plugcubed.net/goodbye)
 
 A generic NodeJS API for creating plug.dj bots.
 
