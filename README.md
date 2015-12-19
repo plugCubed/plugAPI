@@ -2,7 +2,7 @@
 
 ## About
 
-**NOTE:** Development work has stopped on this project. Issues and Pull Requests will not be answered. This is due to plug.dj shutting down. [Farewell Letter](https://plugcubed.net/goodbye)
+**NOTE:** Version 5.0.0 and above will only support NodeJS Version 4 and above. If you'd like to use anything lower, please use 4.x.
 
 A generic NodeJS API for creating plug.dj bots.
 
@@ -14,7 +14,7 @@ Originally by [Chris Vickery](https://github.com/chrisinajar), now maintained by
 Run the following:
 
 ``` javascript
-npm install plugapi --production
+npm i -S plugapi
 ```
 
 You can choose to instantiate plugAPI with either Sync or Async

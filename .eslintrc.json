@@ -1,0 +1,13 @@
+{
+    "extends": "thedark1337",
+    "ecmaFeatures": {
+        "modules": false
+    },
+    "rules": {
+        "func-style": 0,
+        "no-negated-condition": 0,
+        "no-sync": 0,
+        "prefer-reflect": 0,
+        "prefer-spread": 0
+    }
+}
