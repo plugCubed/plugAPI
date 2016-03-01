@@ -2,7 +2,6 @@
 
 ## About
 
-**NOTE:** Development work has stopped on this project. Issues and Pull Requests will not be answered. This is due to plug.dj shutting down. [Farewell Letter](https://plugcubed.net/goodbye)
 
 A generic NodeJS API for creating plug.dj bots.
 
@@ -128,6 +127,7 @@ Since Plug.dj cuts off chat messages at 250 characters, you can choose to have y
 ```javascript
 var bot = new PlugAPI(auth);
 
+bot.deleteAllChat = false; // Set to true to enable deletion of chat regardless of role . Default is false
 bot.multiLine = true; // Set to true to enable multi line chat. Default is false
 bot.multiLineLimit = 5; // Set to the maximum number of lines the bot should split messages up into. Any text beyond this number will just be omitted. Default is 5.
 ```
