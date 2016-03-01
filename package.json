@@ -34,14 +34,13 @@
     "eventemitter3": "^1.1.1",
     "handle-errors": "^1.0.0",
     "he": "^0.5.0",
-    "request": "^2.67.0",
+    "request": "^2.69.0",
     "ws": "^1.0.1"
   },
   "devDependencies": {
-    "eslint": "^1.10.3",
-    "eslint-config-thedark1337": "^1.0.1",
-    "mocha": "^2.3.4",
-    "mocha-eslint": "^1.0.0"
+    "eslint-config-thedark1337": "^2.0.1",
+    "mocha": "^2.4.5",
+    "mocha-eslint": "^2.0.1"
   },
   "engines": {
     "node": ">= 4.0.0"
