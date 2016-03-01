@@ -3,7 +3,8 @@
 var lint = require('mocha-eslint');
 
 var paths = [
-    'lib/**/*.js'
+    'lib/**/*.js',
+    'test/*.js'
 ];
 
 var options = {};
