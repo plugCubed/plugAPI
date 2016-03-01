@@ -1,5 +1,13 @@
 plugAPI Changelog
 =================
+
+4.2.1
+-----
+* **ADDED:** Option to delete all chat regardless of role (Commit [3b6ccc4](https://github.com/plugCubed/plugAPI/coomit/37de0ccc2356c378d2a10532fe20e72b13b6ccc4))
+* **UPDATED:** All dependencies to latest versions. (Commit [7aed7be](https://github.com/plugCubed/plugAPI/commit/70c74e18c851b2120f9cf12c38ace2dbe7aed7be))
+* **UPDATED:** Codestyle to match newest ESLint config.(Commit [fc41705](https://github.com/plugCubed/plugAPI/commit/600a708fb7681752c9356d9e7d12ff6f1fc41705))
+* **ADDED:** Linting for tests. (Commit [fc41705](https://github.com/plugCubed/plugAPI/commit/600a708fb7681752c9356d9e7d12ff6f1fc41705))
+
 4.2.0
 ------
 * **FIXED:** Commands should now be able to be deleted. (Commit [3aacf8c](https://github.com/plugCubed/plugAPI/commit/548b4b06d463f32a98e745aeceae415c83aacf8c))
