@@ -1,7 +1,7 @@
 {
   "name": "plugapi",
   "description": "Generic API for building plug.dj bots",
-  "version": "5.0.0-alpha.1",
+  "version": "5.0.0-alpha.2",
   "author": "Thedark1337 <thedark1337@thedark1337.com>",
   "bugs": {
     "email": "1337alexpham@gmail.com",
