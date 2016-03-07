@@ -28,19 +28,19 @@
     }
   ],
   "dependencies": {
-    "chalk": "^1.1.0",
-    "deasync": "^0.1.1",
+    "chalk": "^1.1.1",
+    "deasync": "^0.1.4",
     "eventemitter3": "^1.1.1",
     "handle-errors": "^1.0.0",
     "he": "^0.5.0",
     "is-finite": "^1.0.1",
     "object-assign": "^4.0.1",
-    "request": "^2.61.0",
+    "request": "^2.69.0",
     "ws": "^1.0.1"
   },
   "devDependencies": {
     "eslint-config-thedark1337": "^2.0.1",
-    "mocha": "^2.2.5",
+    "mocha": "^2.4.5",
     "mocha-eslint": "^2.0.1"
   },
   "engines": {
