@@ -1,6 +1,11 @@
 plugAPI Changelog
 =================
 
+4.2.2
+-----
+* **UPDATED:** All dependencies to latest versions. (Commit [a4615d8](https://github.com/plugCubed/plugAPI/commit/c4d8cbe933a92664062d6f845dd6e4938a4615d8))
+* **FIXED:**  moderateDeleteChat should check for bouncer permissions (Commit [c0d0e33](https://github.com/plugCubed/plugAPI/commit/b4f03f842a9d38ce44f98519cb5e5dd7ac0d0e33))
+
 4.2.1
 -----
 * **ADDED:** Option to delete all chat regardless of role (Commit [3b6ccc4](https://github.com/plugCubed/plugAPI/commit/37de0ccc2356c378d2a10532fe20e72b13b6ccc4))
