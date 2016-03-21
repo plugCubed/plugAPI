@@ -1,6 +1,11 @@
 plugAPI Changelog
 =================
 
+4.2.3
+-----
+* **UPDATED:** Eventemitter3 to 1.2.0 and mocha-eslint to 2.0.2 (Commit [2f1d6b4](https://github.com/plugCubed/plugAPI/commit/dafe0eb48544d88b41ee5fd8bb666b7862f1d6b4))
+* **FIXED:** Moved deleteAllChat to correct location (Commit [58fe475](https://github.com/plugCubed/plugAPI/commit/5dad3fc2ef9fc343c849224dfa0a24e4458fe475))
+
 4.2.2
 -----
 * **UPDATED:** All dependencies to latest versions. (Commit [a4615d8](https://github.com/plugCubed/plugAPI/commit/c4d8cbe933a92664062d6f845dd6e4938a4615d8))
