@@ -35,13 +35,13 @@
     "he": "^1.1.0",
     "is-finite": "^1.0.1",
     "object-assign": "^4.1.0",
-    "request": "^2.72.0",
-    "ws": "^1.1.0"
+    "request": "^2.73.0",
+    "ws": "^1.1.1"
   },
   "devDependencies": {
     "eslint-config-thedark1337": "^2.0.1",
     "mocha": "^2.5.3",
-    "mocha-eslint": "^2.0.2"
+    "mocha-eslint": "^2.1.1"
   },
   "engines": {
     "node": ">= 0.10.0"
