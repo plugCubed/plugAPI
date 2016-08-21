@@ -1,4 +1,5 @@
-#plugAPI  [![Build Status](https://img.shields.io/travis/plugCubed/plugAPI.svg)](https://travis-ci.org/plugCubed/plugAPI) [![npm version](http://img.shields.io/npm/v/plugapi.svg)](https://npmjs.org/package/plugapi) [![npm downloads](https://img.shields.io/npm/dm/plugapi.svg)](https://npmjs.org/package/plugapi) [![NPM](https://img.shields.io/npm/l/plugapi.svg)](https://github.com/plugCubed/plugAPI/blob/master/LICENSE.md) [![David](https://img.shields.io/david/plugcubed/plugapi.svg)](https://david-dm.org/plugcubed/plugapi)
+#plugAPI  [![Build Status](https://img.shields.io/travis/plugCubed/plugAPI.svg)](https://travis-ci.org/plugCubed/plugAPI) [![npm version](http://img.shields.io/npm/v/plugapi.svg)](https://npmjs.org/package/plugapi) [![npm downloads](https://img.shields.io/npm/dm/plugapi.svg)](https://npmjs.org/package/plugapi) [![NPM](https://img.shields.io/npm/l/plugapi.svg)](https://github.com/plugCubed/plugAPI/blob/master/LICENSE.md) [![David](https://img.shields.io/david/plugcubed/plugapi.svg)](https://david-dm.org/plugcubed/plugapi) [![Slack Status](https://slack.plugcubed.net/badge.svg)](https://slack.plugcubed.net)
+
 
 ## About
 
@@ -84,6 +85,7 @@ Here are some bots that are using this API.
 | TFLBot                                               | [The F**k Off Lounge \| TFL](https://plug.dj/thedark1337)        |
 | QBot                                                   | [EDM Qluster](https://plug.dj/qluster) |
 | Holly Refbots                                     | [Connect The Songs (Read Info!)](https://plug.dj/connect-the-songs-read-info/) |
+| DRPG                         |[Discord Dungeons](https://plug.dj/discorddungeons) |
 
 Have a bot that uses the API? Let us know!
 
@@ -131,7 +133,3 @@ bot.deleteAllChat = false; // Set to true to enable deletion of chat regardless 
 bot.multiLine = true; // Set to true to enable multi line chat. Default is false
 bot.multiLineLimit = 5; // Set to the maximum number of lines the bot should split messages up into. Any text beyond this number will just be omitted. Default is 5.
 ```
-
-#### Support
-
-We have a [Slack](https://plugcubed.slack.com/) channel we use to communicate. Please email [1337alexpham@gmail.com](mailto:1337alexpham@gmail.com?subject=Slack&nbsp;Plug3) if you'd like to be added
