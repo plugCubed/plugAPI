@@ -86,6 +86,7 @@ Here are some bots that are using this API.
 | QBot                                                   | [EDM Qluster](https://plug.dj/qluster) |
 | Holly Refbots                                     | [Connect The Songs (Read Info!)](https://plug.dj/connect-the-songs-read-info/) |
 | DRPG                         |[Discord Dungeons](https://plug.dj/discorddungeons) |
+| [brainbot](https://github.com/ownsideup/brainbot) | [5M4R7](https://plug.dj/5m4r7)
 
 Have a bot that uses the API? Let us know!
 
