@@ -8,7 +8,7 @@ A generic NodeJS API for creating plug.dj bots.
 
 Originally by [Chris Vickery](https://github.com/chrisinajar), now maintained by [TAT](https://github.com/TATDK) and [The plug³ Team](https://github.com/plugCubed).
 
-**NOTE:** Currently not supporting facebook login.
+**NOTE:** Currently not supporting Facebook login.
 
 ## How to use
 Run the following:
@@ -17,7 +17,7 @@ Run the following:
 npm install plugapi --production
 ```
 
-You can choose to instantiate plugAPI with either Sync or Async
+You can choose to instantiate plugAPI with either Sync or Async:
 
 **Sync:**
 
@@ -79,16 +79,16 @@ Here are some bots that are using this API.
 | ---------------------------------------------------- | --------------------------------------------------------------- |
 | AuntJackie                                           | [Mix-N-Mash](https://plug.dj/mix-n-mash-2)                      |
 | [BeavisBot](https://github.com/AvatarKava/BeavisBot) | [I <3 the 80's and 90's](https://plug.dj/i-the-80-s-and-90-s-1) |
-| -DnB-                                                   | [Drum & Bass](https://plug.dj/drum-bass)                        |
+| -DnB-                                                | [Drum & Bass](https://plug.dj/drum-bass)                        |
 | FlavorBar                                            | [Flavorz](https://plug.dj/flavorz)                              |
-| FoxBot                                                | [Approaching Nirvana](https://plug.dj/approachingnirvana)       |
+| FoxBot                                               | [Approaching Nirvana](https://plug.dj/approachingnirvana)       |
 | TFLBot                                               | [The F**k Off Lounge \| TFL](https://plug.dj/thedark1337)        |
-| QBot                                                   | [EDM Qluster](https://plug.dj/qluster) |
-| Holly Refbots                                     | [Connect The Songs (Read Info!)](https://plug.dj/connect-the-songs-read-info/) |
-| DRPG                         |[Discord Dungeons](https://plug.dj/discorddungeons) |
-| [brainbot](https://github.com/ownsideup/brainbot) | [5M4R7](https://plug.dj/5m4r7)
+| QBot                                                 | [EDM Qluster](https://plug.dj/qluster) |
+| Holly Refbots                                        | [Connect The Songs (Read Info!)](https://plug.dj/connect-the-songs-read-info/) |
+| DRPG                                                 |[Discord Dungeons](https://plug.dj/discorddungeons) |
+| brainbot                                             | [5M4R7](https://plug.dj/5m4r7) |
 
-Have a bot that uses the API? Let us know!
+Have a bot that uses the API? [**Let us know!**](https://github.com/plugCubed/plugAPI/issues/new)
 
 ## EventListener
 You can listen on essentially any event that plug emits.
@@ -111,7 +111,7 @@ bot.on('error', reconnect);
 ```
 
 ## API
-Please Refer to the [Wiki](https://github.com/plugcubed/plugapi/wiki) for both the Events and Actions.
+Please refer to the [Wiki](https://github.com/plugcubed/plugapi/wiki) for both the Events and Actions.
 
 ## Contribute
 1. Clone repository to empty folder.
@@ -125,7 +125,7 @@ Please Refer to the [Wiki](https://github.com/plugcubed/plugapi/wiki) for both t
 
 #### Multi line chat
 
-Since Plug.dj cuts off chat messages at 250 characters, you can choose to have your bot split up chat messages into multiple lines:
+Since plug.dj cuts off chat messages at 250 characters, you can choose to have your bot split up chat messages into multiple lines:
 
 ```javascript
 var bot = new PlugAPI(auth);
