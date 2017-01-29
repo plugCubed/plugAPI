@@ -85,8 +85,9 @@ Here are some bots that are using this API.
 | TFLBot                                               | [The F**k Off Lounge \| TFL](https://plug.dj/thedark1337)        |
 | QBot                                                 | [EDM Qluster](https://plug.dj/qluster) |
 | Holly Refbots                                        | [Connect The Songs (Read Info!)](https://plug.dj/connect-the-songs-read-info/) |
-| DRPG                                                 |[Discord Dungeons](https://plug.dj/discorddungeons) |
+| DRPG                                                 | [Discord Dungeons](https://plug.dj/discorddungeons) |
 | brainbot                                             | [5M4R7](https://plug.dj/5m4r7) |
+| [Toaster-chan](https://git.io/vDTfR)                 | [☆ ♥ Nightcore-331 ♥ ☆](https://plug.dj/nightcore-331) |
 
 Have a bot that uses the API? [**Let us know!**](https://github.com/plugCubed/plugAPI/issues/new)
 
