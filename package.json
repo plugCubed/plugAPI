@@ -33,6 +33,7 @@
     "eventemitter3": "^2.0.2",
     "handle-errors": "^1.0.0",
     "he": "^1.1.1",
+    "jethro": "^2.7.1",
     "request": "^2.79.0",
     "ws": "^1.1.1"
   },
