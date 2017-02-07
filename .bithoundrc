@@ -6,5 +6,10 @@
         "wc": {
             "limit": 5000
         }
+    },
+    "dependencies": {
+        "mute": [
+            "jethro"
+        ]
     }
 }
