@@ -1,12 +1,10 @@
 'use strict';
 
-var lint = require('mocha-eslint');
-
-var paths = [
+const lint = require('mocha-eslint');
+const paths = [
     'lib/**/*.js',
     'test/*.js'
 ];
-
-var options = {};
+const options = {};
 
 lint(paths, options);
