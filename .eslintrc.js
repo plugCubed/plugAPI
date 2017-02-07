@@ -5,7 +5,6 @@ module.exports = {
         'newline-per-chained-call': 0,
         'no-negated-condition': 0,
         'no-sync': 0,
-        'no-var': 0,
         'one-var': [2, {
             initialized: 'never'
         }],
