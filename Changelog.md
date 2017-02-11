@@ -1,6 +1,31 @@
 plugAPI Changelog
 =================
 
+5.0.0-beta.2
+-----
+* **FIXED:** Check if ws exists and is open before sending socket events. (Commit [e07cdc1](https://github.com/plugCubed/plugAPI/commit/c9debeb17461873cc88c731f2d44176b8e07cdc1))
+* **UPDATED:** Chat Handler performance should be better. (Commit [e07cdc1](https://github.com/plugCubed/plugAPI/commit/c9debeb17461873cc88c731f2d44176b8e07cdc1))
+* **CHANGED:** Replace request for got. Installing PlugAPI should take less time now. (Commit [27b56e8](https://github.com/plugCubed/plugAPI/commit/0b88343c34065502b91f3289df4eab6fb27b56e8))
+* **FIXED:** Guest mode checks for functions it cant use. Make getPlaylists callback optional. Improved error message for logging in. (Commit [3083a43](https://github.com/plugCubed/plugAPI/commit/683cf3193f4fcb322f4b93afeb4d3aa483083a43))
+
+5.0.0-beta.1
+-----
+* **ADDED:** data.rawun to the user object, decode HTML entities for username in data.username, added silver property (Commit [1fd534d](https://github.com/plugCubed/plugAPI/commit/33802506a012944cba4ca9c2c05f1ac8f1fd534d))
+* **FIXED** data.type should now be set properly for /em messages (Commit [6795d3b](https://github.com/plugCubed/plugAPI/commit/e5fbc67a8b5ad1b0ad1aca4d4338cc0c56795d3b))
+* **FIXED:** Playlist management functionality (Thanks @au2001) (Commit [10e06ed](https://github.com/plugCubed/plugAPI/commit/dd1b9d541d011bfcfdc44bb21a455c24c10e06ed))
+* **FIXED:** Callback of advance should now be binded properly to avoid errors (Commit [acc9bdf](https://github.com/plugCubed/plugAPI/commit/d9fa3ac448e1bf83b444dcd114a263adcacc9bdf))
+* **FIXED:** Guest users should no longer say the bot has left the room (Commit [c111c3c](https://github.com/plugCubed/plugAPI/commit/4438c2e2db1b641a34257bb1ed1973988c111c3c))
+* **UPDATED:** Events & Endpoints are now in separate JSON files for easy maintenance (Commit [afe3f73](https://github.com/plugCubed/plugAPI/commit/d1d3e18be232b8c34e25bcb14cf424f55afe3f73))
+* **UPDATED:** Added constants to bot prototype. Now it is possible to do bot.ROOM_ROLE.RESIDENTDJ, etc. (Commit [51dd1cb](https://github.com/plugCubed/plugAPI/commit/5136b0fcb32623eb29c5afa3727424c5e51dd1cb))
+* **ADDED:** Guest Mode (Thanks @Dazzuh) (Commit [cee7c4e](https://github.com/plugCubed/plugAPI/commit/e00c8fac717e2be7436c2af5deef836e9cee7c4e))
+* **FIXED:** getHistory should now be the correct data, Fixed empty strings in messageData.args for command event. (Commit [b29e55b](https://github.com/plugCubed/plugAPI/commit/f1d8167771628b9e6e0dfcf0d28f98043b29e55b))
+* **BREAKING:** PlugAPI now does not support node versions < 4 (Commit [2979234](https://github.com/plugCubed/plugAPI/commit/24e00348ee0a9db00131a50db3ff644cd2979234))
+* **BREAKING:** Dropped PlugAPI logger for [Jethro](https://github.com/JethroLogger/Jethro/tree/v2/docs/v2/) (Commit [0094238](https://github.com/plugCubed/plugAPI/commit/db247ec3f7c06a268553e54f5aadaf19c0094238))
+* **DEPRECATE:** CreateLogger is no longer usable (Commit [0094238](https://github.com/plugCubed/plugAPI/commit/db247ec3f7c06a268553e54f5aadaf19c0094238))
+
+* **FIXED:** Playlist counts should now be correct for playlist functions (Commit[ca3f8b8](https://github.com/plugCubed/plugAPI/commit/38c7c263083288f7015c6b300fa8bad20ca3f8b8))
+* **FIXED:** Logger to be less strict on type checks and dropped cookie handler for request.jar (Commit[30a65da](https://github.com/plugCubed/plugAPI/commit/3e2fa9e20707d62341e3c1d3c7046f66730a65da))
+
 4.2.3
 -----
 * **UPDATED:** Eventemitter3 to 1.2.0 and mocha-eslint to 2.0.2 (Commit [2f1d6b4](https://github.com/plugCubed/plugAPI/commit/dafe0eb48544d88b41ee5fd8bb666b7862f1d6b4))
