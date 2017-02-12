@@ -10,5 +10,6 @@ module.exports = {
         }],
         'prefer-arrow-callback': 0,
         'prefer-spread': 0,
+        'require-jsdoc': 2
     }
 };
