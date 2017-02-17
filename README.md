@@ -3,12 +3,9 @@
 
 ## About
 
-
 A generic NodeJS API for creating plug.dj bots.
 
 Originally by [Chris Vickery](https://github.com/chrisinajar), now maintained by [TAT](https://github.com/TATDK) and [The plug³ Team](https://github.com/plugCubed).
-
-**NOTE:** Currently not supporting Facebook login.
 
 ## How to use
 Run the following:
@@ -22,56 +19,70 @@ You can choose to instantiate plugAPI with either Sync or Async:
 **Sync:**
 
 ```javascript
-var PlugAPI = require('plugapi');
-var bot = new PlugAPI({
+const PlugAPI = require('plugapi');
+const bot = new PlugAPI({
     email: '',
     password: ''
 });
 
 bot.connect('roomslug'); // The part after https://plug.dj
 
-bot.on('roomJoin', function(room) {
-    console.log("Joined " + room);
+bot.on(PlugAPI.events.ROOM_JOIN, (room) => {
+    console.log(`Joined ${room}`);
 });
 ```
-**Async 3.5.0 and Below:**
+
+**Async:**
 
 ```javascript
-var PlugAPI = require('plugapi');
+const PlugAPI = require('plugapi');
 
 new PlugAPI({
     email: '',
     password: ''
-}, function(bot) {
-    bot.connect('roomslug'); // The part after https://plug.dj
-
-    bot.on('roomJoin', function(room) {
-        console.log("Joined " + room);
-    });
-});
-```
-
-**Async 4.0.0:**
-
-```javascript
-var PlugAPI = require('plugapi');
-
-new PlugAPI({
-    email: '',
-    password: ''
-}, function(err, bot) {
+}, (err, bot) => {
     if (!err) {
         bot.connect('roomslug'); // The part after https://plug.dj
 
-        bot.on('roomJoin', function(room) {
-            console.log("Joined " + room);
+        bot.on(PlugAPI.events.ROOM_JOIN, (room) => {
+            console.log(`Joined ${room}`);
         });
     } else {
-        console.log('Error initializing plugAPI: ' + err);
+        console.log(`Error initializing plugAPI: ${err}`);
+    }
+});
+```
+---
+**New features in V5.0.0 (Currently in Beta)**
+
+Guest login is now possible if no userdata is passed into plugAPI or guest is set to true
+
+**Guest:**
+```javascript
+const PlugAPI = require('plugapi');
+const bot = new PlugAPI();
+// OR
+const bot = new PlugAPI({
+    guest: true
+});
+```
+
+Facebook login is now possible. Easiest way to obtain the Access Token and user ID is to login via fb on plug and view the request data.
+
+**Facebook:**
+```javascript
+const PlugAPI = require('plugapi');
+const bot = new PlugAPI({
+    facebook: {
+        accessToken: 'xxxxxxxx',
+        userID: 'xxxxxxxx'
     }
 });
 ```
 
+PlugAPI now uses tough-cookie to store cookies. Refer to the wiki for more information.
+
+---
 ## Examples
 Here are some bots that are using this API.
 
@@ -90,47 +101,57 @@ Here are some bots that are using this API.
 | [Toaster-chan](https://git.io/vDTfR)                 | [☆ ♥ Nightcore-331 ♥ ☆](https://plug.dj/nightcore-331) |
 
 Have a bot that uses the API? [**Let us know!**](https://github.com/plugCubed/plugAPI/issues/new)
-
+---
 ## EventListener
 You can listen on essentially any event that plug emits.
 ```javascript
 // basic chat handler to show incoming chats formatted nicely
-bot.on('chat', function(data) {
-    if (data.type == 'emote')
+bot.on(PlugAPI.events.CHAT, (data) => {
+    if (data.type === 'emote') {
         console.log(data.from + data.message);
-    else
-        console.log(data.from + "> " + data.message);
+    } else {
+        console.log(`${data.from} > ${ data.message}`);
+    }
 });
 ```
 
-Here's an example for automatic reconnecting on errors / close events!
+Here's an example for automatic reconnecting on errors / close events
 ```javascript
-var reconnect = function() { bot.connect(ROOM); };
+const reconnect = () => { bot.connect(ROOM); };
 
 bot.on('close', reconnect);
 bot.on('error', reconnect);
 ```
+---
 
 ## API
 Please refer to the [Wiki](https://github.com/plugcubed/plugapi/wiki) for both the Events and Actions.
-
+---
 ## Contribute
-1. Clone repository to empty folder.
-2. Cd to the folder containing the repository.
+1. Clone repository to an empty folder.
+2. CD to the folder containing the repository.
 3. Run `npm install` to set up the environment.
-4. Edit your changes in the code, and make sure it follows our [Style Guidelines](https://github.com/plugCubed/Code-Style/blob/master/JavaScript%20Style%20Guide.md).
+4. Edit your changes in the code, and make sure it follows our codestyle.
 5. Run `npm test` to make sure all tests pass.
-6. After it's bug free, you may submit it as a Pull Request to this repo.
+6. After it's bug free, you may submit it as a Pull Request to this repository.
+---
+## Misc Options
 
-## Misc
+**Multi line chat**
 
-#### Multi line chat
+Since plug.dj cuts off chat messages at 250 characters, you can choose to have your bot split up chat messages into multiple lines.
 
-Since plug.dj cuts off chat messages at 250 characters, you can choose to have your bot split up chat messages into multiple lines:
+**Delete Message Blocks**
+
+With how plug currently works, deleting messages deletes the entire group of messages from the same user. Set this option to disallow that.
+
+**Delete All Chat**
+
+PlugAPI mimics plug's behavior in disallowing deletion of chat of users above the bot's rank. Setting this option to true will bypass that check.
 
 ```javascript
 var bot = new PlugAPI(auth);
-
+bot.deleteMessageBlocks = false; //set to true if you want the bot to not delete grouped messages. Default is false.
 bot.deleteAllChat = false; // Set to true to enable deletion of chat regardless of role . Default is false
 bot.multiLine = true; // Set to true to enable multi line chat. Default is false
 bot.multiLineLimit = 5; // Set to the maximum number of lines the bot should split messages up into. Any text beyond this number will just be omitted. Default is 5.
