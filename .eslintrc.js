@@ -9,6 +9,9 @@ module.exports = {
             initialized: 'never'
         }],
         'prefer-arrow-callback': 0,
+        'prefer-destructuring': 0,
+        'prefer-rest-params': 0,
+        'prefer-reflect': 0,
         'prefer-spread': 0,
         'require-jsdoc': 2
     }

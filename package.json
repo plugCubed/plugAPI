@@ -40,7 +40,7 @@
     "ws": "^2.0.3"
   },
   "devDependencies": {
-    "eslint-config-thedark1337": "^3.0.0",
+    "eslint-config-thedark1337": "^3.14.0",
     "mocha": "^3.2.0",
     "mocha-eslint": "^3.0.1"
   },
