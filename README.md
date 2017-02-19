@@ -90,16 +90,19 @@ Here are some bots that are using this API.
 | ---------------------------------------------------- | --------------------------------------------------------------- |
 | AuntJackie                                           | [Mix-N-Mash](https://plug.dj/mix-n-mash-2)                      |
 | [BeavisBot](https://github.com/AvatarKava/BeavisBot) | [I <3 the 80's and 90's](https://plug.dj/i-the-80-s-and-90-s-1) |
+| brainbot                                             | [5M4R7](https://plug.dj/5m4r7)                                  |
+| Charlotte                                            | [Youtunes](https://plug.dj/youtunes)                            |
 | -DnB-                                                | [Drum & Bass](https://plug.dj/drum-bass)                        |
+| DRPG                                                 | [Discord Dungeons](https://plug.dj/discorddungeons)             |
+| Ekko                                                 | [EDT](https://plug.dj/edtentertainment)                         |
 | FlavorBar                                            | [Flavorz](https://plug.dj/flavorz)                              |
 | FoxBot                                               | [Approaching Nirvana](https://plug.dj/approachingnirvana)       |
-| TFLBot                                               | [The F**k Off Lounge \| TFL](https://plug.dj/thedark1337)        |
-| QBot                                                 | [EDM Qluster](https://plug.dj/qluster) |
 | Holly Refbots                                        | [Connect The Songs (Read Info!)](https://plug.dj/connect-the-songs-read-info/) |
-| DRPG                                                 | [Discord Dungeons](https://plug.dj/discorddungeons) |
-| brainbot                                             | [5M4R7](https://plug.dj/5m4r7) |
-| [Toaster-chan](https://git.io/vDTfR)                 | [☆ ♥ Nightcore-331 ♥ ☆](https://plug.dj/nightcore-331) |
-
+| KawaiiBot                                            | [AnimeMusic](https://plug.dj/hummingbird-me)                    |
+| QBot                                                 | [EDM Qluster](https://plug.dj/qluster)                          |
+| Skynet Cubed                                         | [PlugCubed](https://plug.dj/plugcubed)                          |
+| TFLBot                                               | [The F**k Off Lounge \| TFL](https://plug.dj/thedark1337)       |
+| [Toaster-chan](https://git.io/vDTfR)                 | [☆ ♥ Nightcore-331 ♥ ☆](https://plug.dj/nightcore)              |
 Have a bot that uses the API? [**Let us know!**](https://github.com/plugCubed/plugAPI/issues/new)
 ---
 ## EventListener
@@ -109,7 +112,7 @@ You can listen on essentially any event that plug emits.
 bot.on(PlugAPI.events.CHAT, (data) => {
     if (data.type === 'emote') {
         console.log(data.from + data.message);
-    } else {
+    } else {`
         console.log(`${data.from} > ${ data.message}`);
     }
 });
