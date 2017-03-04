@@ -1,6 +1,17 @@
 plugAPI Changelog
 =================
 
+5.0.0-beta.3
+----
+* **CHANGED:** Authentication now uses endpoints instead of parsing HTML (Commit [d7fefcf](https://github.com/plugCubed/plugAPI/commit/12976f93004be233f0b1a7c76efaaca58d7fefcf))
+* **CHANGED / FIXED:** Guests now don't need to parse HTML page to login, and set cookies correctly for guest mode (Commit [8023591](https://github.com/plugCubed/plugAPI/commit/d4435def7fa1ca4900864569f0be86a088023591))
+* **CHANGED:** PlugAPI is now ES2015 class based. Begin working on JSDoc (Commit [4ce3a43](https://github.com/plugCubed/plugAPI/commit/644c1ce054da8b968e5a5aaab99fe42644ce3a43))
+* **ADDED:** Facebook Login is now possible (Commit [ff7ddee](https://github.com/plugCubed/plugAPI/commit/68ce54e1db461763757c8ceb8f8134a17ff7ddee))
+* **UPDATED:** WS to 2.1.0 (Commit [ca772be](https://github.com/plugCubed/plugAPI/commit/c990b5234886de23fcbdd7269b006d72fca772be))
+* **FIXED:** updateUser should now also update bot's user data as well. (Bug since 4.2.3) (Commit [8982a70](https://github.com/plugCubed/plugAPI/commit/89636a14fca563b564e6010ad3203dc4a8982a70))
+* **CHANGED:** Readme is now modernized to ES2015 with new code examples (Commit [7d2daef](https://github.com/plugCubed/plugAPI/commit/c01dcc51af8e327e2b829c0aae887b5f27d2daef))
+
+
 5.0.0-beta.2
 -----
 * **FIXED:** Check if ws exists and is open before sending socket events. (Commit [e07cdc1](https://github.com/plugCubed/plugAPI/commit/c9debeb17461873cc88c731f2d44176b8e07cdc1))
