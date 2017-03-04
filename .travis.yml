@@ -5,3 +5,8 @@ node_js:
   - '6'
   - '5'
   - '4'
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.tfle.xyz/travis
+    on_start: always
