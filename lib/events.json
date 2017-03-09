@@ -1,7 +1,6 @@
 {
     "ADVANCE": "advance",
     "BAN": "ban",
-    "BOOTH_LOCKED": "boothLocked",
     "CHAT": "chat",
     "CHAT_COMMAND": "command",
     "CHAT_DELETE": "chatDelete",
