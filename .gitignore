@@ -28,3 +28,7 @@ node_modules/
 
 # dotenv environment variables file
 .env
+
+# Documentation
+
+docs/
