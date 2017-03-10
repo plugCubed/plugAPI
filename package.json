@@ -2,12 +2,9 @@
   "name": "plugapi",
   "description": "Generic API for building plug.dj bots",
   "version": "5.0.0-beta.3",
-  "author": "Alex Pham <thedark1337@thedark1337.com>",
-  "bugs": {
-    "url": "https://github.com/plugCubed/plugAPI/issues"
-  },
-  "contributors": [
-    {
+  "author": "Alex Pham <thedark1337@thedark1337.com> (https://thedark1337.com)",
+  "bugs": "https://github.com/plugCubed/plugAPI/issues",
+  "contributors": [{
       "name": "Chris Vickery",
       "email": "chrisinajar@gmail.com"
     },
@@ -23,10 +20,12 @@
       "email": "atomjack@gmail.com"
     },
     {
-      "name": "Thomas Andresen",
+      "name": "Chikachi",
       "email": "TAT@plugcubed.net"
-    }
-  ],
+    }, {
+      "name": "Dazzuh",
+      "email": "dazzuh@radiant.dj"
+  }],
   "dependencies": {
     "auto-bind": "^1.1.0",
     "chalk": "^1.1.3",
@@ -37,9 +36,10 @@
     "he": "^1.1.1",
     "jethro": "^2.7.1",
     "tough-cookie": "^2.3.2",
-    "ws": "^2.1.0"
+    "ws": "^2.2.0"
   },
   "devDependencies": {
+    "documentation": "^4.0.0-beta.18",
     "eslint-config-thedark1337": "^3.14.0",
     "mocha": "^3.2.0",
     "mocha-eslint": "^3.0.1"
@@ -56,14 +56,12 @@
   "license": "MIT",
   "main": "./lib/client.js",
   "optionalDependencies": {
-    "bufferutil": "^2.0.1",
-    "utf-8-validate": "^3.0.1"
+    "bufferutil": "2.x || 3.x",
+    "utf-8-validate": "2.x || 3.x"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/plugCubed/plugAPI"
-  },
+  "repository": "plugcubed/plugapi",
   "scripts": {
+    "docs": "documentation build lib/*.js -f html -o docs",
     "test": "mocha"
   }
 }
