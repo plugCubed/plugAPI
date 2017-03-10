@@ -14,6 +14,7 @@
     "FLOOD_CHAT": "floodChat",
     "FRIEND_REQUEST": "friendRequest",
     "GIFTED": "gifted",
+    "GIFTED_EARN": "gift",
     "GRAB": "grab",
     "KILL_SESSION": "killSession",
     "MAINT_MODE": "plugMaintenance",
