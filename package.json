@@ -61,7 +61,7 @@
   },
   "repository": "plugcubed/plugapi",
   "scripts": {
-    "docs": "documentation build lib/*.js -f html -o docs",
+    "docs": "documentation build lib/*.js -c documentation.yml -f html -o docs",
     "test": "mocha"
   }
 }
