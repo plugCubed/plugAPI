@@ -88,6 +88,7 @@ Here are some bots that are using this API.
 | DRPG                                                 | [Discord Dungeons](https://plug.dj/discorddungeons) |
 | brainbot                                             | [5M4R7](https://plug.dj/5m4r7) |
 | [Toaster-chan](https://git.io/vDTfR)                 | [☆ ♥ Nightcore-331 ♥ ☆](https://plug.dj/nightcore-331) |
+| [F!shtank](https://github.com/botnation/fishtank)    | [SWaQ Hanger](https://plug.dj/swaq-hanger/) |
 
 Have a bot that uses the API? [**Let us know!**](https://github.com/plugCubed/plugAPI/issues/new)
 
