@@ -82,14 +82,16 @@ Here are some bots that are using this API.
 | -DnB-                                                | [Drum & Bass](https://plug.dj/drum-bass)                        |
 | FlavorBar                                            | [Flavorz](https://plug.dj/flavorz)                              |
 | FoxBot                                               | [Approaching Nirvana](https://plug.dj/approachingnirvana)       |
-| TFLBot                                               | [The F**k Off Lounge \| TFL](https://plug.dj/thedark1337)        |
-| QBot                                                 | [EDM Qluster](https://plug.dj/qluster) |
+| TFLBot                                               | [The F**k Off Lounge \| TFL](https://plug.dj/thedark1337)       |
+| [KawaiiBot](https://twitter.com/IAmKawaiiBot)        | [AnimeMusic.me](http://www.animemusic.me)                       | 
+| QBot                                                 | [EDM Qluster](https://plug.dj/qluster)                          |
 | Holly Refbots                                        | [Connect The Songs (Read Info!)](https://plug.dj/connect-the-songs-read-info/) |
 | DRPG                                                 | [Discord Dungeons](https://plug.dj/discorddungeons) |
-| brainbot                                             | [5M4R7](https://plug.dj/5m4r7) |
-| [Toaster-chan](https://git.io/vDTfR)                 | [☆ ♥ Nightcore-331 ♥ ☆](https://plug.dj/nightcore-331) |
-| [F!shtank](https://github.com/botnation/fishtank)    | [SWaQ Hanger](https://plug.dj/swaq-hanger/) |
 | prehibicja                                           | [[PL] Prohibicja.xyz ANY GENRE](https://plug.dj/prohibicja) |
+| DRPG                                                 | [Discord Dungeons](https://plug.dj/discorddungeons)             |
+| brainbot                                             | [5M4R7](https://plug.dj/5m4r7)                                  |
+| [Toaster-chan](https://git.io/vDTfR)                 | [☆ ♥ Nightcore-331 ♥ ☆](https://plug.dj/nightcore-331)         |
+| [F!shtank](https://github.com/botnation/fishtank)    | [SWaQ Hanger](https://plug.dj/swaq-hanger/)                     |
 
 Have a bot that uses the API? [**Let us know!**](https://github.com/plugCubed/plugAPI/issues/new)
 
