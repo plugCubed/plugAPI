@@ -86,6 +86,7 @@ Here are some bots that are using this API.
 | [KawaiiBot](https://twitter.com/IAmKawaiiBot)        | [AnimeMusic.me](http://www.animemusic.me)                       | 
 | QBot                                                 | [EDM Qluster](https://plug.dj/qluster)                          |
 | Holly Refbots                                        | [Connect The Songs (Read Info!)](https://plug.dj/connect-the-songs-read-info/) |
+| prehibicja                                           | [[PL] Prohibicja.xyz ANY GENRE](https://plug.dj/prohibicja) |
 | DRPG                                                 | [Discord Dungeons](https://plug.dj/discorddungeons)             |
 | brainbot                                             | [5M4R7](https://plug.dj/5m4r7)                                  |
 | [Toaster-chan](https://git.io/vDTfR)                 | [☆ ♥ Nightcore-331 ♥ ☆](https://plug.dj/nightcore-331)         |
