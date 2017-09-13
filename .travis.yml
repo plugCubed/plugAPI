@@ -2,6 +2,7 @@ before_install: if [[ `npm -v` != 5* ]]; then npm i -g npm@5; fi
 sudo: false
 language: node_js
 node_js:
+  - '8'
   - '7'
   - '6'
   - '5'
