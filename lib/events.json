@@ -29,6 +29,7 @@
     "MODERATE_REMOVE_WAITLIST": "modRemoveWaitList",
     "MODERATE_SKIP": "modSkip",
     "MODERATE_STAFF": "modStaff",
+    "MODERATE_WLBAN": "modWaitlistBan",
     "NOTIFY": "notify",
     "PDJ_MESSAGE": "plugMessage",
     "PDJ_UPDATE": "plugUpdate",

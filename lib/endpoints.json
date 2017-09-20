@@ -12,6 +12,7 @@
     "MODERATE_STAFF": "staff/",
     "MODERATE_UNBAN": "bans/",
     "MODERATE_UNMUTE": "mutes/",
+    "MODERATE_WLBAN": "booth/waitlistban",
     "PLAYLIST": "playlists",
     "ROOM_CYCLE_BOOTH": "booth/cycle",
     "ROOM_INFO": "rooms/update",

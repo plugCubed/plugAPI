@@ -40,10 +40,10 @@
     "jethro": "^2.7.1",
     "p-retry": "^1.0.0",
     "tough-cookie": "^2.3.2",
-    "ws": "^3.1.0"
+    "ws": "^3.2.0"
   },
   "devDependencies": {
-    "documentation": "^5.3.1",
+    "documentation": "^5.3.2",
     "eslint-config-thedark1337": "^4.11.0",
     "mocha": "^3.5.0",
     "mocha-eslint": "^4.1.0"
