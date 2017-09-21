@@ -1,4 +1,4 @@
-#plugAPI  [![Build Status](https://img.shields.io/travis/plugCubed/plugAPI.svg)](https://travis-ci.org/plugCubed/plugAPI) [![npm version](http://img.shields.io/npm/v/plugapi.svg)](https://npmjs.org/package/plugapi) [![npm downloads](https://img.shields.io/npm/dm/plugapi.svg)](https://npmjs.org/package/plugapi) [![NPM](https://img.shields.io/npm/l/plugapi.svg)](https://github.com/plugCubed/plugAPI/blob/master/LICENSE.md) [![David](https://img.shields.io/david/plugcubed/plugapi.svg)](https://david-dm.org/plugcubed/plugapi) [![Slack Status](https://slack.plugcubed.net/badge.svg)](https://slack.plugcubed.net)
+## plugAPI  [![Build Status](https://img.shields.io/travis/plugCubed/plugAPI.svg)](https://travis-ci.org/plugCubed/plugAPI) [![npm version](http://img.shields.io/npm/v/plugapi.svg)](https://npmjs.org/package/plugapi) [![npm downloads](https://img.shields.io/npm/dm/plugapi.svg)](https://npmjs.org/package/plugapi) [![NPM](https://img.shields.io/npm/l/plugapi.svg)](https://github.com/plugCubed/plugAPI/blob/master/LICENSE.md) [![David](https://img.shields.io/david/plugcubed/plugapi.svg)](https://david-dm.org/plugcubed/plugapi) [![Slack Status](https://slack.plugcubed.net/badge.svg)](https://slack.plugcubed.net)
 
 
 ## About
@@ -89,20 +89,23 @@ Here are some bots that are using this API.
 | Botname                                              | Room                                                            |
 | ---------------------------------------------------- | --------------------------------------------------------------- |
 | AuntJackie                                           | [Mix-N-Mash](https://plug.dj/mix-n-mash-2)                      |
+| BotX                                                 | [NightCore Fanclub](https://plug.dj/nightcore-fanclub)          |
 | [BeavisBot](https://github.com/AvatarKava/BeavisBot) | [I <3 the 80's and 90's](https://plug.dj/i-the-80-s-and-90-s-1) |
 | brainbot                                             | [5M4R7](https://plug.dj/5m4r7)                                  |
 | Charlotte                                            | [Youtunes](https://plug.dj/youtunes)                            |
 | -DnB-                                                | [Drum & Bass](https://plug.dj/drum-bass)                        |
 | DRPG                                                 | [Discord Dungeons](https://plug.dj/discorddungeons)             |
 | Ekko                                                 | [EDT](https://plug.dj/edtentertainment)                         |
+| [F!shtank](https://github.com/botnation/fishtank)    | [SWaQ Hanger](https://plug.dj/swaq-hanger/)                     |
 | FlavorBar                                            | [Flavorz](https://plug.dj/flavorz)                              |
 | FoxBot                                               | [Approaching Nirvana](https://plug.dj/approachingnirvana)       |
 | Holly Refbots                                        | [Connect The Songs (Read Info!)](https://plug.dj/connect-the-songs-read-info/) |
 | KawaiiBot                                            | [AnimeMusic](https://plug.dj/hummingbird-me)                    |
+| prehibicja                                           | [[PL] Prohibicja.xyz ANY GENRE](https://plug.dj/prohibicja)     |
 | QBot                                                 | [EDM Qluster](https://plug.dj/qluster)                          |
 | Skynet Cubed                                         | [PlugCubed](https://plug.dj/plugcubed)                          |
 | TFLBot                                               | [The F**k Off Lounge \| TFL](https://plug.dj/thedark1337)       |
-| [Toaster-chan](https://git.io/vDTfR)                 | [☆ ♥ Nightcore-331 ♥ ☆](https://plug.dj/nightcore)              |
+| [Toaster-chan](https://git.io/vDTfR)                 | [☆ ♥ Nightcore-331 ♥ ☆](https://plug.dj/nightcore)           |
 Have a bot that uses the API? [**Let us know!**](https://github.com/plugCubed/plugAPI/issues/new)
 ---
 ## EventListener
