@@ -1,0 +1,61 @@
+{
+    "BAN": {
+        "HOUR": "h",
+        "DAY": "d",
+        "PERMA": "f"
+    },
+    "BAN_REASON": {
+        "SPAMMING_TROLLING": 1,
+        "VERBAL_ABUSE": 2,
+        "OFFENSIVE_MEDIA": 3,
+        "INAPPROPRIATE_GENRE": 4,
+        "NEGATIVE_ATTITUDE": 5
+    },
+    "GLOBAL_ROLES": {
+        "NONE": 0,
+        "PROMOTER": 500,
+        "PLOT": 750,
+        "VOLUNTEER": 2000,
+        "MODERATOR": 2500,
+        "AMBASSADOR": 3000,
+        "LEADER": 4000,
+        "ADMIN": 5000
+    },
+    "MUTE": {
+        "SHORT": "s",
+        "MEDIUM": "m",
+        "LONG": "l"
+    },
+    "MUTE_REASON": {
+        "VIOLATING_COMMUNITY_RULES": 1,
+        "VERBAL_ABUSE": 2,
+        "SPAMMING_TROLLING": 3,
+        "OFFENSIVE_LANGUAGE": 4,
+        "NEGATIVE_ATTITUDE": 5
+    },
+    "ROOM_ROLE": {
+        "NONE": 0,
+        "RESIDENTDJ": 1000,
+        "BOUNCER": 2000,
+        "MANAGER": 3000,
+        "COHOST": 4000,
+        "HOST": 5000
+    },
+    "STATUS": {
+        "OFFLINE": 0,
+        "ONLINE": 1
+    },
+    "WLBAN": {
+        "SHORT": "s",
+        "MEDIUM": "m",
+        "LONG": "l",
+        "PERMA": "f"
+    },
+    "WLBAN_REASON": {
+        "SPAMMING_TROLLING": 1,
+        "VERBAL_ABUSE": 2,
+        "OFFENSIVE_MEDIA": 3,
+        "INAPPROPRIATE_GENRE": 4,
+        "NEGATIVE_ATTITUDE": 5
+    }
+}
