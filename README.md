@@ -131,8 +131,10 @@ bot.on('error', reconnect);
 ---
 
 ## API Documentation
+
 For V4 documentation, the [Wiki](https://github.com/plugcubed/plugapi/wiki)  is the best resource.
-For V5 documentation, please refer to the [Docs](https://plugcubed.github.io/PlugAPI) for documentation on methods and events.
+
+For V5 documentation, please refer to the [Docs](https://plugcubed.github.io/plugAPI) for documentation on methods and events.
 The documentation is written in JSDoc in the respective files found in the lib/ folder.
 If there are changes to be made, edit the JSDoc and run the followng command:
 ```javascript
