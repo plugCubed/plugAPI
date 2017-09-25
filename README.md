@@ -11,7 +11,7 @@ Originally by [Chris Vickery](https://github.com/chrisinajar), now maintained by
 Run the following:
 
 ``` javascript
-npm install plugapi --production
+npm install plugapi
 ```
 
 You can choose to instantiate plugAPI with either Sync or Async:
@@ -53,7 +53,7 @@ new PlugAPI({
 });
 ```
 ---
-**New features in V5.0.0 (Currently in Beta)**
+**New features in V5.0.0**
 
 Guest login is now possible if no userdata is passed into plugAPI or guest is set to true
 
@@ -130,8 +130,16 @@ bot.on('error', reconnect);
 ```
 ---
 
-## API
-Please refer to the [Wiki](https://github.com/plugcubed/plugapi/wiki) for both the Events and Actions.
+## API Documentation
+For V4 documentation, the [Wiki](https://github.com/plugcubed/plugapi/wiki)  is the best resource.
+For V5 documentation, please refer to the [Docs](https://plugcubed.github.io/PlugAPI) for documentation on methods and events.
+The documentation is written in JSDoc in the respective files found in the lib/ folder.
+If there are changes to be made, edit the JSDoc and run the followng command:
+```javascript
+npm run docs
+```
+Submit a pull request and wait for review
+
 ---
 ## Contribute
 1. Clone repository to an empty folder.

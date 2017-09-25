@@ -1,6 +1,22 @@
 plugAPI Changelog
 =================
 
+
+5.0.0
+----
+* **ADDED**: Added support for FORCE_NAME_CHANGE. (Commit [878ed6e](https://github.com/plugcubed/plugapi/commit/878ed6e6ca))
+* **ADDED**: Experimental auto reconnect (Commit [dbc113a](https://github.com/plugcubed/plugapi/commit/dbc113a76e))
+* **BREAKING**: humanized / jsdoc more events (Commit [af3b9d7](https://github.com/plugcubed/plugapi/commit/af3b9d7ef7))
+* **BREAKING**: more humanized event types & more JSDoc (Commit [b095179](https://github.com/plugcubed/plugapi/commit/b0951794a1)])
+* **DOCS**: Upload first iteration of auto generated docs. (Commit [b6909f7](https://github.com/plugcubed/plugapi/commit/b6909f7ad1))
+* **UPDATED**: Moved constants to a JSON & updated for new roles (Commit [ae022ab](https://github.com/plugcubed/plugapi/commit/ae022ab898))
+* **UPDATED**: Role update for plug.dj. * 1000 roles (Commit [6968cf5](https://github.com/plugcubed/plugapi/commit/6968cf5c69))
+* **UPDATED** Added new gRoles Part 2 (#137) (Commit [273e39b](https://github.com/plugcubed/plugapi/commit/273e39b339))
+* **UPDATED** Role Update for 9/19/17 (#136) (Commit [0ac160a](https://github.com/plugcubed/plugapi/commit/0ac160a2b6))
+* **UPDATED**: Added Socket Class for Auto Reconnect. WaitList Ban event & methods added. Updated dependencies. (Commit [ba08530](https://github.com/plugcubed/plugapi/commit/ba08530499))
+* **UPDATED**: got to latest & chalk. Fixed breaking changes. (Commit [7f327bf](https://github.com/plugcubed/plugapi/commit/7f327bf0b9))
+
+
 5.0.0-beta.3
 ----
 * **CHANGED:** Authentication now uses endpoints instead of parsing HTML (Commit [d7fefcf](https://github.com/plugCubed/plugAPI/commit/12976f93004be233f0b1a7c76efaaca58d7fefcf))
