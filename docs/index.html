@@ -608,6 +608,18 @@
                         </a></li>
                       
                         <li><a
+                          href='#plugapieventmoderate_wlban'
+                          class='regular pre-open'>
+                          ⓔ MODERATE_WLBAN
+                        </a></li>
+                      
+                        <li><a
+                          href='#plugapieventroom_name_update'
+                          class='regular pre-open'>
+                          ⓔ ROOM_NAME_UPDATE
+                        </a></li>
+                      
+                        <li><a
                           href='#plugapieventmoderate_staff'
                           class='regular pre-open'>
                           ⓔ MODERATE_STAFF
@@ -680,12 +692,6 @@
                         </a></li>
                       
                         <li><a
-                          href='#plugapieventmoderate_wlban'
-                          class='regular pre-open'>
-                          ⓔ MODERATE_WLBAN
-                        </a></li>
-                      
-                        <li><a
                           href='#plugapieventdj_list_cycle'
                           class='regular pre-open'>
                           ⓔ DJ_LIST_CYCLE
@@ -731,12 +737,6 @@
                           href='#plugapieventmoderate_skip'
                           class='regular pre-open'>
                           ⓔ MODERATE_SKIP
-                        </a></li>
-                      
-                        <li><a
-                          href='#plugapieventroom_name_update'
-                          class='regular pre-open'>
-                          ⓔ ROOM_NAME_UPDATE
                         </a></li>
                       
                     </ul>
@@ -2543,7 +2543,7 @@ bot.preCommandHandler(<span class="hljs-function">(<span class="hljs-params">dat
   <p>Get a history over chat messages. (Limit 512 messages)</p>
 
 
-  <div class='pre p1 fill-light mt0'>getChatHistory(): <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></div>
+  <div class='pre p1 fill-light mt0'>getChatHistory(): <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>></div>
   
   
 
@@ -2561,7 +2561,7 @@ bot.preCommandHandler(<span class="hljs-function">(<span class="hljs-params">dat
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code>:
+      <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>></code>:
         Chat history
 
       
@@ -3552,7 +3552,7 @@ Be sure you only use avatars that are available <a href="#plugapigetavatars">Plu
   <p>Get plug.dj admins currently in the community</p>
 
 
-  <div class='pre p1 fill-light mt0'>getAdmins(): <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></div>
+  <div class='pre p1 fill-light mt0'>getAdmins(): <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="#user">User</a>></div>
   
   
 
@@ -3570,7 +3570,7 @@ Be sure you only use avatars that are available <a href="#plugapigetavatars">Plu
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code>:
+      <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="#user">User</a>></code>:
         An array of all admins in the room
 
       
@@ -3678,7 +3678,7 @@ Be sure you only use avatars that are available <a href="#plugapigetavatars">Plu
   <p>Get all ambassadors in the community</p>
 
 
-  <div class='pre p1 fill-light mt0'>getAmbassadors(): <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></div>
+  <div class='pre p1 fill-light mt0'>getAmbassadors(): <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="#user">User</a>></div>
   
   
 
@@ -3696,7 +3696,7 @@ Be sure you only use avatars that are available <a href="#plugapigetavatars">Plu
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code>:
+      <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="#user">User</a>></code>:
         An array of all ambassadors in the room
 
       
@@ -3738,7 +3738,7 @@ Be sure you only use avatars that are available <a href="#plugapigetavatars">Plu
   <p>Get users in the community that aren't DJing nor in the waitList</p>
 
 
-  <div class='pre p1 fill-light mt0'>getAudience(): <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></div>
+  <div class='pre p1 fill-light mt0'>getAudience(): <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="#user">User</a>></div>
   
   
 
@@ -3756,7 +3756,7 @@ Be sure you only use avatars that are available <a href="#plugapigetavatars">Plu
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code>:
+      <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="#user">User</a>></code>:
         An array of all users that aren't DJing nor in the waitList
 
       
@@ -3858,7 +3858,7 @@ Be sure you only use avatars that are available <a href="#plugapigetavatars">Plu
   <p>Get the DJ and users in the waitList</p>
 
 
-  <div class='pre p1 fill-light mt0'>getDJs(): <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></div>
+  <div class='pre p1 fill-light mt0'>getDJs(): <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="#user">User</a>></div>
   
   
 
@@ -3876,7 +3876,7 @@ Be sure you only use avatars that are available <a href="#plugapigetavatars">Plu
   
     
       <div class='py1 quiet mt1 prose-big'>Returns</div>
-      <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code>:
+      <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="#user">User</a>></code>:
         An array of all DJs and users in the waitList
 
       
@@ -7992,6 +7992,114 @@ bot.moderateLockBooth(<span class="hljs-literal">false</span>, <span class="hljs
       </div>
     </div>
   
+    <div class='border-bottom' id='plugapieventmoderate_wlban'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>MODERATE_WLBAN</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>This is emitted when a user is banned from waitList.</p>
+
+
+  <div class='pre p1 fill-light mt0'>MODERATE_WLBAN</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'>bot.on(PlugAPI.events.MODERATE_WLBAN, (data) =&gt; {
+   <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`<span class="hljs-subst">${data.moderator.username}</span> banned <span class="hljs-subst">${data.user}</span> from the waitList <span class="hljs-subst">${data.duration}</span>`</span>);
+});</pre>
+    
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='plugapieventroom_name_update'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>ROOM_NAME_UPDATE</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>This is emitted when the room name has changed.</p>
+
+
+  <div class='pre p1 fill-light mt0'>ROOM_NAME_UPDATE</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'>bot.on(PlugAPI.events.ROOM_NAME_UPDATE, (data) =&gt; {
+   <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`<span class="hljs-subst">${data.user.username}</span> changed the room name to <span class="hljs-subst">${data.name}</span>`</span>);
+});</pre>
+    
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
     <div class='border-bottom' id='plugapieventmoderate_staff'>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
@@ -8253,24 +8361,9 @@ bot.moderateLockBooth(<span class="hljs-literal">false</span>, <span class="hljs
           
             <ul>
               
-                <li><code>data.currentDJ</code> <a href="#user">User</a>
+                <li><code>data.media</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>
                   
-                  <p>The current DJ that is playing.</p>
-</li>
-              
-                <li><code>data.playlistID</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>
-                  
-                  <p>The bot's current active playlist as an ID</p>
-</li>
-              
-                <li><code>data.startTime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a>
-                  
-                  <p>When the song started playing.</p>
-</li>
-              
-                <li><code>data.historyID</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a>
-                  
-                  <p>the song's ID in history</p>
+                  <p>Info about the currently playing media.</p>
 </li>
               
             </ul>
@@ -8663,60 +8756,6 @@ bot.moderateLockBooth(<span class="hljs-literal">false</span>, <span class="hljs
       </div>
     </div>
   
-    <div class='border-bottom' id='plugapieventmoderate_wlban'>
-      <div class="clearfix small pointer toggle-sibling">
-        <div class="py1 contain">
-            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>MODERATE_WLBAN</span>
-        </div>
-      </div>
-      <div class="clearfix display-none toggle-target">
-        <section class='p2 mb2 clearfix bg-white minishadow'>
-
-  
-
-  <p>This is emitted when a user is banned from waitList.</p>
-
-
-  <div class='pre p1 fill-light mt0'>MODERATE_WLBAN</div>
-  
-  
-
-  
-  
-  
-  
-  
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <div class='py1 quiet mt1 prose-big'>Example</div>
-    
-      
-      <pre class='p1 overflow-auto round fill-light'>bot.on(PlugAPI.events.MODERATE_WLBAN, (data) =&gt; {
-   <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`<span class="hljs-subst">${data.moderator.username}</span> banned <span class="hljs-subst">${data.user}</span> from the waitList <span class="hljs-subst">${data.duration}</span>`</span>);
-});</pre>
-    
-  
-
-  
-
-  
-
-  
-</section>
-
-      </div>
-    </div>
-  
     <div class='border-bottom' id='plugapieventdj_list_cycle'>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
@@ -8825,7 +8864,7 @@ bot.moderateLockBooth(<span class="hljs-literal">false</span>, <span class="hljs
                   <p>The chat message.</p>
 </li>
               
-                <li><code>data.args</code> (<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a>>)
+                <li><code>data.args</code> (<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="#user">User</a>> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a>>)
                   
                   <p>An array of strings / user objects after the command.</p>
 </li>
@@ -8840,7 +8879,7 @@ bot.moderateLockBooth(<span class="hljs-literal">false</span>, <span class="hljs
                   <p>The raw data object from plug.dj. Not changed by PlugAPI</p>
 </li>
               
-                <li><code>data.mentions</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>>
+                <li><code>data.mentions</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="#user">User</a>>
                   
                   <p>An array of mentioned users.</p>
 </li>
@@ -9187,7 +9226,7 @@ bot.on(<span class="hljs-string">'command:skip'</span>, (data) =&gt; {
                   <p>The raw data object from plug.dj. Not changed by PlugAPI</p>
 </li>
               
-                <li><code>data.mentions</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>>
+                <li><code>data.mentions</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="#user">User</a>>
                   
                   <p>An array of mentioned users.</p>
 </li>
@@ -9274,60 +9313,6 @@ bot.on(<span class="hljs-string">'command:skip'</span>, (data) =&gt; {
       <pre class='p1 overflow-auto round fill-light'>bot.on(PlugAPI.events.MODERATE_SKIP, (data) =&gt; {
    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`<span class="hljs-subst">${data.user.username}</span> Skipped the song`</span>);
 })</pre>
-    
-  
-
-  
-
-  
-
-  
-</section>
-
-      </div>
-    </div>
-  
-    <div class='border-bottom' id='plugapieventroom_name_update'>
-      <div class="clearfix small pointer toggle-sibling">
-        <div class="py1 contain">
-            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>ROOM_NAME_UPDATE</span>
-        </div>
-      </div>
-      <div class="clearfix display-none toggle-target">
-        <section class='p2 mb2 clearfix bg-white minishadow'>
-
-  
-
-  <p>This is emitted when the room name has changed.</p>
-
-
-  <div class='pre p1 fill-light mt0'>ROOM_NAME_UPDATE</div>
-  
-  
-
-  
-  
-  
-  
-  
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <div class='py1 quiet mt1 prose-big'>Example</div>
-    
-      
-      <pre class='p1 overflow-auto round fill-light'>bot.on(PlugAPI.events.ROOM_NAME_UPDATE, (data) =&gt; {
-   <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`<span class="hljs-subst">${data.user.username}</span> changed the room name to <span class="hljs-subst">${data.name}</span>`</span>);
-});</pre>
     
   
 
@@ -9476,206 +9461,250 @@ bot.on(<span class="hljs-string">'command:skip'</span>, (data) =&gt; {
             <tbody class='mt1'>
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.avatarID</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a> | null)</code>
-                  
-                    (default <code>null</code>)
-                  </td>
-                  <td class='break-word'><span>The user's avatar ID.
+  <td class='break-word'><span class='code bold'>data.avatarID</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a> | null)</code>
+  
+    (default <code>null</code>)
+  </td>
+  <td class='break-word'><span>The user's avatar ID.
 </span></td>
-                </tr>
+</tr>
+
+
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.badge</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a> | null)</code>
-                  
-                    (default <code>null</code>)
-                  </td>
-                  <td class='break-word'><span>The user's badge ID.
+  <td class='break-word'><span class='code bold'>data.badge</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a> | null)</code>
+  
+    (default <code>null</code>)
+  </td>
+  <td class='break-word'><span>The user's badge ID.
 </span></td>
-                </tr>
+</tr>
+
+
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.blurb</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a> | null)</code>
-                  
-                    (default <code>undefined</code>)
-                  </td>
-                  <td class='break-word'><span>The user's blurb from their profile page.
+  <td class='break-word'><span class='code bold'>data.blurb</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a> | null)</code>
+  
+    (default <code>undefined</code>)
+  </td>
+  <td class='break-word'><span>The user's blurb from their profile page.
 </span></td>
-                </tr>
+</tr>
+
+
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.gRole</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code>
-                  
-                    (default <code>0</code>)
-                  </td>
-                  <td class='break-word'><span>The user's global role (0 if not a BA / Admin)
+  <td class='break-word'><span class='code bold'>data.gRole</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code>
+  
+    (default <code>0</code>)
+  </td>
+  <td class='break-word'><span>The user's global role (0 if not a BA / Admin)
 </span></td>
-                </tr>
+</tr>
+
+
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.grab</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code>
-                  
-                    (default <code>false</code>)
-                  </td>
-                  <td class='break-word'><span>If the user has grabbed a song
+  <td class='break-word'><span class='code bold'>data.grab</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code>
+  
+    (default <code>false</code>)
+  </td>
+  <td class='break-word'><span>If the user has grabbed a song
 </span></td>
-                </tr>
+</tr>
+
+
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.id</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code>
-                  
-                    (default <code>-1</code>)
-                  </td>
-                  <td class='break-word'><span>The user's ID.
+  <td class='break-word'><span class='code bold'>data.id</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code>
+  
+    (default <code>-1</code>)
+  </td>
+  <td class='break-word'><span>The user's ID.
 </span></td>
-                </tr>
+</tr>
+
+
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.ignores</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code>
-                  
-                    (default <code>[]</code>)
-                  </td>
-                  <td class='break-word'><span>An array of users that are ignored. Only shown for the bot user.
+  <td class='break-word'><span class='code bold'>data.ignores</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code>
+  
+    (default <code>[]</code>)
+  </td>
+  <td class='break-word'><span>An array of users that are ignored. Only shown for the bot user.
 </span></td>
-                </tr>
+</tr>
+
+
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.joined</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code>
-                  
-                    (default <code>&#39;&#39;</code>)
-                  </td>
-                  <td class='break-word'><span>The time a user joined plug.dj as as string. Empty if not provided.
+  <td class='break-word'><span class='code bold'>data.joined</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code>
+  
+    (default <code>&#39;&#39;</code>)
+  </td>
+  <td class='break-word'><span>The time a user joined plug.dj as as string. Empty if not provided.
 </span></td>
-                </tr>
+</tr>
+
+
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.language</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code>
-                  
-                    (default <code>null</code>)
-                  </td>
-                  <td class='break-word'><span>The user's language.
+  <td class='break-word'><span class='code bold'>data.language</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code>
+  
+    (default <code>null</code>)
+  </td>
+  <td class='break-word'><span>The user's language.
 </span></td>
-                </tr>
+</tr>
+
+
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.level</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code>
-                  
-                    (default <code>1</code>)
-                  </td>
-                  <td class='break-word'><span>The user's level. Only shown for the bot user.
+  <td class='break-word'><span class='code bold'>data.level</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code>
+  
+    (default <code>1</code>)
+  </td>
+  <td class='break-word'><span>The user's level. Only shown for the bot user.
 </span></td>
-                </tr>
+</tr>
+
+
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.notifications</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code>
-                  
-                    (default <code>[]</code>)
-                  </td>
-                  <td class='break-word'><span>The user's notifications. Only shown for the bot user.
+  <td class='break-word'><span class='code bold'>data.notifications</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a></code>
+  
+    (default <code>[]</code>)
+  </td>
+  <td class='break-word'><span>The user's notifications. Only shown for the bot user.
 </span></td>
-                </tr>
+</tr>
+
+
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.pp</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a> | null)</code>
-                  
-                    (default <code>undefined</code>)
-                  </td>
-                  <td class='break-word'><span>The user's Plug Points. Only shown for the bot user.
+  <td class='break-word'><span class='code bold'>data.pp</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a> | null)</code>
+  
+    (default <code>undefined</code>)
+  </td>
+  <td class='break-word'><span>The user's Plug Points. Only shown for the bot user.
 </span></td>
-                </tr>
+</tr>
+
+
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.pw</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a> | null)</code>
-                  
-                    (default <code>undefined</code>)
-                  </td>
-                  <td class='break-word'><span>Whether the bot user is signed in via password or not.
+  <td class='break-word'><span class='code bold'>data.pw</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a> | null)</code>
+  
+    (default <code>undefined</code>)
+  </td>
+  <td class='break-word'><span>Whether the bot user is signed in via password or not.
 </span></td>
-                </tr>
+</tr>
+
+
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.rawun</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code>
-                  
-                    (default <code>&#39;&#39;</code>)
-                  </td>
-                  <td class='break-word'><span>The user's username.
+  <td class='break-word'><span class='code bold'>data.rawun</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code>
+  
+    (default <code>&#39;&#39;</code>)
+  </td>
+  <td class='break-word'><span>The user's username.
 </span></td>
-                </tr>
+</tr>
+
+
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.role</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code>
-                  
-                    (default <code>0</code>)
-                  </td>
-                  <td class='break-word'><span>The user's Role. See 
+  <td class='break-word'><span class='code bold'>data.role</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code>
+  
+    (default <code>0</code>)
+  </td>
+  <td class='break-word'><span>The user's Role. See 
 <a href="#plugapiroom_role">PlugAPI.ROOM_ROLE</a>
  for more info.
 </span></td>
-                </tr>
+</tr>
+
+
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.silver</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code>
-                  
-                    (default <code>false</code>)
-                  </td>
-                  <td class='break-word'><span>Whether the user is a silver subscriber or not.
+  <td class='break-word'><span class='code bold'>data.silver</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a></code>
+  
+    (default <code>false</code>)
+  </td>
+  <td class='break-word'><span>Whether the user is a silver subscriber or not.
 </span></td>
-                </tr>
+</tr>
+
+
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.slug</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a> | null)</code>
-                  
-                    (default <code>null</code>)
-                  </td>
-                  <td class='break-word'><span>The user's slug to be used in a profile. 
+  <td class='break-word'><span class='code bold'>data.slug</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a> | null)</code>
+  
+    (default <code>null</code>)
+  </td>
+  <td class='break-word'><span>The user's slug to be used in a profile. 
 <a href="https://plug.dj/@/slug">https://plug.dj/@/slug</a>
  (only exists for level > 5)
 </span></td>
-                </tr>
+</tr>
+
+
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.status</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code>
-                  
-                    (default <code>1</code>)
-                  </td>
-                  <td class='break-word'><span>The user's status.
+  <td class='break-word'><span class='code bold'>data.status</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code>
+  
+    (default <code>1</code>)
+  </td>
+  <td class='break-word'><span>The user's status.
 </span></td>
-                </tr>
+</tr>
+
+
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.sub</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code>
-                  
-                    (default <code>0</code>)
-                  </td>
-                  <td class='break-word'><span>Whether the user is a gold subscriber or not.
+  <td class='break-word'><span class='code bold'>data.sub</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code>
+  
+    (default <code>0</code>)
+  </td>
+  <td class='break-word'><span>Whether the user is a gold subscriber or not.
 </span></td>
-                </tr>
+</tr>
+
+
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.username</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code>
-                  
-                    (default <code>&#39;&#39;</code>)
-                  </td>
-                  <td class='break-word'><span>The user's username with HTML entities decoded.
+  <td class='break-word'><span class='code bold'>data.username</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code>
+  
+    (default <code>&#39;&#39;</code>)
+  </td>
+  <td class='break-word'><span>The user's username with HTML entities decoded.
 </span></td>
-                </tr>
+</tr>
+
+
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.vote</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code>
-                  
-                    (default <code>0</code>)
-                  </td>
-                  <td class='break-word'><span>The user's current vote.
+  <td class='break-word'><span class='code bold'>data.vote</span> <code class='quiet'><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a></code>
+  
+    (default <code>0</code>)
+  </td>
+  <td class='break-word'><span>The user's current vote.
 </span></td>
-                </tr>
+</tr>
+
+
               
                 <tr>
-                  <td class='break-word'><span class='code bold'>data.xp</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a> | null)</code>
-                  
-                    (default <code>undefined</code>)
-                  </td>
-                  <td class='break-word'><span>The user's XP. Only shown for the bot user.
+  <td class='break-word'><span class='code bold'>data.xp</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a> | null)</code>
+  
+    (default <code>undefined</code>)
+  </td>
+  <td class='break-word'><span>The user's XP. Only shown for the bot user.
 </span></td>
-                </tr>
+</tr>
+
+
               
             </tbody>
           </table>
