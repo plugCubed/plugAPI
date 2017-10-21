@@ -4,17 +4,17 @@ plugAPI Changelog
 
 5.0.0
 ----
-* **ADDED**: Added support for FORCE_NAME_CHANGE. (Commit [878ed6e](https://github.com/plugcubed/plugapi/commit/878ed6e6ca))
-* **ADDED**: Experimental auto reconnect (Commit [dbc113a](https://github.com/plugcubed/plugapi/commit/dbc113a76e))
-* **BREAKING**: humanized / jsdoc more events (Commit [af3b9d7](https://github.com/plugcubed/plugapi/commit/af3b9d7ef7))
-* **BREAKING**: more humanized event types & more JSDoc (Commit [b095179](https://github.com/plugcubed/plugapi/commit/b0951794a1)])
-* **DOCS**: Upload first iteration of auto generated docs. (Commit [b6909f7](https://github.com/plugcubed/plugapi/commit/b6909f7ad1))
-* **UPDATED**: Moved constants to a JSON & updated for new roles (Commit [ae022ab](https://github.com/plugcubed/plugapi/commit/ae022ab898))
-* **UPDATED**: Role update for plug.dj. * 1000 roles (Commit [6968cf5](https://github.com/plugcubed/plugapi/commit/6968cf5c69))
-* **UPDATED** Added new gRoles Part 2 (#137) (Commit [273e39b](https://github.com/plugcubed/plugapi/commit/273e39b339))
-* **UPDATED** Role Update for 9/19/17 (#136) (Commit [0ac160a](https://github.com/plugcubed/plugapi/commit/0ac160a2b6))
-* **UPDATED**: Added Socket Class for Auto Reconnect. WaitList Ban event & methods added. Updated dependencies. (Commit [ba08530](https://github.com/plugcubed/plugapi/commit/ba08530499))
-* **UPDATED**: got to latest & chalk. Fixed breaking changes. (Commit [7f327bf](https://github.com/plugcubed/plugapi/commit/7f327bf0b9))
+* **ADDED:** Added support for FORCE_NAME_CHANGE. (Commit [878ed6e](https://github.com/plugCubed/plugAPI/commit/878ed6e6ca))
+* **ADDED:** Experimental auto reconnect (Commit [dbc113a](https://github.com/plugCubed/plugAPI/commit/dbc113a76e))
+* **BREAKING:** humanized / jsdoc more events (Commit [af3b9d7](https://github.com/plugCubed/plugAPI/commit/af3b9d7ef7))
+* **BREAKING:** more humanized event types & more JSDoc (Commit [b095179](https://github.com/plugCubed/plugAPI/commit/b0951794a1)])
+* **DOCS:** Upload first iteration of auto generated docs. (Commit [b6909f7](https://github.com/plugCubed/plugAPI/commit/b6909f7ad1))
+* **UPDATED:** Moved constants to a JSON & updated for new roles (Commit [ae022ab](https://github.com/plugCubed/plugAPI/commit/ae022ab898))
+* **UPDATED:** Role update for plug.dj. * 1000 roles (Commit [6968cf5](https://github.com/plugCubed/plugAPI/commit/6968cf5c69))
+* **UPDATED:** Added new gRoles Part 2 (#137) (Commit [273e39b](https://github.com/plugCubed/plugAPI/commit/273e39b339))
+* **UPDATED:** Role Update for 9/19/17 (#136) (Commit [0ac160a](https://github.com/plugCubed/plugAPI/commit/0ac160a2b6))
+* **UPDATED:** Added Socket Class for Auto Reconnect. WaitList Ban event & methods added. Updated dependencies. (Commit [ba08530](https://github.com/plugCubed/plugAPI/commit/ba08530499))
+* **UPDATED:** got to latest & chalk. Fixed breaking changes. (Commit [7f327bf](https://github.com/plugCubed/plugAPI/commit/7f327bf0b9))
 
 
 5.0.0-beta.3
@@ -38,7 +38,7 @@ plugAPI Changelog
 5.0.0-beta.1
 -----
 * **ADDED:** data.rawun to the user object, decode HTML entities for username in data.username, added silver property (Commit [1fd534d](https://github.com/plugCubed/plugAPI/commit/33802506a012944cba4ca9c2c05f1ac8f1fd534d))
-* **FIXED** data.type should now be set properly for /em messages (Commit [6795d3b](https://github.com/plugCubed/plugAPI/commit/e5fbc67a8b5ad1b0ad1aca4d4338cc0c56795d3b))
+* **FIXED:** data.type should now be set properly for /em messages (Commit [6795d3b](https://github.com/plugCubed/plugAPI/commit/e5fbc67a8b5ad1b0ad1aca4d4338cc0c56795d3b))
 * **FIXED:** Playlist management functionality (Thanks @au2001) (Commit [10e06ed](https://github.com/plugCubed/plugAPI/commit/dd1b9d541d011bfcfdc44bb21a455c24c10e06ed))
 * **FIXED:** Callback of advance should now be binded properly to avoid errors (Commit [acc9bdf](https://github.com/plugCubed/plugAPI/commit/d9fa3ac448e1bf83b444dcd114a263adcacc9bdf))
 * **FIXED:** Guest users should no longer say the bot has left the room (Commit [c111c3c](https://github.com/plugCubed/plugAPI/commit/4438c2e2db1b641a34257bb1ed1973988c111c3c))
@@ -112,7 +112,7 @@ plugAPI Changelog
 * **ADDED:** Use Handle-Errors to throw if no callback is defined, else return the error. (Commit [10059f7](https://github.com/plugCubed/plugAPI/commit/977925a931b89e8ba0300ced2fe7bcbb710059f7))
 * **FIXED:** Empty Arguments getting interpreted as 0. (Commit [10059f7](https://github.com/plugCubed/plugAPI/commit/977925a931b89e8ba0300ced2fe7bcbb710059f7))
 * **FIXED:** moderateForceSkip skipping other users. (Commit [77baafb](https://github.com/plugCubed/plugAPI/commit/6cf13b75a7d85ba436dadff8a1fe952a377baafb))
-* **CHANGED: ** From Eventemitter 2 to Eventemitter 3. (Commit [bea2829](https://github.com/plugCubed/plugAPI/commit/7c5806b8da427a26e546c8c2e87d47cdabea2829))
+* **CHANGED:** From Eventemitter 2 to Eventemitter 3. (Commit [bea2829](https://github.com/plugCubed/plugAPI/commit/7c5806b8da427a26e546c8c2e87d47cdabea2829))
 
 
 **BREAKING CHANGES:**
