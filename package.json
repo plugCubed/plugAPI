@@ -34,12 +34,12 @@
     "chalk": "^2.2.0",
     "deasync": "^0.1.10",
     "eventemitter3": "^2.0.3",
-    "got": "^7.0.0",
+    "got": "^7.1.0",
     "handle-errors": "^1.0.0",
     "jethro": "^2.7.1",
     "p-retry": "^1.0.0",
     "plug-message-split": "^1.0.1",
-    "tough-cookie": "^2.3.2",
+    "tough-cookie": "^2.3.3",
     "ws": "^3.2.0"
   },
   "devDependencies": {
