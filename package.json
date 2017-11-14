@@ -40,7 +40,7 @@
     "p-retry": "^1.0.0",
     "plug-message-split": "^1.0.1",
     "tough-cookie": "^2.3.3",
-    "ws": "^3.2.0"
+    "ws": "^3.3.1"
   },
   "devDependencies": {
     "documentation": "^5.3.3",
