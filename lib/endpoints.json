@@ -20,5 +20,7 @@
     "SKIP_ME": "booth/skip/me",
     "USER_INFO": "users/me",
     "USER_GET_AVATARS": "store/inventory/avatars",
-    "USER_SET_AVATAR": "users/avatar"
+    "USER_GET_BADGES": "store/inventory/badges",
+    "USER_SET_AVATAR": "users/avatar",
+    "USER_SET_BADGE": "users/badge"
 }
