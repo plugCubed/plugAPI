@@ -193,6 +193,12 @@
                       </a></li>
                       
                       <li><a
+                        href='#plugapigethistoryid'
+                        class='regular pre-open'>
+                        #getHistoryID
+                      </a></li>
+                      
+                      <li><a
                         href='#plugapigetmedia'
                         class='regular pre-open'>
                         #getMedia
@@ -626,12 +632,6 @@
                         </a></li>
                       
                         <li><a
-                          href='#plugapieventadvance'
-                          class='regular pre-open'>
-                          ⓔ ADVANCE
-                        </a></li>
-                      
-                        <li><a
                           href='#plugapieventvote'
                           class='regular pre-open'>
                           ⓔ VOTE
@@ -755,6 +755,12 @@
                           href='#plugapieventroom_welcome_update'
                           class='regular pre-open'>
                           ⓔ ROOM_WELCOME_UPDATE
+                        </a></li>
+                      
+                        <li><a
+                          href='#plugapieventadvance'
+                          class='regular pre-open'>
+                          ⓔ ADVANCE
                         </a></li>
                       
                     </ul>
@@ -1076,7 +1082,7 @@
               
                 <li><code>GLOBAL_ROLES.PLOT</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>
                   
-                  <p>Global role of 750. PLOT members. Upcoming addition from plug.</p>
+                  <p>Global role of 750. PLOT members.</p>
 </li>
               
                 <li><code>GLOBAL_ROLES.VOLUNTEER</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>
@@ -1086,7 +1092,7 @@
               
                 <li><code>GLOBAL_ROLES.MODERATOR</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>
                   
-                  <p>Global role of 25000. Site Moderators. Upcoming addition from plug.</p>
+                  <p>Global role of 25000. Site Moderators.</p>
 </li>
               
                 <li><code>GLOBAL_ROLES.AMBASSADOR</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>
@@ -1959,7 +1965,7 @@ Code obtained from <a href="http://rosettacode.org/wiki/Levenshtein_distance#Jav
 
   
 
-  <p>Should the bot split messages up if hitting message length limit?</p>
+  <p>Should the bot split messages up if the message length limit is reached?</p>
 
 
   <div class='pre p1 fill-light mt0'>multiLine</div>
@@ -2005,7 +2011,7 @@ Code obtained from <a href="http://rosettacode.org/wiki/Levenshtein_distance#Jav
 
   
 
-  <p>Max splits</p>
+  <p>The maximum number of messages sent after splitting the message.</p>
 
 
   <div class='pre p1 fill-light mt0'>multiLineLimit</div>
@@ -2189,7 +2195,8 @@ Code obtained from <a href="http://rosettacode.org/wiki/Levenshtein_distance#Jav
 
   
 
-  <p>Should user be able to delete all chat?</p>
+  <p>Should the bot be able to delete all chat regardless of role?
+Note: This will NOT delete gRole chat.</p>
 
 
   <div class='pre p1 fill-light mt0'>deleteAllChat</div>
@@ -2558,7 +2565,7 @@ bot.preCommandHandler(<span class="hljs-function">(<span class="hljs-params">dat
 
   
 
-  <p>Get a history over chat messages. (Limit 512 messages)</p>
+  <p>Get a history of chat messages. (Limit 512 messages)</p>
 
 
   <div class='pre p1 fill-light mt0'>getChatHistory(): <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a>&#x3C;<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>></div>
@@ -2618,7 +2625,7 @@ bot.preCommandHandler(<span class="hljs-function">(<span class="hljs-params">dat
 
   
 
-  <p>Get a history over songs played. (Limit 50 songs)</p>
+  <p>Get a history of songs played. (Limit 50 songs)</p>
 
 
   <div class='pre p1 fill-light mt0'>getHistory(callback: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a>): (<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array">Array</a> | <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function">Function</a>)</div>
@@ -2759,6 +2766,66 @@ bot.preCommandHandler(<span class="hljs-function">(<span class="hljs-params">dat
       </div>
     </div>
   
+    <div class='border-bottom' id='plugapigethistoryid'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>getHistoryID()</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>Get historyID of the currently playing media. This is used for voting, grabbing, skipping, and various other purposes</p>
+
+
+  <div class='pre p1 fill-light mt0'>getHistoryID(): <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+    
+      <div class='py1 quiet mt1 prose-big'>Returns</div>
+      <code><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a></code>:
+        A string representing the historyID of the currently playing media
+
+      
+    
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'>bot.getHistoryID();</pre>
+    
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
     <div class='border-bottom' id='plugapigetmedia'>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
@@ -2771,7 +2838,7 @@ bot.preCommandHandler(<span class="hljs-function">(<span class="hljs-params">dat
 
   
 
-  <p>Get the currently playing media. Null if there isnt</p>
+  <p>Get the currently playing media. Null if there isn't</p>
 
 
   <div class='pre p1 fill-light mt0'>getMedia(): (<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a> | null)</div>
@@ -4745,7 +4812,7 @@ bot.havePermission(<span class="hljs-number">123456</span>, PlugAPI.ROOM_ROLE.BO
   
   
   
-  
+  <div>Since: 5.0.0</div>
 
   
 
@@ -4805,7 +4872,7 @@ bot.havePermission(<span class="hljs-number">123456</span>, PlugAPI.ROOM_ROLE.BO
   
   
   
-  
+  <div>Since: 5.0.0</div>
 
   
     <div class='py1 quiet mt1 prose-big'>Parameters</div>
@@ -4879,7 +4946,7 @@ bot.havePermission(<span class="hljs-number">123456</span>, PlugAPI.ROOM_ROLE.BO
   
   
   
-  
+  <div>Since: 5.0.0</div>
 
   
 
@@ -4939,7 +5006,7 @@ bot.havePermission(<span class="hljs-number">123456</span>, PlugAPI.ROOM_ROLE.BO
   
   
   
-  
+  <div>Since: 5.0.0</div>
 
   
     <div class='py1 quiet mt1 prose-big'>Parameters</div>
@@ -6030,7 +6097,6 @@ bot.havePermission(<span class="hljs-number">123456</span>, PlugAPI.ROOM_ROLE.BO
           <div>
             <span class='code bold'>callback</span> <code class='quiet'>(<a href="#restcallback">RESTCallback</a>)</code>
 	    Callback function
-<p>const playlistMedias = bot.getPlaylistMedias(123456);</p>
 
           </div>
           
@@ -6045,6 +6111,12 @@ bot.havePermission(<span class="hljs-number">123456</span>, PlugAPI.ROOM_ROLE.BO
 
   
 
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'><span class="hljs-keyword">const</span> playlistMedias = bot.getPlaylistMedias(<span class="hljs-number">123456</span>);</pre>
+    
   
 
   
@@ -7045,7 +7117,7 @@ bot.moderateSetRole(<span class="hljs-number">123456</span>, bot.ROOM_ROLE.BOUNC
   
   
   
-  
+  <div>Since: 5.0.0</div>
 
   
     <div class='py1 quiet mt1 prose-big'>Parameters</div>
@@ -7230,7 +7302,7 @@ bot.moderateWaitListBan(<span class="hljs-number">123456</span>, bot.BAN_REASON.
   
   
   
-  
+  <div>Since: 5.0.0</div>
 
   
     <div class='py1 quiet mt1 prose-big'>Parameters</div>
@@ -7812,7 +7884,7 @@ bot.changeRoomWelcome(<span class="hljs-string">'Welcome %u to %r'</span>);</pre
   
   
   
-  
+  <div>Since: 5.0.0</div>
 
   
     <div class='py1 quiet mt1 prose-big'>Parameters</div>
@@ -7844,6 +7916,12 @@ bot.changeRoomWelcome(<span class="hljs-string">'Welcome %u to %r'</span>);</pre
 
   
 
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'>bot.getJar();</pre>
+    
   
 
   
@@ -7880,7 +7958,7 @@ bot.changeRoomWelcome(<span class="hljs-string">'Welcome %u to %r'</span>);</pre
   
   
   
-  
+  <div>Since: 5.1.0</div>
 
   
     <div class='py1 quiet mt1 prose-big'>Parameters</div>
@@ -7922,6 +8000,12 @@ bot.changeRoomWelcome(<span class="hljs-string">'Welcome %u to %r'</span>);</pre
   
 
   
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'>bot.setBadge(<span class="hljs-string">'raveb02'</span>);</pre>
+    
+  
 
   
 
@@ -7957,7 +8041,7 @@ bot.changeRoomWelcome(<span class="hljs-string">'Welcome %u to %r'</span>);</pre
   
   
   
-  
+  <div>Since: 5.1.0</div>
 
   
     <div class='py1 quiet mt1 prose-big'>Parameters</div>
@@ -7989,6 +8073,12 @@ bot.changeRoomWelcome(<span class="hljs-string">'Welcome %u to %r'</span>);</pre
 
   
 
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'>bot.getBadge();</pre>
+    
   
 
   
@@ -8025,7 +8115,7 @@ bot.changeRoomWelcome(<span class="hljs-string">'Welcome %u to %r'</span>);</pre
   
   
   
-  
+  <div>Since: 5.1.0</div>
 
   
     <div class='py1 quiet mt1 prose-big'>Parameters</div>
@@ -8057,6 +8147,12 @@ bot.changeRoomWelcome(<span class="hljs-string">'Welcome %u to %r'</span>);</pre
 
   
 
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'>bot.getBadges(<span class="hljs-function">(<span class="hljs-params">err, data</span>) =&gt;</span> { <span class="hljs-built_in">console</span>.log(err, data); });</pre>
+    
   
 
   
@@ -8211,105 +8307,6 @@ bot.moderateLockBooth(<span class="hljs-literal">false</span>, <span class="hljs
 
   
 
-  
-
-  
-
-  
-
-  
-</section>
-
-      </div>
-    </div>
-  
-    <div class='border-bottom' id='plugapieventadvance'>
-      <div class="clearfix small pointer toggle-sibling">
-        <div class="py1 contain">
-            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>ADVANCE</span>
-        </div>
-      </div>
-      <div class="clearfix display-none toggle-target">
-        <section class='p2 mb2 clearfix bg-white minishadow'>
-
-  
-
-  <p>This is emitted when the song has changed to another one.</p>
-
-
-  <div class='pre p1 fill-light mt0'>ADVANCE</div>
-  
-  
-
-  
-  
-  
-  
-  
-  
-
-  
-
-  
-    <div class='py1 quiet mt1 prose-big'>Properties</div>
-    <div>
-      
-        <div class='space-bottom0'>
-          <span class='code bold'>data</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</code>
-          : The advance event object
-
-          
-            <ul>
-              
-                <li><code>data.currentDJ</code> <a href="#user">User</a>
-                  
-                  <p>The current DJ that is playing.</p>
-</li>
-              
-                <li><code>data.media</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>
-                  
-                  <p>Info about the currently playing media.</p>
-</li>
-              
-                <li><code>data.lastPlay</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>
-                  
-                  <p>Information about the previously played song. This includes the DJ, Score, Media.</p>
-</li>
-              
-                <li><code>data.playlistID</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>
-                  
-                  <p>The bot's current active playlist as an ID</p>
-</li>
-              
-                <li><code>data.startTime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a>
-                  
-                  <p>When the song started playing.</p>
-</li>
-              
-                <li><code>data.historyID</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a>
-                  
-                  <p>the song's ID in history</p>
-</li>
-              
-            </ul>
-          
-        </div>
-      
-    </div>
-  
-
-  
-
-  
-
-  
-    <div class='py1 quiet mt1 prose-big'>Example</div>
-    
-      
-      <pre class='p1 overflow-auto round fill-light'>bot.on(PlugAPI.events.ADVANCE, (data) =&gt; {
-});</pre>
-    
   
 
   
@@ -9568,6 +9565,105 @@ bot.on(<span class="hljs-string">'command:skip'</span>, (data) =&gt; {
       
       <pre class='p1 overflow-auto round fill-light'>bot.on(PlugAPI.events.ROOM_WELCOME_UPDATE, (data) =&gt; {
    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`<span class="hljs-subst">${data.user.username}</span> changed the room welcome message to <span class="hljs-subst">${data.welcome}</span>`</span>);
+});</pre>
+    
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='plugapieventadvance'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>ADVANCE</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>This is emitted when the song has changed to another one.</p>
+
+
+  <div class='pre p1 fill-light mt0'>ADVANCE</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Properties</div>
+    <div>
+      
+        <div class='space-bottom0'>
+          <span class='code bold'>data</span> <code class='quiet'>(<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>)</code>
+          : The advance event object
+
+          
+            <ul>
+              
+                <li><code>data.currentDJ</code> <a href="#user">User</a>
+                  
+                  <p>The current DJ that is playing.</p>
+</li>
+              
+                <li><code>data.media</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>
+                  
+                  <p>Info about the currently playing media.</p>
+</li>
+              
+                <li><code>data.lastPlay</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object">Object</a>
+                  
+                  <p>Information about the previously played song. This includes the DJ, Score, Media.</p>
+</li>
+              
+                <li><code>data.playlistID</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>
+                  
+                  <p>The bot's current active playlist as an ID</p>
+</li>
+              
+                <li><code>data.startTime</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a>
+                  
+                  <p>When the song started playing.</p>
+</li>
+              
+                <li><code>data.historyID</code> <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String">String</a>
+                  
+                  <p>the song's ID in history</p>
+</li>
+              
+            </ul>
+          
+        </div>
+      
+    </div>
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'>bot.on(PlugAPI.events.ADVANCE, (data) =&gt; {
 });</pre>
     
   
