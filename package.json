@@ -32,15 +32,15 @@
   "dependencies": {
     "auto-bind": "^1.1.0",
     "chalk": "^2.3.0",
-    "deasync": "^0.1.10",
+    "deasync": "^0.1.11",
     "eventemitter3": "^2.0.3",
-    "got": "^7.1.0",
+    "got": "^8.0.0",
     "handle-errors": "^1.0.0",
     "jethro": "^2.7.1",
     "p-retry": "^1.0.0",
     "plug-message-split": "^1.0.1",
     "tough-cookie": "^2.3.3",
-    "ws": "^3.3.1"
+    "ws": "^3.3.2"
   },
   "devDependencies": {
     "documentation": "^5.3.3",
