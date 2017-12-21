@@ -36,7 +36,7 @@
     "eventemitter3": "^3.0.0",
     "got": "^8.0.1",
     "handle-errors": "^1.0.0",
-    "jethro": "^2.7.1",
+    "jethro": "^4.4.0",
     "p-retry": "^1.0.0",
     "plug-message-split": "^1.0.1",
     "tough-cookie": "^2.3.3",
@@ -61,7 +61,7 @@
   "main": "./lib/client.js",
   "optionalDependencies": {
     "bufferutil": "2.x || 3.x",
-    "utf-8-validate": "2.x || 3.x || 4.x"
+    "utf-8-validate": "2.x || 4.x"
   },
   "repository": "plugcubed/plugapi",
   "scripts": {
