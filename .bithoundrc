@@ -7,9 +7,8 @@
             "limit": 5000
         }
     },
-    "dependencies": {
-        "mute": [
-            "jethro"
-        ]
-    }
+    "ignore": [
+        "**/docs/**",
+        "**/node_modules/**"
+    ]
 }
