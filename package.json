@@ -45,7 +45,7 @@
   "devDependencies": {
     "documentation": "^5.3.5",
     "eslint-config-thedark1337": "^4.13.1",
-    "mocha": "^4.0.1",
+    "mocha": "^4.1.0",
     "mocha-eslint": "^4.1.0"
   },
   "engines": {
