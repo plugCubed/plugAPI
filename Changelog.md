@@ -1,6 +1,26 @@
 plugAPI Changelog
 =================
 
+5.1.0
+----
+* **ADDED:** Added methods to set / get badges (Commit [1ff7f73](https://github.com/plugCubed/plugAPI/commit/1ff7f7335a))
+* **CHANGED:**  Remove logging for some plugdj events and ignore instead (Will still be emitted) (Commit [8e8474c](https://github.com/plugcubed/plugapi/commit/8e8474c05d))
+* **CHANGED:**  Parse strings as numbers in API methods that require it (Commit [8e8474c](https://github.com/plugcubed/plugapi/commit/8e8474c05d))
+* **CHANGED:** Also accept 0 for sendChat delete timeout (Commit [c7a28ef](https://github.com/plugcubed/plugapi/commit/c7a28efdca))
+* **CHANGED:** Websocket URL has been changed to ws-prod.plug.dj (Commit [3138c43](https://github.com/plugCubed/plugAPI/commit/3138c43156caeb1dcae7b4aa62d299624a05aef4))
+* **CHANGED:** Get History before setting ADVANCE object on startup (Commit [349f478](https://github.com/plugCubed/plugAPI/commit/349f4781fd0cf815b279daab460304d01ac2ba07))
+* **FIXED:**  HTTP Status checks for API routes (Commit [8e8474c](https://github.com/plugcubed/plugapi/commit/8e8474c05d))
+* **FIXED:** Return empty array if currentDJ or waitingDJs is null for getWaitList & getDJs (Commit [8e63576](https://github.com/plugcubed/plugapi/commit/8e63576c33))
+* **FIXED:** Set grabs properly (Commit [484fdb2](https://github.com/plugcubed/plugapi/commit/484fdb2a50))
+* **FIXED:** Error swallowing with API requests. (Commit [6b44907](https://github.com/plugcubed/plugapi/commit/6b449073cf))
+* **FIXED:** Permissions for global roles (Commit [4c2c545](https://github.com/plugcubed/plugapi/commit/4c2c545fa9))
+* **FIXED:** endpoint for waitlist unban (Commit [cb6825c](https://github.com/plugcubed/plugapi/commit/cb6825cf4f)])
+* **FIXED:** revert bot.mutedTriggerNormalEvents conditional change in chat event (Commit [00af49c](https://github.com/plugcubed/plugapi/commit/00af49c8ed))
+* **FIXED:** Do not assume we were given a valid array for room.usersToArray (Commit [d99576b](https://github.com/plugcubed/plugapi/commit/d99576bd4e))
+* **FIXED:** Command args should now convert properly for mentioned users. Also filter out empty strings and null/undefined. (Commit [a1b8bc0](https://github.com/plugcubed/plugapi/commit/a1b8bc045e))
+* **UPDATED:** Message splitting & escaping now provided by [plug-message-split](https://www.npmjs.com/package/plug-message-split) (Commit [54f7077](https://github.com/plugcubed/plugapi/commit/54f70775b7))
+* **UPDATED:** Throw on joining room if user is banned, room is over capacity or other error. (Commit [bead8c8](https://github.com/plugCubed/plugAPI/commit/bead8c86be16bf4fe5bd10dd22ec2394029ba5cf))
+* **UPDATED:** Add URL on 403 error (Commit [dd9d4c1](https://github.com/plugCubed/plugAPI/commit/dd9d4c16f796b5897660d9ae06bf0c675d821221))
 
 5.0.0
 ----
