@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset='utf-8' />
-  <title>plugAPI 5.0.0 | Documentation</title>
+  <title>plugAPI 5.1.0 | Documentation</title>
   <meta name='viewport' content='width=device-width,initial-scale=1'>
   <link href='assets/bass.css' type='text/css' rel='stylesheet' />
   <link href='assets/style.css' type='text/css' rel='stylesheet' />
@@ -14,7 +14,7 @@
       <div id='split-left' class='overflow-auto fs0 height-viewport-100'>
         <div class='py1 px2'>
           <h3 class='mb0 no-anchor'>plugAPI</h3>
-          <div class='mb1'><code>5.0.0</code></div>
+          <div class='mb1'><code>5.1.0</code></div>
           <input
             placeholder='Filter'
             id='filter-input'
@@ -620,30 +620,6 @@
                         </a></li>
                       
                         <li><a
-                          href='#plugapieventmoderate_wlban'
-                          class='regular pre-open'>
-                          ⓔ MODERATE_WLBAN
-                        </a></li>
-                      
-                        <li><a
-                          href='#plugapieventroom_name_update'
-                          class='regular pre-open'>
-                          ⓔ ROOM_NAME_UPDATE
-                        </a></li>
-                      
-                        <li><a
-                          href='#plugapieventmoderate_staff'
-                          class='regular pre-open'>
-                          ⓔ MODERATE_STAFF
-                        </a></li>
-                      
-                        <li><a
-                          href='#plugapieventmoderate_ban'
-                          class='regular pre-open'>
-                          ⓔ MODERATE_BAN
-                        </a></li>
-                      
-                        <li><a
                           href='#plugapieventmoderate_mute'
                           class='regular pre-open'>
                           ⓔ MODERATE_MUTE
@@ -710,6 +686,12 @@
                         </a></li>
                       
                         <li><a
+                          href='#plugapieventmoderate_wlban'
+                          class='regular pre-open'>
+                          ⓔ MODERATE_WLBAN
+                        </a></li>
+                      
+                        <li><a
                           href='#plugapieventcommand'
                           class='regular pre-open'>
                           ⓔ COMMAND
@@ -749,6 +731,24 @@
                           href='#plugapieventmoderate_skip'
                           class='regular pre-open'>
                           ⓔ MODERATE_SKIP
+                        </a></li>
+                      
+                        <li><a
+                          href='#plugapieventroom_name_update'
+                          class='regular pre-open'>
+                          ⓔ ROOM_NAME_UPDATE
+                        </a></li>
+                      
+                        <li><a
+                          href='#plugapieventmoderate_staff'
+                          class='regular pre-open'>
+                          ⓔ MODERATE_STAFF
+                        </a></li>
+                      
+                        <li><a
+                          href='#plugapieventmoderate_ban'
+                          class='regular pre-open'>
+                          ⓔ MODERATE_BAN
                         </a></li>
                       
                     </ul>
@@ -1912,6 +1912,11 @@ Code obtained from <a href="http://rosettacode.org/wiki/Levenshtein_distance#Jav
 
   <div class='pre p1 fill-light mt0'>commandPrefix</div>
   
+    <p>
+      Type:
+      <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">String</a>
+    </p>
+  
   
 
   
@@ -1957,6 +1962,11 @@ Code obtained from <a href="http://rosettacode.org/wiki/Levenshtein_distance#Jav
 
 
   <div class='pre p1 fill-light mt0'>multiLine</div>
+  
+    <p>
+      Type:
+      <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a>
+    </p>
   
   
 
@@ -2004,6 +2014,11 @@ Code obtained from <a href="http://rosettacode.org/wiki/Levenshtein_distance#Jav
 
   <div class='pre p1 fill-light mt0'>multiLineLimit</div>
   
+    <p>
+      Type:
+      <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Number">Number</a>
+    </p>
+  
   
 
   
@@ -2049,6 +2064,11 @@ Code obtained from <a href="http://rosettacode.org/wiki/Levenshtein_distance#Jav
 
 
   <div class='pre p1 fill-light mt0'>processOwnMessages</div>
+  
+    <p>
+      Type:
+      <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a>
+    </p>
   
   
 
@@ -2096,6 +2116,11 @@ Code obtained from <a href="http://rosettacode.org/wiki/Levenshtein_distance#Jav
 
   <div class='pre p1 fill-light mt0'>deleteCommands</div>
   
+    <p>
+      Type:
+      <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a>
+    </p>
+  
   
 
   
@@ -2141,6 +2166,11 @@ Code obtained from <a href="http://rosettacode.org/wiki/Levenshtein_distance#Jav
 
 
   <div class='pre p1 fill-light mt0'>deleteMessageBlocks</div>
+  
+    <p>
+      Type:
+      <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">boolean</a>
+    </p>
   
   
 
@@ -2189,6 +2219,11 @@ Note: This will NOT delete gRole chat.</p>
 
   <div class='pre p1 fill-light mt0'>deleteAllChat</div>
   
+    <p>
+      Type:
+      <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a>
+    </p>
+  
   
 
   
@@ -2234,6 +2269,11 @@ Note: This will NOT delete gRole chat.</p>
 
 
   <div class='pre p1 fill-light mt0'>mutedTriggerNormalEvents</div>
+  
+    <p>
+      Type:
+      <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Boolean">Boolean</a>
+    </p>
   
   
 
@@ -5030,7 +5070,7 @@ bot.havePermission(<span class="hljs-number">123456</span>, PlugAPI.ROOM_ROLE.BO
     <div class='py1 quiet mt1 prose-big'>Example</div>
     
       
-      <pre class='p1 overflow-auto round fill-light'>bot.setSocketURL(<span class="hljs-string">'wss://godj.plug.dj'</span>);</pre>
+      <pre class='p1 overflow-auto round fill-light'>bot.setSocketURL(<span class="hljs-string">'wss://ws-prod.plug.dj'</span>);</pre>
     
   
 
@@ -8179,228 +8219,6 @@ bot.moderateLockBooth(<span class="hljs-literal">false</span>, <span class="hljs
       </div>
     </div>
   
-    <div class='border-bottom' id='plugapieventmoderate_wlban'>
-      <div class="clearfix small pointer toggle-sibling">
-        <div class="py1 contain">
-            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>MODERATE_WLBAN</span>
-        </div>
-      </div>
-      <div class="clearfix display-none toggle-target">
-        <section class='p2 mb2 clearfix bg-white minishadow'>
-
-  
-
-  <p>This is emitted when a user is banned from waitList.</p>
-
-
-  <div class='pre p1 fill-light mt0'>MODERATE_WLBAN</div>
-  
-  
-
-  
-  
-  
-  
-  
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <div class='py1 quiet mt1 prose-big'>Example</div>
-    
-      
-      <pre class='p1 overflow-auto round fill-light'>bot.on(PlugAPI.events.MODERATE_WLBAN, (data) =&gt; {
-   <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`<span class="hljs-subst">${data.moderator.username}</span> banned <span class="hljs-subst">${data.user}</span> from the waitList <span class="hljs-subst">${data.duration}</span>`</span>);
-});</pre>
-    
-  
-
-  
-
-  
-
-  
-</section>
-
-      </div>
-    </div>
-  
-    <div class='border-bottom' id='plugapieventroom_name_update'>
-      <div class="clearfix small pointer toggle-sibling">
-        <div class="py1 contain">
-            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>ROOM_NAME_UPDATE</span>
-        </div>
-      </div>
-      <div class="clearfix display-none toggle-target">
-        <section class='p2 mb2 clearfix bg-white minishadow'>
-
-  
-
-  <p>This is emitted when the room name has changed.</p>
-
-
-  <div class='pre p1 fill-light mt0'>ROOM_NAME_UPDATE</div>
-  
-  
-
-  
-  
-  
-  
-  
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <div class='py1 quiet mt1 prose-big'>Example</div>
-    
-      
-      <pre class='p1 overflow-auto round fill-light'>bot.on(PlugAPI.events.ROOM_NAME_UPDATE, (data) =&gt; {
-   <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`<span class="hljs-subst">${data.user.username}</span> changed the room name to <span class="hljs-subst">${data.name}</span>`</span>);
-});</pre>
-    
-  
-
-  
-
-  
-
-  
-</section>
-
-      </div>
-    </div>
-  
-    <div class='border-bottom' id='plugapieventmoderate_staff'>
-      <div class="clearfix small pointer toggle-sibling">
-        <div class="py1 contain">
-            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>MODERATE_STAFF</span>
-        </div>
-      </div>
-      <div class="clearfix display-none toggle-target">
-        <section class='p2 mb2 clearfix bg-white minishadow'>
-
-  
-
-  <p>This event is emitted when staff roles are changed.</p>
-
-
-  <div class='pre p1 fill-light mt0'>MODERATE_STAFF</div>
-  
-  
-
-  
-  
-  
-  
-  
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <div class='py1 quiet mt1 prose-big'>Example</div>
-    
-      
-      <pre class='p1 overflow-auto round fill-light'>bot.on(PlugAPI.events.MODERATE_STAFF, (data) =&gt; {
-   <span class="hljs-keyword">if</span> (data.users.length &gt; <span class="hljs-number">0</span>) {
-     <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`<span class="hljs-subst">${data.moderator.username}</span> has changed <span class="hljs-subst">${data.users.map((item) =&gt; {
-         <span class="hljs-keyword">if</span> (item.user != <span class="hljs-literal">null</span>) {
-             <span class="hljs-keyword">return</span> <span class="hljs-string">`<span class="hljs-subst">${item.user.username}</span> to <span class="hljs-subst">${item.role}</span>`</span>;
-         }</span>
-     })}`</span>);
-   }
-});</pre>
-    
-  
-
-  
-
-  
-
-  
-</section>
-
-      </div>
-    </div>
-  
-    <div class='border-bottom' id='plugapieventmoderate_ban'>
-      <div class="clearfix small pointer toggle-sibling">
-        <div class="py1 contain">
-            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
-            <span class='code strong strong truncate'>MODERATE_BAN</span>
-        </div>
-      </div>
-      <div class="clearfix display-none toggle-target">
-        <section class='p2 mb2 clearfix bg-white minishadow'>
-
-  
-
-  <p>This is emitted when a user is banned</p>
-
-
-  <div class='pre p1 fill-light mt0'>MODERATE_BAN</div>
-  
-  
-
-  
-  
-  
-  
-  
-  
-
-  
-
-  
-
-  
-
-  
-
-  
-    <div class='py1 quiet mt1 prose-big'>Example</div>
-    
-      
-      <pre class='p1 overflow-auto round fill-light'>bot.on(PlugAPI.events.MODERATE_BAN, (data) =&gt; {
-   <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`<span class="hljs-subst">${data.moderator.username}</span> banned <span class="hljs-subst">${data.user}</span> <span class="hljs-subst">${data.duration}</span>`</span>);
-});</pre>
-    
-  
-
-  
-
-  
-
-  
-</section>
-
-      </div>
-    </div>
-  
     <div class='border-bottom' id='plugapieventmoderate_mute'>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
@@ -9022,6 +8840,60 @@ bot.moderateLockBooth(<span class="hljs-literal">false</span>, <span class="hljs
       </div>
     </div>
   
+    <div class='border-bottom' id='plugapieventmoderate_wlban'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>MODERATE_WLBAN</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>This is emitted when a user is banned from waitList.</p>
+
+
+  <div class='pre p1 fill-light mt0'>MODERATE_WLBAN</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'>bot.on(PlugAPI.events.MODERATE_WLBAN, (data) =&gt; {
+   <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`<span class="hljs-subst">${data.moderator.username}</span> banned <span class="hljs-subst">${data.user}</span> from the waitList <span class="hljs-subst">${data.duration}</span>`</span>);
+});</pre>
+    
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
     <div class='border-bottom' id='plugapieventcommand'>
       <div class="clearfix small pointer toggle-sibling">
         <div class="py1 contain">
@@ -9450,7 +9322,7 @@ bot.on(<span class="hljs-string">'command:skip'</span>, (data) =&gt; {
               
                 <li><code>data.type</code> <a href="https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/String">String</a>
                   
-                  <p>The message type (mention, emote, messaage)</p>
+                  <p>The message type (mention, emote, message)</p>
 </li>
               
             </ul>
@@ -9525,6 +9397,174 @@ bot.on(<span class="hljs-string">'command:skip'</span>, (data) =&gt; {
       <pre class='p1 overflow-auto round fill-light'>bot.on(PlugAPI.events.MODERATE_SKIP, (data) =&gt; {
    <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`<span class="hljs-subst">${data.user.username}</span> Skipped the song`</span>);
 })</pre>
+    
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='plugapieventroom_name_update'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>ROOM_NAME_UPDATE</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>This is emitted when the room name has changed.</p>
+
+
+  <div class='pre p1 fill-light mt0'>ROOM_NAME_UPDATE</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'>bot.on(PlugAPI.events.ROOM_NAME_UPDATE, (data) =&gt; {
+   <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`<span class="hljs-subst">${data.user.username}</span> changed the room name to <span class="hljs-subst">${data.name}</span>`</span>);
+});</pre>
+    
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='plugapieventmoderate_staff'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>MODERATE_STAFF</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>This event is emitted when staff roles are changed.</p>
+
+
+  <div class='pre p1 fill-light mt0'>MODERATE_STAFF</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'>bot.on(PlugAPI.events.MODERATE_STAFF, (data) =&gt; {
+   <span class="hljs-keyword">if</span> (data.users.length &gt; <span class="hljs-number">0</span>) {
+     <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`<span class="hljs-subst">${data.moderator.username}</span> has changed <span class="hljs-subst">${data.users.map((item) =&gt; {
+         <span class="hljs-keyword">if</span> (item.user != <span class="hljs-literal">null</span>) {
+             <span class="hljs-keyword">return</span> <span class="hljs-string">`<span class="hljs-subst">${item.user.username}</span> to <span class="hljs-subst">${item.role}</span>`</span>;
+         }</span>
+     })}`</span>);
+   }
+});</pre>
+    
+  
+
+  
+
+  
+
+  
+</section>
+
+      </div>
+    </div>
+  
+    <div class='border-bottom' id='plugapieventmoderate_ban'>
+      <div class="clearfix small pointer toggle-sibling">
+        <div class="py1 contain">
+            <a class='icon pin-right py1 dark-link caret-right'>▸</a>
+            <span class='code strong strong truncate'>MODERATE_BAN</span>
+        </div>
+      </div>
+      <div class="clearfix display-none toggle-target">
+        <section class='p2 mb2 clearfix bg-white minishadow'>
+
+  
+
+  <p>This is emitted when a user is banned</p>
+
+
+  <div class='pre p1 fill-light mt0'>MODERATE_BAN</div>
+  
+  
+
+  
+  
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    <div class='py1 quiet mt1 prose-big'>Example</div>
+    
+      
+      <pre class='p1 overflow-auto round fill-light'>bot.on(PlugAPI.events.MODERATE_BAN, (data) =&gt; {
+   <span class="hljs-built_in">console</span>.log(<span class="hljs-string">`<span class="hljs-subst">${data.moderator.username}</span> banned <span class="hljs-subst">${data.user}</span> <span class="hljs-subst">${data.duration}</span>`</span>);
+});</pre>
     
   
 
