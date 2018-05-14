@@ -1,7 +1,8 @@
-before_install: if [[ `npm -v` != 5* ]]; then npm i -g npm@5; fi
+before_install: if [[ `npm -v` != 6* ]]; then npm i -g npm@6; fi
 sudo: false
 language: node_js
 node_js:
+  - '10'
   - '8'
   - '6'
   - '4'
@@ -10,3 +11,5 @@ notifications:
     urls:
       - https://webhooks.tfle.xyz/travis
     on_start: always
+install:
+  - npm ci
