@@ -50,7 +50,7 @@
 	"USER_JOIN": "userJoin",
 	"USER_LEAVE": "userLeave",
 	"USER_UPDATE": "userUpdate",
-	"VOTE": "vote"
-
-
+	"VOTE": "vote",
+	"API_FLOOD": "floodAPI",
+	"IP_BANNED": "banIP"
 }
