@@ -1,7 +1,15 @@
 module.exports = {
     extends: 'thedark1337',
     rules: {
+        camelcase: [2, {
+            allow: [
+            'long_description',
+            'short_description'
+            ],
+            properties: 'always'
+        }],
         'func-style': 0,
+        'max-lines-per-function' :0,
         'newline-per-chained-call': 0,
         'no-negated-condition': 0,
         'no-sync': 0,
