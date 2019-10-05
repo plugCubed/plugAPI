@@ -1,6 +1,11 @@
 plugAPI Changelog
 =================
 
+5.1.1
+---
+* **UPDATED:** Dependencies to latest versions. (Commit [18f9c01](https://github.com/plugCubed/plugAPI/commit/18f9c019814f261df224254ee96c77feaaf2a2fc))
+* **ADDED/CHANGED:** Added in ability to change both long description and short description (Commit [7f53b32](https://github.com/plugCubed/plugAPI/commit/7f53b32d468f9b1114cb1cf2c7721be439893bed))
+
 5.1.0
 ----
 * **ADDED:** Added methods to set / get badges (Commit [1ff7f73](https://github.com/plugCubed/plugAPI/commit/1ff7f7335a))

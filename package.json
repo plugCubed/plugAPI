@@ -1,7 +1,7 @@
 {
   "name": "plugapi",
   "description": "Generic API for building plug.dj bots",
-  "version": "5.1.0",
+  "version": "5.1.1",
   "author": "Alex Pham <thedark1337@thedark1337.com> (https://thedark1337.com)",
   "bugs": "https://github.com/plugCubed/plugAPI/issues",
   "contributors": [
